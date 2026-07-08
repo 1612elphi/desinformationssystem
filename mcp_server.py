@@ -21,7 +21,9 @@ mcp = FastMCP(
         "Tagesordnungspunkte -> Dateien (PDF documents). Use search_documents for "
         "full-text + faceted search; document/meeting tools return full metadata. "
         "Dates are ISO (YYYY-MM-DD). Document fields include German+English summaries, "
-        "a category, topic tags and extracted entities."
+        "a category, topic tags and extracted entities. Parsed vote tallies "
+        "(Abstimmungsergebnisse, incl. per-member roll-call) are available via "
+        "search_votes / get_votes and inside get_meeting."
     ),
     host="0.0.0.0",
     port=int(os.environ.get("MCP_PORT", "3651")),
@@ -112,10 +114,53 @@ def get_committee(committee_id: str) -> dict:
 
 @mcp.tool()
 def get_meeting(meeting_id: str) -> dict:
-    """Return one meeting with its agenda items and attached documents.
+    """Return one meeting with its agenda items, attached documents and parsed
+    vote tallies ('votes': per-TOP Ja/Nein/Enthaltung + member roll-call).
     meeting_id is the RIS slug, e.g. 'termin-10526'."""
     m = db.get_meeting(meeting_id)
     return m or {"error": "not found", "meeting_id": meeting_id}
+
+
+@mcp.tool()
+def search_votes(
+    committee: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    member: Optional[str] = None,
+    query: Optional[str] = None,
+    include_members: bool = False,
+    limit: int = 50,
+    offset: int = 0,
+) -> dict:
+    """Search parsed vote tallies (Abstimmungsergebnisse) across all meetings,
+    newest first. Tallies come from the live ticker and the official result PDFs
+    ('source': 'live' | 'pdf'; pdf is authoritative).
+
+    Args:
+        committee: committee name or id (Gremium) to filter by.
+        date_from / date_to: ISO dates bounding the meeting date.
+        member: council-member name (substring, case-insensitive); each hit then
+            carries 'member_votes' with how the matching member(s) voted
+            (ja / nein / enthaltung / abwesend).
+        query: substring match on TOP label, result text or agenda-item title.
+        include_members: True = include the full per-member roll-call per vote
+            (large; default off — use get_votes/get_meeting for one meeting).
+        limit / offset: pagination (limit <= 200).
+    Returns: {"total": int, "results": [vote, ...]} — each vote has meeting_id,
+    body_name, meeting_date, top_label, agenda_number/title, ja/nein/enthaltung
+    counts and result_text."""
+    return db.search_votes(
+        committee=committee, date_from=date_from, date_to=date_to, member=member,
+        query=query, include_members=include_members,
+        limit=min(limit, 200), offset=offset,
+    )
+
+
+@mcp.tool()
+def get_votes(meeting_id: str) -> dict:
+    """All parsed vote tallies for one meeting, in agenda (TOP) order, including
+    the full per-member roll-call. meeting_id is the RIS slug, e.g. 'termin-10526'."""
+    return {"meeting_id": meeting_id, "votes": db.meeting_votes(meeting_id)}
 
 
 @mcp.tool()
@@ -126,7 +171,7 @@ def recent_documents(since: Optional[str] = None, limit: int = 25) -> dict:
 
 @mcp.tool()
 def stats() -> dict:
-    """Index statistics: counts of bodies/meetings/documents and last scrape time."""
+    """Index statistics: counts of bodies/meetings/documents/votes and last scrape time."""
     return db.stats()
 
 

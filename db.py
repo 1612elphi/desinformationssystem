@@ -449,6 +449,77 @@ def meeting_votes(meeting_id: str) -> list[dict[str, Any]]:
     return out
 
 
+def search_votes(
+    committee: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    member: Optional[str] = None,
+    query: Optional[str] = None,
+    include_members: bool = False,
+    limit: int = 50,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """Cross-meeting search over parsed vote tallies, newest meeting first.
+
+    member matches roll-call names (json_each over the members JSON); matching
+    entries are returned as member_votes. Full roll-calls only on include_members
+    to keep list payloads small."""
+    conn = get_conn()
+    where, params = [], []
+    if committee:
+        where.append("(m.body_name = ? OR m.body_id = ?)")
+        params.extend([committee, committee])
+    if date_from:
+        where.append("m.date >= ?"); params.append(date_from)
+    if date_to:
+        where.append("m.date <= ?"); params.append(date_to)
+    if member:
+        where.append(
+            """EXISTS (SELECT 1 FROM json_each(COALESCE(v.members,'[]')) je
+                       WHERE json_extract(je.value,'$.name') LIKE '%' || ? || '%')""")
+        params.append(member)
+    if query:
+        where.append(
+            "(v.top_label LIKE ? OR v.result_text LIKE ? OR COALESCE(ai.title,'') LIKE ?)")
+        params.extend([f"%{query}%"] * 3)
+    where_sql = (" WHERE " + " AND ".join(where)) if where else ""
+    base = f"""FROM votes v
+               JOIN meetings m ON m.id = v.meeting_id
+               LEFT JOIN agenda_items ai
+                 ON ai.meeting_id = v.meeting_id AND ai.anchor = v.agenda_anchor
+               {where_sql}"""
+    total = conn.execute(f"SELECT COUNT(*) {base}", params).fetchone()[0]
+    rows = conn.execute(
+        f"""SELECT v.meeting_id, v.agenda_anchor, v.top_label, v.result_text,
+                   v.ja, v.nein, v.enthaltung, v.members, v.source, v.file_id,
+                   m.body_name, m.body_id, m.date AS meeting_date,
+                   ai.number AS agenda_number, ai.title AS agenda_title
+            {base}
+            ORDER BY m.date DESC,
+                     CAST(REPLACE(REPLACE(COALESCE(v.top_label,''),'TOP ',''),'.','') AS INTEGER)
+            LIMIT ? OFFSET ?""",
+        [*params, limit, offset]).fetchall()
+    needle = member.casefold() if member else None
+    results = []
+    for r in rows:
+        d = dict(r)
+        roll = None
+        if d.get("members"):
+            try:
+                roll = json.loads(d["members"])
+            except (ValueError, TypeError):
+                roll = None
+        if needle and roll:
+            d["member_votes"] = [e for e in roll
+                                 if needle in str(e.get("name", "")).casefold()]
+        if include_members:
+            d["members"] = roll
+        else:
+            d.pop("members")
+        results.append(d)
+    return {"total": total, "results": results}
+
+
 def upsert_vote(conn: sqlite3.Connection, v: dict) -> None:
     """Insert/update a vote keyed by meeting_id:agenda_anchor.
 
@@ -580,6 +651,8 @@ def stats() -> dict[str, Any]:
         "documents": g("SELECT COUNT(*) FROM files"),
         "with_text": g("SELECT COUNT(*) FROM files WHERE text_status='ok'"),
         "enriched": g("SELECT COUNT(*) FROM files WHERE enrich_status='ok'"),
+        "votes": g("SELECT COUNT(*) FROM votes"),
+        "votes_with_rollcall": g("SELECT COUNT(*) FROM votes WHERE members IS NOT NULL"),
         "last_scrape": get_meta("last_scrape"),
         "last_scrape_status": get_meta("last_scrape_status"),
     }

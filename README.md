@@ -81,7 +81,7 @@ links with descriptive labels), so we parse that. PDFs are pulled directly from 
 - `web/` — Vite + React + TS SPA using `@carbon/react`
 - `mcp_server.py` — MCP tools: `search_documents`, `get_document`,
   `list_committees`, `get_committee`, `list_meetings`, `get_meeting`,
-  `recent_documents`, `stats`
+  `search_votes`, `get_votes`, `recent_documents`, `stats`
 
 ## Deploy
 
