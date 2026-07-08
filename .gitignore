@@ -1,0 +1,18 @@
+# Archive data (SQLite DB + cached PDFs) — lives outside git
+data/
+
+# Python
+__pycache__/
+*.pyc
+
+# Frontend
+web/node_modules/
+web/dist/
+
+# Secrets
+.env
+
+# SQLite scratch
+*.db
+*.db-wal
+*.db-shm

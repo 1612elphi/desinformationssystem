@@ -1,0 +1,49 @@
+# Desinformationssystem — Karlsruhe Sitzungskalender archive.
+# One image (multi-stage: Carbon SPA + Python), four roles sharing ./data.
+#
+# This is the portable, clone-and-run compose (relative paths). Note that
+# compose resolves relative paths against the compose file, but `~` against
+# the invoking shell's HOME — under sudo that's /root, so if you move this
+# file elsewhere, use absolute paths for the build context and volumes.
+
+x-common: &common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: desinformationssystem:latest
+  env_file: .env
+  user: "1000:1000"
+  volumes:
+    - ./data:/app/data
+  restart: unless-stopped
+
+services:
+  scraper:
+    <<: *common
+    container_name: desinfo-scraper
+    environment:
+      - ROLE=scraper
+
+  web:
+    <<: *common
+    container_name: desinfo-web
+    environment:
+      - ROLE=web
+      - WEB_PORT=3650
+    ports:
+      - "3650:3650"
+
+  mcp:
+    <<: *common
+    container_name: desinfo-mcp
+    environment:
+      - ROLE=mcp
+      - MCP_PORT=3651
+    ports:
+      - "3651:3651"
+
+  ticker:
+    <<: *common
+    container_name: desinfo-ticker
+    environment:
+      - ROLE=ticker
