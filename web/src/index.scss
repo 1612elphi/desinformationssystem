@@ -246,7 +246,9 @@ body { margin: 0; background: var(--cds-background); }
 .dis-vote__result { color: var(--cds-text-secondary); margin-bottom: 0.4rem; }
 .dis-vote__tally { display: flex; gap: 1.25rem; font-variant-numeric: tabular-nums; }
 .dis-vote__n { font-size: 1.05rem; }
-.dis-vote__ja   { color: var(--cds-support-success); }
+/* Vote semantics follow the council's own SITZUNG-LIVE panel: YELLOW = Ja,
+   RED = Nein, GREY = Enthaltung. (Also deutan-safe, unlike green/red.) */
+.dis-vote__ja   { color: #f1c21b; }
 .dis-vote__nein { color: var(--cds-support-error); }
 .dis-vote__enth { color: var(--cds-text-secondary); }
 .dis-vote__roll { margin-top: 0.5rem; }
@@ -256,7 +258,89 @@ body { margin: 0; background: var(--cds-background); }
   font-size: 0.75rem; padding: 0.1rem 0.4rem; border-radius: 2px;
   background: var(--cds-layer); border-left: 3px solid var(--cds-border-strong);
 }
-.dis-vote__m--ja   { border-left-color: var(--cds-support-success); }
+.dis-vote__m--ja   { border-left-color: #f1c21b; }
 .dis-vote__m--nein { border-left-color: var(--cds-support-error); }
-.dis-vote__m--enthaltung { border-left-color: var(--cds-support-warning); }
+.dis-vote__m--enthaltung { border-left-color: var(--cds-border-strong); }
 .dis-vote__m--abwesend { opacity: 0.5; }
+
+/* ---- FTS match snippets ---- */
+.dis-doccell { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.dis-snippet {
+  display: block; font-size: 0.75rem; color: var(--cds-text-secondary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42rem;
+}
+.dis-snippet mark {
+  background: rgba(69, 137, 255, 0.25); color: var(--cds-text-primary);
+  border-radius: 2px; padding: 0 1px;
+}
+
+/* ---- feed / calendar links ---- */
+.dis-feed-link {
+  display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.9rem;
+  color: var(--cds-link-primary); text-decoration: none; font-size: 0.8rem;
+}
+.dis-feed-link:hover { text-decoration: underline; }
+
+/* ---- document version history ---- */
+.dis-versions { margin: 0.25rem 0 0.5rem; padding-left: 1.1rem; }
+.dis-versions li { margin-bottom: 0.25rem; }
+.dis-versions a { color: var(--cds-link-primary); }
+
+/* ---- vote chip (person record) ---- */
+.dis-votechip {
+  font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 2px;
+  background: var(--cds-layer); border-left: 3px solid var(--cds-border-strong);
+  white-space: nowrap;
+}
+.dis-votechip--ja   { border-left-color: #f1c21b; }
+.dis-votechip--nein { border-left-color: var(--cds-support-error); }
+.dis-votechip--enthaltung { border-left-color: var(--cds-border-strong); }
+.dis-votechip--abwesend { opacity: 0.55; }
+
+/* ---- Vorlage lifecycle timeline ---- */
+.dis-vorlage-title { color: var(--cds-text-secondary); margin: 0 0 0.75rem; }
+.dis-timeline { list-style: none; margin: 0.5rem 0; padding: 0; }
+.dis-timeline > li {
+  position: relative; padding: 0 0 1rem 1.4rem;
+  border-left: 2px solid var(--cds-border-subtle); margin-left: 0.4rem;
+}
+.dis-timeline > li:last-child { border-left-color: transparent; }
+.dis-timeline > li::before {
+  content: ""; position: absolute; left: -6px; top: 0.2rem;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--cds-border-interactive);
+}
+.dis-timeline__head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.dis-timeline__date { font-variant-numeric: tabular-nums; color: var(--cds-text-secondary); }
+.dis-timeline__body { font-weight: 600; }
+.dis-timeline__docs { margin-top: 0.35rem; display: flex; flex-direction: column; gap: 0.15rem; }
+
+/* ---- Statistik ---- */
+.dis-statsview h4 { margin-top: 1.75rem; }
+.dis-bars { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.75rem; }
+.dis-bar-row { display: flex; align-items: center; gap: 0.75rem; min-height: 1.5rem; }
+.dis-bar-label { flex: 0 0 4.5rem; }
+.dis-bar-track {
+  flex: 0 0 16rem; max-width: 40vw; height: 12px;
+  background: var(--cds-layer); border-radius: 2px; overflow: hidden;
+  display: flex; gap: 2px; /* 2px surface gap between stacked segments */
+}
+.dis-bar-fill { background: #4589ff; height: 100%; border-radius: 2px; }
+.dis-bar-value { font-variant-numeric: tabular-nums; min-width: 3.2rem; }
+.dis-votetext { min-width: 12rem; font-size: 0.8rem; }
+/* segment fills = the panel palette (validated deutan-safe), labels always beside */
+.dis-seg { height: 100%; border-radius: 1px; }
+.dis-seg--ja   { background: #f1c21b; }
+.dis-seg--nein { background: #fa4d56; }
+.dis-seg--enth { background: #8d8d8d; }
+
+.dis-matrix-wrap { overflow-x: auto; margin-top: 0.75rem; }
+.dis-matrix { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.dis-matrix th, .dis-matrix td {
+  padding: 0.35rem 0.6rem; text-align: center; min-width: 3rem;
+  border: 1px solid var(--cds-border-subtle); font-size: 0.8rem;
+}
+.dis-matrix th { color: var(--cds-text-secondary); font-weight: 600; background: var(--cds-layer); }
+.dis-matrix td { color: var(--cds-text-primary); }
+.dis-matrix__self { background: var(--cds-layer); }
+.dis-dissenters { margin-top: 0.75rem; }

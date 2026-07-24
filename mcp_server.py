@@ -182,6 +182,48 @@ def stats() -> dict:
     return db.stats()
 
 
+@mcp.tool()
+def list_people(name: Optional[str] = None) -> dict:
+    """Council members across all committees. Optional case-insensitive name filter.
+    Returns person_id, name, party, party_code and committee memberships."""
+    people = db.list_people()
+    if name:
+        needle = name.casefold()
+        people = [p for p in people if needle in (p["name"] or "").casefold()]
+    return {"people": people}
+
+
+@mcp.tool()
+def get_person(person_id: str) -> dict:
+    """One council member: committee memberships plus their full roll-call voting
+    record (matched from parsed vote tallies) and a vote summary. person_id is the
+    numeric RIS people id (from list_people or committee rosters)."""
+    p = db.get_person(person_id)
+    return p or {"error": "not found", "person_id": person_id}
+
+
+@mcp.tool()
+def get_vorlage(nummer: str) -> dict:
+    """Lifecycle of a Vorlage (council proposal) by its Vorlagennummer, e.g.
+    '2026/0324': every meeting where a document owns or mentions the number —
+    committee pre-discussion through council decision — with the documents and
+    any parsed vote result per station."""
+    import re as _re
+    if not _re.fullmatch(r"20\d{2}/\d{3,5}", nummer or ""):
+        return {"error": "invalid Vorlagennummer (expected e.g. 2026/0324)", "nummer": nummer}
+    chain = db.vorlage_chain(nummer)
+    return chain or {"error": "not found", "nummer": nummer}
+
+
+@mcp.tool()
+def vote_stats() -> dict:
+    """Aggregate voting analytics across all parsed roll-call tallies: per-party
+    cohesion/attendance, pairwise party agreement, top dissenters (members voting
+    against their party line). Party attribution is surname-matched; unattributable
+    roll-call entries are excluded, not guessed."""
+    return db.vote_analytics()
+
+
 if __name__ == "__main__":
     db.init_db()
     mcp.run(transport="streamable-http")

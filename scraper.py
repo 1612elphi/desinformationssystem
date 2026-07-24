@@ -22,6 +22,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -96,6 +97,42 @@ def classify(label: str) -> str:
         if kw in low:
             return t
     return "Sonstiges"
+
+
+# --- Vorlagennummer extraction --------------------------------------------
+# Headers read "Vorlage: 2026/0324"; agenda/minutes documents mention many
+# numbers — those mentions are the lifecycle stations of a Vorlage.
+_VORLAGE_RE = re.compile(
+    r"(?:Vorlage|Drucksache)(?:n-?\s?Nr\.?|nummer)?\s*[:\s]\s*(20\d{2}\s*[/-]\s*\d{3,5})")
+# Doc types whose header number is the document's OWN Vorlagennummer.
+_OWN_VORLAGE_TYPES = {"Beschlussvorlage", "Vorlage", "Antrag", "Anfrage", "Beschluss"}
+
+
+def _valid_vorlage(nr: str) -> Optional[str]:
+    # normalise "2026-0324" / "2026 / 0324" to the canonical "2026/0324"
+    nr = re.sub(r"\s*", "", nr).replace("-", "/")
+    year, seq = nr.split("/")
+    # "2026/2027" is a budget-year range, not a Vorlagennummer
+    if len(seq) == 4 and seq.startswith("20") and abs(int(seq) - int(year)) <= 1:
+        return None
+    return nr
+
+
+def extract_vorlagen(label: str, text: str, doc_type: str) -> tuple[Optional[str], set[str]]:
+    """(own_number, all_referenced_numbers) from a document's label + text."""
+    head = f"{label or ''}\n{(text or '')[:1500]}"
+    own = None
+    if doc_type in _OWN_VORLAGE_TYPES:
+        for m in _VORLAGE_RE.finditer(head):
+            own = _valid_vorlage(m.group(1))
+            if own:
+                break
+    refs = set()
+    for m in _VORLAGE_RE.finditer(f"{label or ''}\n{(text or '')[:200000]}"):
+        nr = _valid_vorlage(m.group(1))
+        if nr:
+            refs.add(nr)
+    return own, refs
 
 
 # ---------------------------------------------------------------------------
@@ -660,7 +697,7 @@ def _process_file(f: Fetcher, fmeta: dict, meeting_id: str, counts: dict,
     fid = fmeta["id"]
     conn = db.get_conn()
     existing = conn.execute(
-        "SELECT id, sha256, local_path, size, remote_modified FROM files WHERE id=?",
+        "SELECT id, sha256, local_path, size, remote_modified, downloaded_at FROM files WHERE id=?",
         (fid,)).fetchone()
 
     if existing and existing["local_path"] and os.path.exists(existing["local_path"]):
@@ -721,6 +758,20 @@ def _process_file(f: Fetcher, fmeta: dict, meeting_id: str, counts: dict,
         return False
     os.makedirs(PDF_DIR, exist_ok=True)
     local = os.path.join(PDF_DIR, f"{fid}.pdf")
+    # Version history: before replacing an in-place-updated PDF, archive the
+    # superseded bytes (copy, not move, so /api/file never sees a gap).
+    archived = None
+    if (is_update and existing["sha256"] and existing["local_path"]
+            and os.path.exists(existing["local_path"])):
+        vdir = os.path.join(PDF_DIR, "versions")
+        os.makedirs(vdir, exist_ok=True)
+        vpath = os.path.join(vdir, f"{fid}.{existing['sha256'][:12]}.pdf")
+        try:
+            if not os.path.exists(vpath):
+                shutil.copy2(existing["local_path"], vpath)
+            archived = vpath
+        except OSError as e:
+            log.warning("could not archive old version of %s: %s", fid, e)
     # Write to a temp file, extract from it, then atomically rename into place —
     # the daily scraper and the web refresh path can race on the same fid, and
     # readers (/api/file) must never see a half-written PDF.
@@ -759,6 +810,12 @@ def _process_file(f: Fetcher, fmeta: dict, meeting_id: str, counts: dict,
             (fid, fmeta["url"], meeting_id, fmeta["agenda_anchor"], fmeta["label"],
              fmeta["doc_type"], fmeta["filename"], sha, len(content),
              r.headers.get("last-modified"), local, status, text, subs))
+        if archived:
+            db.add_file_version(c, fid, existing["sha256"], existing["size"],
+                                existing["remote_modified"], archived,
+                                existing["downloaded_at"])
+        own, refs = extract_vorlagen(fmeta["label"], text, fmeta["doc_type"])
+        db.set_file_vorlagen(c, fid, own, refs)
         db.reindex_file(c, fid)
     return True
 
@@ -851,6 +908,22 @@ def parse_pending_votes(limit: int = 1000) -> int:
     return done
 
 
+def backfill_vorlagen() -> int:
+    """Recompute Vorlagennummer ownership/references for every file (no network)."""
+    db.init_db()
+    conn = db.get_conn()
+    rows = conn.execute("SELECT id, label, doc_type, fulltext FROM files").fetchall()
+    n = 0
+    with db.write_conn() as c:
+        for r in rows:
+            own, refs = extract_vorlagen(r["label"], r["fulltext"], r["doc_type"])
+            db.set_file_vorlagen(c, r["id"], own, refs)
+            if own or refs:
+                n += 1
+    log.info("vorlagen backfilled: %d files carry numbers", n)
+    return n
+
+
 def backfill_submitters() -> int:
     """Recompute submitters for every existing file from label+text+doc_type (no network)."""
     db.init_db()
@@ -916,9 +989,14 @@ def main() -> int:
                     help="recompute submitter codes for all existing files and exit")
     ap.add_argument("--votes", action="store_true",
                     help="parse vote tallies from Abstimmungsergebnis PDFs and exit")
+    ap.add_argument("--vorlagen", action="store_true",
+                    help="recompute Vorlagennummer index for all existing files and exit")
     args = ap.parse_args()
     if args.submitters:
         print({"backfilled": backfill_submitters()})
+        return 0
+    if args.vorlagen:
+        print({"vorlagen_files": backfill_vorlagen()})
         return 0
     if args.votes:
         db.init_db()

@@ -34,19 +34,23 @@ import {
   AccordionItem,
   MultiSelect,
 } from "@carbon/react";
-import { Launch, Document as DocIcon, Time, Renew } from "@carbon/icons-react";
+import { Launch, Document as DocIcon, Time, Renew, Rss, Calendar } from "@carbon/icons-react";
 import {
   search as apiSearch,
   getFacets,
   getStats,
   getDocument,
   fileUrl,
+  versionUrl,
   getMeetings,
   getMeeting,
   getLive,
   refreshMeeting,
   getCommittees,
   getCommittee,
+  getPerson,
+  getVorlage,
+  getAnalytics,
   type Doc,
   type Facets,
   type Stats,
@@ -55,6 +59,9 @@ import {
   type CommitteeListItem,
   type Committee,
   type Vote,
+  type Person,
+  type VorlageChain,
+  type Analytics,
 } from "./api";
 
 const PAGE_SIZE = 25;
@@ -116,7 +123,15 @@ const ALL_COLUMNS: ColumnDef[] = [
   },
   { key: "sub", label: "Einbringer", cls: "dis-c-sub", render: (d) => <SubmitterChips codes={d.submitters} /> },
   { key: "typ", label: "Typ", cls: "dis-c-typ", render: (d) => <Tag type="gray" size="sm">{d.doc_type}</Tag> },
-  { key: "doc", label: "Dokument", cls: "dis-c-doc", render: (d) => <span className="dis-ellip" title={d.label}>{d.label}</span> },
+  {
+    key: "doc", label: "Dokument", cls: "dis-c-doc",
+    render: (d) => (
+      <span className="dis-doccell">
+        <span className="dis-ellip" title={d.label}>{d.label}</span>
+        {d.snippet && <Snippet text={d.snippet} />}
+      </span>
+    ),
+  },
   {
     key: "cat", label: "Kategorie", cls: "dis-c-cat",
     render: (d) => (d.category ? <Tag type="blue" size="sm">{d.category}</Tag> : ""),
@@ -148,18 +163,49 @@ function isoDate(d?: Date): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
+// Shareable URLs: filters, tab and open modals live in the query string.
+const initQS = new URLSearchParams(window.location.search);
+const TAB_SLUGS = ["dokumente", "sitzungen", "gremien", "statistik"];
+
+// FTS snippet highlighting: the backend delimits matches with control chars
+// (\x01…\x02), never markup — split and wrap, so document text can't inject HTML.
+function Snippet({ text }: { text: string }) {
+  const parts = text.split("\u0001");
+  return (
+    <span className="dis-snippet">
+      {parts.map((seg, i) => {
+        if (i === 0) return <span key={i}>{seg}</span>;
+        const cut = seg.indexOf("\u0002");
+        const hl = cut >= 0 ? seg.slice(0, cut) : seg;
+        const rest = cut >= 0 ? seg.slice(cut + 1) : "";
+        return (
+          <span key={i}>
+            <mark>{hl}</mark>
+            {rest}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 export default function App() {
   const [facets, setFacets] = useState<Facets>({ committees: [], doc_types: [], submitters: [] });
   const [stats, setStats] = useState<Stats | null>(null);
 
-  const [q, setQ] = useState("");
-  const [committee, setCommittee] = useState("");
-  const [docType, setDocType] = useState("");
-  const [pub, setPub] = useState("all");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [topic, setTopic] = useState("");
-  const [submitterCode, setSubmitterCode] = useState("");
+  const [q, setQ] = useState(initQS.get("q") || "");
+  const [committee, setCommittee] = useState(initQS.get("committee") || "");
+  const [docType, setDocType] = useState(initQS.get("type") || "");
+  const [pub, setPub] = useState(initQS.get("pub") || "all");
+  const [from, setFrom] = useState(initQS.get("from") || "");
+  const [to, setTo] = useState(initQS.get("to") || "");
+  const [topic, setTopic] = useState(initQS.get("topic") || "");
+  const [submitterCode, setSubmitterCode] = useState(initQS.get("sub") || "");
+  const [tabIdx, setTabIdx] = useState(() =>
+    Math.max(0, TAB_SLUGS.indexOf(initQS.get("tab") || "dokumente"))
+  );
+  const [personId, setPersonId] = useState(initQS.get("person") || "");
+  const [vorlageNr, setVorlageNr] = useState(initQS.get("vorlage") || "");
   const [cols, setCols] = useState<string[]>(() => {
     try {
       const s = JSON.parse(localStorage.getItem("dis-cols") || "null");
@@ -196,7 +242,33 @@ export default function App() {
   useEffect(() => {
     getFacets().then(setFacets).catch(() => {});
     getStats().then(setStats).catch(() => {});
-  }, []);
+    // deep links: open the doc/meeting the URL points at
+    const doc = initQS.get("doc");
+    if (doc) getDocument(doc).then(setSelected).catch(() => {});
+    const mid = initQS.get("meeting");
+    if (mid) openMeetingById(mid);
+  }, [openMeetingById]);
+
+  // keep the URL shareable: filters, tab and open modals round-trip through it
+  useEffect(() => {
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (committee) p.set("committee", committee);
+    if (docType) p.set("type", docType);
+    if (submitterCode) p.set("sub", submitterCode);
+    if (pub !== "all") p.set("pub", pub);
+    if (from) p.set("from", from);
+    if (to) p.set("to", to);
+    if (topic) p.set("topic", topic);
+    if (tabIdx) p.set("tab", TAB_SLUGS[tabIdx]);
+    if (selected) p.set("doc", selected.id);
+    if (openMeeting) p.set("meeting", openMeeting.id);
+    if (personId) p.set("person", personId);
+    if (vorlageNr) p.set("vorlage", vorlageNr);
+    const s = p.toString();
+    window.history.replaceState(null, "", s ? `?${s}` : window.location.pathname);
+  }, [q, committee, docType, submitterCode, pub, from, to, topic, tabIdx,
+      selected, openMeeting, personId, vorlageNr]);
 
   // poll for a session happening right now
   useEffect(() => {
@@ -373,11 +445,12 @@ export default function App() {
           </div>
         )}
 
-        <Tabs>
+        <Tabs selectedIndex={tabIdx} onChange={({ selectedIndex }: any) => setTabIdx(selectedIndex)}>
         <TabList aria-label="Ansichten" contained>
           <Tab>Dokumente</Tab>
           <Tab>Sitzungen</Tab>
           <Tab>Gremien</Tab>
+          <Tab>Statistik</Tab>
         </TabList>
         <TabPanels>
         <TabPanel>
@@ -451,6 +524,16 @@ export default function App() {
         <div className="dis-filterbar">
           <span className="dis-result-count">
             {loading ? "Lädt…" : `${total.toLocaleString("de-DE")} Treffer`}
+            <a
+              className="dis-feed-link"
+              title="RSS-Feed neuer Dokumente (mit den aktiven Filtern)"
+              href={`/api/feed.xml?${new URLSearchParams(
+                Object.entries({ committee, type: docType, submitter: submitterCode, topic })
+                  .filter(([, v]) => v) as [string, string][]
+              ).toString()}`}
+            >
+              <Rss size={14} /> RSS
+            </a>
           </span>
           <div className="dis-active-tags">
             {activeFilters.map((f) => (
@@ -533,7 +616,11 @@ export default function App() {
         </TabPanel>
 
         <TabPanel>
-          <CommitteesView />
+          <CommitteesView onOpenPerson={setPersonId} />
+        </TabPanel>
+
+        <TabPanel>
+          <StatsView active={tabIdx === 3} />
         </TabPanel>
         </TabPanels>
         </Tabs>
@@ -582,7 +669,24 @@ export default function App() {
         }}
         onRefreshed={setOpenMeeting}
       />
-      <DocModal doc={selected} onClose={() => setSelected(null)} onTopic={applyTopic} />
+      <DocModal
+        doc={selected}
+        onClose={() => setSelected(null)}
+        onTopic={applyTopic}
+        onVorlage={(nr) => {
+          setSelected(null);
+          setVorlageNr(nr);
+        }}
+      />
+      <PersonModal personId={personId} onClose={() => setPersonId("")} />
+      <VorlageModal
+        nr={vorlageNr}
+        onClose={() => setVorlageNr("")}
+        onOpenDoc={(id) => {
+          setVorlageNr("");
+          getDocument(id).then(setSelected).catch(() => {});
+        }}
+      />
     </Theme>
   );
 }
@@ -600,13 +704,16 @@ function DocModal({
   doc,
   onClose,
   onTopic,
+  onVorlage,
 }: {
   doc: Doc | null;
   onClose: () => void;
   onTopic: (t: string) => void;
+  onVorlage: (nr: string) => void;
 }) {
   if (!doc) return null;
   const ents = doc.entities || {};
+  const referenced = (doc.vorlagen || []).filter((v) => !v.own && v.vorlage !== doc.vorlage);
   return (
     <Modal open passiveModal modalHeading={doc.label} size="lg" onRequestClose={onClose}>
       <div className="dis-detail">
@@ -666,6 +773,22 @@ function DocModal({
               </dd>
             </>
           )}
+          {doc.vorlage && (
+            <>
+              <dt>Vorlage</dt>
+              <dd>
+                <Tag
+                  type="purple"
+                  size="sm"
+                  onClick={() => onVorlage(doc.vorlage!)}
+                  style={{ cursor: "pointer" }}
+                  title="Werdegang dieser Vorlage anzeigen"
+                >
+                  {doc.vorlage}
+                </Tag>
+              </dd>
+            </>
+          )}
         </dl>
 
         {doc.summary_de && (
@@ -700,6 +823,52 @@ function DocModal({
             <EntityRow label="Personen" items={ents.people} />
             <EntityRow label="Organisationen" items={ents.orgs} />
             <EntityRow label="Orte" items={ents.locations} />
+          </>
+        )}
+
+        {referenced.length > 0 && (
+          <>
+            <h4>Erwähnte Vorlagen</h4>
+            <div className="dis-tags">
+              {referenced.slice(0, 16).map((v) => (
+                <Tag
+                  key={v.vorlage}
+                  type="purple"
+                  size="sm"
+                  onClick={() => onVorlage(v.vorlage)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {v.vorlage}
+                </Tag>
+              ))}
+              {referenced.length > 16 && (
+                <span className="dis-meta-line">+{referenced.length - 16} weitere</span>
+              )}
+            </div>
+          </>
+        )}
+
+        {doc.versions && doc.versions.length > 0 && (
+          <>
+            <h4>Frühere Versionen ({doc.versions.length})</h4>
+            <ul className="dis-versions">
+              {doc.versions.map((v) => (
+                <li key={v.id}>
+                  <a href={versionUrl(doc.id, v.id)} target="_blank" rel="noreferrer">
+                    Version bis {(v.superseded_at || "?").slice(0, 16).replace("T", " ")}
+                  </a>
+                  <span className="dis-meta-line">
+                    {" "}
+                    · abgerufen {(v.downloaded_at || "?").slice(0, 10)}
+                    {v.size ? ` · ${Math.round(v.size / 1024)} kB` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="dis-meta-line">
+              Dieses Dokument wurde im RIS nachträglich verändert; ältere Fassungen bleiben hier
+              archiviert.
+            </p>
           </>
         )}
 
@@ -822,6 +991,15 @@ function MeetingsView({
             onChange={({ selectedItem }: any) => setCommittee(selectedItem?.id || "")}
           />
         </div>
+        <p className="dis-meta-line" style={{ marginTop: "0.75rem" }}>
+          <a
+            className="dis-feed-link"
+            href={`/api/meetings.ics${committee ? `?committee=${encodeURIComponent(committee)}` : ""}`}
+            title="Sitzungen als Kalender abonnieren (ICS)"
+          >
+            <Calendar size={14} /> Kalender abonnieren (ICS)
+          </a>
+        </p>
       </div>
       {loading && (
         <DataTableSkeleton columnCount={6} rowCount={6} showHeader={false} showToolbar={false} />
@@ -1115,7 +1293,7 @@ function MeetingModal({
 }
 
 // ---- Gremien (committees) view ---------------------------------------------
-function CommitteesView() {
+function CommitteesView({ onOpenPerson }: { onOpenPerson: (id: string) => void }) {
   const [list, setList] = useState<CommitteeListItem[]>([]);
   const [sel, setSel] = useState<Committee | null>(null);
   const [loading, setLoading] = useState(false);
@@ -1186,7 +1364,12 @@ function CommitteesView() {
               </TableHead>
               <TableBody>
                 {sel.members.map((m: Member) => (
-                  <TableRow key={m.person_id}>
+                  <TableRow
+                    key={m.person_id}
+                    className="dis-row-clickable"
+                    onClick={() => onOpenPerson(m.person_id)}
+                    title="Profil und Abstimmungsverhalten anzeigen"
+                  >
                     <TableCell>{m.name}</TableCell>
                     <TableCell>
                       <PartyChip code={m.party_code} party={m.party} />
@@ -1199,6 +1382,417 @@ function CommitteesView() {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+// ---- Person (Stadtrat/Stadträtin) profile ----------------------------------
+const VOTE_LABEL: Record<string, string> = {
+  ja: "Ja",
+  nein: "Nein",
+  enthaltung: "Enthaltung",
+  abwesend: "Abwesend",
+};
+
+function PersonModal({ personId, onClose }: { personId: string; onClose: () => void }) {
+  const [person, setPerson] = useState<Person | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setPerson(null);
+    setFailed(false);
+    if (!personId) return;
+    let alive = true;
+    getPerson(personId)
+      .then((p) => alive && setPerson(p))
+      .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, [personId]);
+
+  if (!personId) return null;
+  const summary = person?.vote_summary || {};
+  return (
+    <Modal
+      open
+      passiveModal
+      size="lg"
+      modalHeading={person?.name || "Person"}
+      onRequestClose={onClose}
+    >
+      <div className="dis-detail">
+        {!person && !failed && <InlineLoading description="Lädt…" />}
+        {failed && <p className="dis-meta-line">Profil konnte nicht geladen werden.</p>}
+        {person && (
+          <>
+            <dl>
+              <dt>Fraktion</dt>
+              <dd>
+                <PartyChip code={person.party_code} party={person.party} />
+                {person.party && <span className="dis-meta-line"> {person.party}</span>}
+              </dd>
+              <dt>Gremien</dt>
+              <dd>
+                {person.memberships.map((m) => (
+                  <div key={m.body_id}>
+                    {m.body_name}
+                    {m.role ? <span className="dis-meta-line"> — {m.role}</span> : null}
+                  </div>
+                ))}
+              </dd>
+            </dl>
+
+            <h4>Abstimmungsverhalten ({person.votes.length})</h4>
+            {person.votes.length === 0 && (
+              <p className="dis-meta-line">
+                Keine namentlichen Abstimmungen erfasst — Auswertung wächst mit jeder
+                Sitzung, deren Abstimmungspanel ausgelesen wird.
+              </p>
+            )}
+            {person.votes.length > 0 && (
+              <>
+                <div className="dis-vote__tally" style={{ marginBottom: "0.75rem" }}>
+                  <span className="dis-vote__n dis-vote__ja">Ja {summary.ja || 0}</span>
+                  <span className="dis-vote__n dis-vote__nein">Nein {summary.nein || 0}</span>
+                  <span className="dis-vote__n dis-vote__enth">
+                    Enthaltung {summary.enthaltung || 0}
+                  </span>
+                  <span className="dis-vote__n">Abwesend {summary.abwesend || 0}</span>
+                </div>
+                <Table size="sm" useZebraStyles>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Datum</TableHeader>
+                      <TableHeader>Gremium</TableHeader>
+                      <TableHeader>TOP</TableHeader>
+                      <TableHeader>Stimme</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {person.votes.map((v, i) => (
+                      <TableRow key={i}>
+                        <TableCell>{v.meeting_date || "—"}</TableCell>
+                        <TableCell>{v.body_name || "—"}</TableCell>
+                        <TableCell>
+                          <span
+                            className="dis-ellip"
+                            style={{ maxWidth: "24rem", display: "inline-block" }}
+                            title={v.agenda_title || v.top_label || ""}
+                          >
+                            {v.top_label}
+                            {v.agenda_title ? ` — ${v.agenda_title}` : ""}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`dis-votechip dis-votechip--${v.vote}`}>
+                            {VOTE_LABEL[v.vote] || v.vote}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <p className="dis-meta-line" style={{ marginTop: "0.75rem" }}>
+                  Zuordnung über den Nachnamen im Abstimmungspanel; mehrdeutige Einträge werden
+                  nicht gezählt.
+                </p>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+// ---- Vorlage lifecycle (Werdegang) -----------------------------------------
+function VorlageModal({
+  nr,
+  onClose,
+  onOpenDoc,
+}: {
+  nr: string;
+  onClose: () => void;
+  onOpenDoc: (fileId: string) => void;
+}) {
+  const [chain, setChain] = useState<VorlageChain | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setChain(null);
+    setFailed(false);
+    if (!nr) return;
+    let alive = true;
+    getVorlage(nr)
+      .then((c) => alive && setChain(c))
+      .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, [nr]);
+
+  if (!nr) return null;
+  return (
+    <Modal
+      open
+      passiveModal
+      size="lg"
+      modalHeading={`Vorlage ${nr}`}
+      onRequestClose={onClose}
+    >
+      <div className="dis-detail">
+        {!chain && !failed && <InlineLoading description="Lädt…" />}
+        {failed && (
+          <p className="dis-meta-line">
+            Zu dieser Vorlagennummer ist (noch) nichts archiviert.
+          </p>
+        )}
+        {chain && (
+          <>
+            {chain.title && <p className="dis-vorlage-title">{chain.title}</p>}
+            <h4>Werdegang ({chain.stations.length} Station{chain.stations.length === 1 ? "" : "en"})</h4>
+            <ol className="dis-timeline">
+              {chain.stations.map((st, i) => (
+                <li key={st.meeting_id || i}>
+                  <div className="dis-timeline__head">
+                    <span className="dis-timeline__date">{st.date || "—"}</span>
+                    <span className="dis-timeline__body">{st.body_name || "Unbekanntes Gremium"}</span>
+                    {st.votes.map((v) => {
+                      const hasTally = v.ja != null || v.nein != null || v.enthaltung != null;
+                      return hasTally ? (
+                        <Tag key={v.agenda_anchor} type="green" size="sm" title={v.result_text || "Abstimmungsergebnis"}>
+                          {v.ja ?? 0}·{v.nein ?? 0}·{v.enthaltung ?? 0}
+                        </Tag>
+                      ) : null;
+                    })}
+                  </div>
+                  <div className="dis-timeline__docs">
+                    {st.documents.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        className="dis-meeting-docrow"
+                        onClick={() => onOpenDoc(d.id)}
+                      >
+                        <span className="dis-meeting-docrow__type">
+                          <Tag type="gray" size="sm">
+                            {d.doc_type}
+                          </Tag>
+                        </span>
+                        <span className="dis-meeting-docrow__label">{d.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="dis-meta-line">
+              Stationen = Sitzungen, in deren Dokumenten diese Vorlagennummer vorkommt
+              (Vorberatung im Ausschuss bis Entscheidung im Gemeinderat).
+            </p>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+// ---- Statistik (voting analytics) ------------------------------------------
+function pct(x: number | null | undefined): string {
+  return x == null ? "—" : `${Math.round(x * 100)} %`;
+}
+
+function StatsView({ active }: { active: boolean }) {
+  const [data, setData] = useState<Analytics | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!active || data) return;
+    let alive = true;
+    getAnalytics()
+      .then((d) => alive && setData(d))
+      .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, [active, data]);
+
+  if (failed) return <div className="dis-empty">Statistik konnte nicht geladen werden.</div>;
+  if (!data) return <DataTableSkeleton columnCount={4} rowCount={5} showHeader={false} showToolbar={false} />;
+
+  const t = data.totals;
+  const parties = data.parties;
+  const codes = parties.map((p) => p.code);
+  const agree = new Map<string, { agree: number; n: number }>();
+  for (const a of data.agreement) {
+    agree.set(`${a.a}|${a.b}`, a);
+    agree.set(`${a.b}|${a.a}`, a);
+  }
+  const maxCast = Math.max(1, ...parties.map((p) => p.members_cast));
+
+  return (
+    <div className="dis-statsview">
+      <div className="dis-stats">
+        <Stat n={t.votes} l="Abstimmungen" />
+        <Stat n={t.with_rollcall} l="Namentlich" />
+        <div className="dis-stat">
+          <div className="num">{t.votes ? pct(t.unanimous / t.votes) : "—"}</div>
+          <div className="lbl">Einstimmig</div>
+        </div>
+        <div className="dis-stat">
+          <div className="num">{t.votes ? pct(t.contested / t.votes) : "—"}</div>
+          <div className="lbl">Mit Gegenstimmen</div>
+        </div>
+      </div>
+
+      {parties.length === 0 && (
+        <div className="dis-empty">
+          Noch keine namentlichen Abstimmungen ausgewertet — die Statistik füllt sich, sobald
+          Abstimmungspanels (live oder aus Ergebnis-PDFs) erfasst sind.
+        </div>
+      )}
+
+      {parties.length > 0 && (
+        <>
+          <h4>Fraktionsdisziplin</h4>
+          <p className="dis-meta-line">
+            Anteil der abgegebenen Stimmen, die der Mehrheitslinie der eigenen Fraktion folgen.
+          </p>
+          <div className="dis-bars">
+            {parties.map((p) => (
+              <div className="dis-bar-row" key={p.code}>
+                <span className="dis-bar-label">
+                  <PartyChip code={p.code} party={p.code} />
+                </span>
+                <span className="dis-bar-track" aria-hidden>
+                  <span
+                    className="dis-bar-fill"
+                    style={{ width: `${Math.round((p.cohesion || 0) * 100)}%` }}
+                  />
+                </span>
+                <span className="dis-bar-value">{pct(p.cohesion)}</span>
+                <span className="dis-meta-line">{p.votes} Abst. · {p.members_cast} Stimmen</span>
+              </div>
+            ))}
+          </div>
+
+          <h4>Stimmverteilung</h4>
+          <p className="dis-meta-line">
+            Alle zugeordneten Einzelstimmen je Fraktion (Gelb = Ja, Rot = Nein, Grau =
+            Enthaltung — wie auf dem Abstimmungspanel).
+          </p>
+          <div className="dis-bars">
+            {parties.map((p) => {
+              const cast = p.ja + p.nein + p.enthaltung;
+              const w = (n: number) => `${(cast ? (n / cast) : 0) * (cast / maxCast) * 100}%`;
+              return (
+                <div className="dis-bar-row" key={p.code}>
+                  <span className="dis-bar-label">
+                    <PartyChip code={p.code} party={p.code} />
+                  </span>
+                  <span className="dis-bar-track dis-bar-track--stacked" aria-hidden>
+                    <span className="dis-seg dis-seg--ja" style={{ width: w(p.ja) }} />
+                    <span className="dis-seg dis-seg--nein" style={{ width: w(p.nein) }} />
+                    <span className="dis-seg dis-seg--enth" style={{ width: w(p.enthaltung) }} />
+                  </span>
+                  <span className="dis-bar-value dis-votetext">
+                    <span className="dis-vote__ja">Ja {p.ja}</span>
+                    {" · "}
+                    <span className="dis-vote__nein">Nein {p.nein}</span>
+                    {" · "}
+                    <span className="dis-vote__enth">Enth. {p.enthaltung}</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {codes.length >= 2 && (
+            <>
+              <h4>Übereinstimmung zwischen Fraktionen</h4>
+              <p className="dis-meta-line">
+                Wie oft zwei Fraktionen bei derselben Abstimmung dieselbe Mehrheitslinie hatten.
+              </p>
+              <div className="dis-matrix-wrap">
+                <table className="dis-matrix">
+                  <thead>
+                    <tr>
+                      <th />
+                      {codes.map((c) => (
+                        <th key={c}>{c}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {codes.map((row) => (
+                      <tr key={row}>
+                        <th>{row}</th>
+                        {codes.map((col) => {
+                          if (row === col) return <td key={col} className="dis-matrix__self" />;
+                          const cell = agree.get(`${row}|${col}`);
+                          const v = cell?.agree;
+                          return (
+                            <td
+                              key={col}
+                              title={cell ? `${row} & ${col}: ${pct(v)} (${cell.n} gemeinsame Abstimmungen)` : "keine gemeinsamen Abstimmungen"}
+                              style={
+                                v == null
+                                  ? undefined
+                                  : { background: `rgba(69, 137, 255, ${0.08 + v * 0.55})` }
+                              }
+                            >
+                              {v == null ? "" : Math.round(v * 100)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {data.dissenters.length > 0 && (
+            <>
+              <h4>Abweichler</h4>
+              <p className="dis-meta-line">
+                Mitglieder, die am häufigsten gegen die Mehrheitslinie ihrer Fraktion gestimmt
+                haben.
+              </p>
+              <Table size="sm" useZebraStyles className="dis-dissenters">
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Name (Panel)</TableHeader>
+                    <TableHeader>Fraktion</TableHeader>
+                    <TableHeader>Abweichungen</TableHeader>
+                    <TableHeader>Stimmen</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {data.dissenters.map((d) => (
+                    <TableRow key={d.name}>
+                      <TableCell>{d.name}</TableCell>
+                      <TableCell>
+                        <PartyChip code={d.party} party={d.party} />
+                      </TableCell>
+                      <TableCell>{d.dissents}</TableCell>
+                      <TableCell>{d.votes}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
+          )}
+
+          <p className="dis-meta-line" style={{ marginTop: "1rem" }}>
+            Basis: {t.with_rollcall} namentliche Abstimmungen. Zuordnung über Nachnamen;{" "}
+            {data.unattributed_entries} Einzelstimmen blieben unzugeordnet und sind nicht
+            enthalten.
+          </p>
+        </>
+      )}
     </div>
   );
 }

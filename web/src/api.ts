@@ -21,6 +21,19 @@ export interface Doc {
   enrich_status?: string;
   location?: string;
   fulltext?: string;
+  snippet?: string; // FTS match context; / delimit highlights
+  vorlage?: string;
+  vorlagen?: { vorlage: string; own: number }[];
+  versions?: FileVersion[];
+}
+
+export interface FileVersion {
+  id: number;
+  sha256?: string;
+  size?: number;
+  remote_modified?: string;
+  downloaded_at?: string;
+  superseded_at?: string;
 }
 
 export interface SearchResult {
@@ -165,6 +178,73 @@ export interface LiveResponse {
   meetings: Meeting[];
 }
 export const getLive = () => getJSON<LiveResponse>("/api/live");
+
+export interface PersonVote {
+  meeting_id: string;
+  meeting_date?: string;
+  body_name?: string;
+  top_label?: string;
+  agenda_number?: string;
+  agenda_title?: string;
+  result_text?: string;
+  source?: string;
+  vote: string;
+  roll_name?: string;
+}
+
+export interface Person {
+  person_id: string;
+  name: string;
+  party?: string;
+  party_code?: string;
+  memberships: { body_id: string; body_name: string; role?: string; since?: string }[];
+  votes: PersonVote[];
+  vote_summary: Record<string, number>;
+}
+
+export interface VorlageStation {
+  meeting_id?: string;
+  date?: string;
+  body_name?: string;
+  body_id?: string;
+  meeting_title?: string;
+  documents: Doc[];
+  votes: Vote[];
+}
+
+export interface VorlageChain {
+  vorlage: string;
+  title?: string;
+  own_documents: Doc[];
+  stations: VorlageStation[];
+}
+
+export interface AnalyticsParty {
+  code: string;
+  votes: number;
+  members_cast: number;
+  with_line: number;
+  ja: number;
+  nein: number;
+  enthaltung: number;
+  abwesend: number;
+  cohesion: number | null;
+  attendance: number | null;
+}
+
+export interface Analytics {
+  totals: { votes: number; with_rollcall: number; unanimous: number; contested: number };
+  parties: AnalyticsParty[];
+  agreement: { a: string; b: string; agree: number; n: number }[];
+  dissenters: { name: string; party: string; dissents: number; votes: number }[];
+  unattributed_entries: number;
+}
+
+export const getPerson = (id: string) => getJSON<Person>(`/api/person/${id}`);
+export const getVorlage = (nr: string) => getJSON<VorlageChain>(`/api/vorlage/${nr}`);
+export const getAnalytics = () => getJSON<Analytics>("/api/analytics");
+export const versionUrl = (fileId: string, versionId: number) =>
+  `/api/file/${fileId}/version/${versionId}`;
 
 export interface RefreshResult {
   ok: boolean;
