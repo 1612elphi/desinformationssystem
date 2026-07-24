@@ -10,10 +10,11 @@ from __future__ import annotations
 import asyncio
 import os
 import re
+import sqlite3
 from datetime import date
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -65,8 +66,10 @@ def api_search(
             query=q, committee=committee, doc_type=doc_type, date_from=date_from,
             date_to=date_to, public=pub, topic=topic, submitter=submitter,
             limit=limit, offset=offset)
-    except Exception as e:  # noqa: BLE001 — surface FTS syntax errors as 400
-        raise HTTPException(status_code=400, detail=str(e))
+    except sqlite3.OperationalError:
+        # bad FTS syntax and the like -> client error; anything else propagates
+        # as a real 500 instead of leaking server internals in a fake 400
+        raise HTTPException(status_code=400, detail="invalid search query")
 
 
 @app.get("/api/document/{file_id}")
@@ -84,6 +87,7 @@ def api_committees() -> list[dict]:
 
 @app.get("/api/meetings")
 def api_meetings(
+    response: Response,
     committee: Optional[str] = None,
     date_from: Optional[str] = Query(None, alias="from"),
     date_to: Optional[str] = Query(None, alias="to"),
@@ -95,6 +99,8 @@ def api_meetings(
     if upcoming:
         date_from = date_from or date.today().isoformat()
         order = order or "asc"
+    response.headers["X-Total-Count"] = str(
+        db.count_meetings(committee=committee, date_from=date_from, date_to=date_to))
     return db.list_meetings(committee=committee, date_from=date_from, date_to=date_to,
                             order=order or "desc", limit=limit, offset=offset)
 
@@ -123,7 +129,11 @@ def api_live() -> dict:
     return {"meeting": live[0] if live else None, "meetings": live}
 
 
-_refresh_locks: dict[str, asyncio.Lock] = {}
+# Per-meeting in-progress guard: a plain set is race-free here (the event loop is
+# single-threaded and membership check + add happen with no await in between),
+# unlike the previous lock-registry whose eviction had a window where two
+# refreshes of the same meeting could run concurrently.
+_refreshing: set[str] = set()
 # Site-wide cap so a burst of refreshes (the endpoint is public + unauthenticated) can
 # never starve the shared sync-route threadpool that serves search/reads.
 _refresh_sema = asyncio.Semaphore(2)
@@ -134,23 +144,21 @@ async def api_meeting_refresh(meeting_id: str) -> dict:
     """On-demand re-scrape of one meeting (pulls newly-added live minutes/results)."""
     if not re.fullmatch(r"termin-\d+", meeting_id):
         raise HTTPException(status_code=400, detail="invalid meeting id")
-    lock = _refresh_locks.setdefault(meeting_id, asyncio.Lock())
-    if lock.locked():
+    if meeting_id in _refreshing:
         raise HTTPException(status_code=409, detail="refresh already running")
+    _refreshing.add(meeting_id)
     try:
-        async with lock:
-            async with _refresh_sema:
-                try:
-                    result = await run_in_threadpool(scraper.scrape_one, meeting_id)
-                except ValueError as e:
-                    raise HTTPException(status_code=400, detail=str(e))
-                except HTTPException:
-                    raise
-                except Exception as e:  # noqa: BLE001
-                    raise HTTPException(status_code=502, detail=f"refresh failed: {e}")
+        async with _refresh_sema:
+            try:
+                result = await run_in_threadpool(scraper.scrape_one, meeting_id)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+            except HTTPException:
+                raise
+            except Exception as e:  # noqa: BLE001
+                raise HTTPException(status_code=502, detail=f"refresh failed: {e}")
     finally:
-        if not lock.locked():  # evict idle lock so the registry can't grow unbounded
-            _refresh_locks.pop(meeting_id, None)
+        _refreshing.discard(meeting_id)
     m = db.get_meeting(meeting_id)
     if not m:
         raise HTTPException(status_code=404, detail="not found")
@@ -175,7 +183,7 @@ def api_file(file_id: str, download: bool = False):
         fname = doc.get("filename") or f"{file_id}.pdf"
         return FileResponse(path, media_type="application/pdf", filename=fname,
                             headers={"Content-Disposition": f'{disposition}; filename="{fname}"'})
-    if doc.get("url"):
+    if doc.get("url") and doc["url"].startswith(("http://", "https://")):
         return JSONResponse({"redirect": doc["url"]}, status_code=302,
                             headers={"Location": doc["url"]})
     raise HTTPException(status_code=404, detail="file not cached")

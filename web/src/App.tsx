@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Theme,
   Header,
@@ -149,7 +149,7 @@ function isoDate(d?: Date): string {
 }
 
 export default function App() {
-  const [facets, setFacets] = useState<Facets>({ committees: [], doc_types: [] });
+  const [facets, setFacets] = useState<Facets>({ committees: [], doc_types: [], submitters: [] });
   const [stats, setStats] = useState<Stats | null>(null);
 
   const [q, setQ] = useState("");
@@ -213,8 +213,12 @@ export default function App() {
     };
   }, []);
 
+  // Monotonic sequence so a slow, superseded response can never overwrite the
+  // results of a newer search (rapid filter/pagination changes race otherwise).
+  const searchSeq = useRef(0);
   const runSearch = useCallback(
     async (pageArg = 1) => {
+      const seq = ++searchSeq.current;
       setLoading(true);
       setError("");
       try {
@@ -230,15 +234,17 @@ export default function App() {
           limit: PAGE_SIZE,
           offset: (pageArg - 1) * PAGE_SIZE,
         });
+        if (seq !== searchSeq.current) return;
         setResults(res.results);
         setTotal(res.total);
         setPage(pageArg);
       } catch (e: any) {
+        if (seq !== searchSeq.current) return;
         setError(e?.message || "Fehler bei der Suche");
         setResults([]);
         setTotal(0);
       } finally {
-        setLoading(false);
+        if (seq === searchSeq.current) setLoading(false);
       }
     },
     [q, committee, docType, pub, from, to, topic, submitterCode]
@@ -425,6 +431,7 @@ export default function App() {
           <DatePicker
             datePickerType="single"
             dateFormat="Y-m-d"
+            value={from}
             onChange={(d: Date[]) => setFrom(isoDate(d[0]))}
           >
             <DatePickerInput id="from" labelText="Von" placeholder="JJJJ-MM-TT" size="md" />
@@ -432,6 +439,7 @@ export default function App() {
           <DatePicker
             datePickerType="single"
             dateFormat="Y-m-d"
+            value={to}
             onChange={(d: Date[]) => setTo(isoDate(d[0]))}
           >
             <DatePickerInput id="to" labelText="Bis" placeholder="JJJJ-MM-TT" size="md" />
@@ -544,7 +552,18 @@ export default function App() {
         <span>Open Data (CC BY-ND)</span>
         <span className="sep">·</span>
         <span>
-          MCP: <a href="/mcp">/mcp</a>
+          {/* Same path only works behind the path-routing tunnel (dis.delphi.tools);
+              on a direct deployment the MCP server lives on its own port. */}
+          MCP:{" "}
+          <a
+            href={
+              window.location.hostname === "dis.delphi.tools"
+                ? "/mcp"
+                : `${window.location.protocol}//${window.location.hostname}:3651/mcp`
+            }
+          >
+            /mcp
+          </a>
         </span>
         {stats?.last_scrape && (
           <>
@@ -675,7 +694,7 @@ function DocModal({
           </>
         )}
 
-        {(ents.people?.length || ents.orgs?.length || ents.locations?.length) && (
+        {((ents.people?.length || 0) + (ents.orgs?.length || 0) + (ents.locations?.length || 0)) > 0 && (
           <>
             <h4>Erwähnte Entitäten</h4>
             <EntityRow label="Personen" items={ents.people} />
@@ -688,9 +707,11 @@ function DocModal({
           <Button kind="primary" renderIcon={DocIcon} href={fileUrl(doc.id)} target="_blank">
             PDF öffnen
           </Button>
-          <Button kind="tertiary" renderIcon={Launch} href={doc.url} target="_blank">
-            Original im RIS
-          </Button>
+          {doc.url?.startsWith("http") && (
+            <Button kind="tertiary" renderIcon={Launch} href={doc.url} target="_blank">
+              Original im RIS
+            </Button>
+          )}
         </div>
         <p className="dis-meta-line" style={{ marginTop: "1rem" }}>
           Datei-ID {doc.id} · Text: {doc.text_status || "—"} · Analyse: {doc.enrich_status || "—"}
@@ -745,9 +766,12 @@ function MeetingsView({
   committees: { id: string; name: string }[];
   onOpenMeeting: (id: string) => void;
 }) {
+  const MEETINGS_PAGE = 100;
   const [upcoming, setUpcoming] = useState(true);
   const [committee, setCommittee] = useState("");
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const committeeItems = useMemo(
@@ -756,16 +780,24 @@ function MeetingsView({
   );
 
   useEffect(() => {
+    setPage(1);
+  }, [upcoming, committee]);
+
+  useEffect(() => {
     let alive = true;
     setLoading(true);
-    getMeetings({ upcoming, committee, limit: 300 })
-      .then((r) => alive && setMeetings(r))
+    getMeetings({ upcoming, committee, limit: MEETINGS_PAGE, offset: (page - 1) * MEETINGS_PAGE })
+      .then((r) => {
+        if (!alive) return;
+        setMeetings(r.meetings);
+        setTotal(r.total);
+      })
       .catch(() => alive && setMeetings([]))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
     };
-  }, [upcoming, committee]);
+  }, [upcoming, committee, page]);
 
   return (
     <>
@@ -800,7 +832,7 @@ function MeetingsView({
       {meetings.length > 0 && (
         <TableContainer
           title={upcoming ? "Kommende Sitzungen" : "Alle Sitzungen"}
-          description={`${meetings.length} Sitzung(en)`}
+          description={`${total.toLocaleString("de-DE")} Sitzung(en)`}
         >
           <Table size="lg" useZebraStyles>
             <TableHead>
@@ -833,6 +865,15 @@ function MeetingsView({
               })}
             </TableBody>
           </Table>
+          {total > MEETINGS_PAGE && (
+            <Pagination
+              page={page}
+              pageSize={MEETINGS_PAGE}
+              pageSizes={[MEETINGS_PAGE]}
+              totalItems={total}
+              onChange={({ page: p }: any) => setPage(p)}
+            />
+          )}
         </TableContainer>
       )}
     </>
@@ -901,7 +942,7 @@ function VoteBlock({ vote }: { vote: Vote }) {
           </div>
         </details>
       )}
-      {vote.image_url && (
+      {vote.image_url?.startsWith("http") && (
         <a className="dis-meta-line" href={vote.image_url} target="_blank" rel="noreferrer">
           Abstimmungsbild <Launch size={12} />
         </a>
@@ -1087,6 +1128,8 @@ function CommitteesView() {
     setLoading(true);
     try {
       setSel(await getCommittee(id));
+    } catch {
+      setSel(null); // failed fetch: fall back to the empty-state hint
     } finally {
       setLoading(false);
     }

@@ -87,6 +87,7 @@ links with descriptive labels), so we parse that. PDFs are pulled directly from 
 
 ```bash
 cp .env.example .env      # set OPENROUTER_API_KEY (or ENABLE_LLM=0)
+mkdir -p data             # bind-mount target must exist host-owned (uid-1000 containers)
 docker compose up -d --build
 ```
 

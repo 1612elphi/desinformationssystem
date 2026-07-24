@@ -19,8 +19,26 @@ case "$ROLE" in
     exec python ticker.py
     ;;
   scraper)
+    # This branch keeps bash as PID 1, which by default ignores SIGTERM — so a
+    # `docker stop` would hang out the full grace period and then SIGKILL a
+    # possibly mid-scrape python. Run children in the background and forward
+    # TERM/INT so shutdown is prompt and logged.
+    child=""
+    on_term() {
+      echo "[scraper] SIGTERM — stopping"
+      [ -n "$child" ] && kill "$child" 2>/dev/null
+      exit 0
+    }
+    trap on_term TERM INT
+
+    run_scrape() {
+      python scraper.py & child=$!
+      wait "$child" || echo "[scraper] run failed; continuing"
+      child=""
+    }
+
     echo "[scraper] initial run (months=${BACKFILL_MONTHS:-12})"
-    python scraper.py || echo "[scraper] initial run failed (will retry on schedule)"
+    run_scrape
     while true; do
       # seconds until the next SCRAPE_HOUR:SCRAPE_MINUTE
       sleep_secs=$(python - "$SCRAPE_HOUR" "$SCRAPE_MINUTE" <<'PY'
@@ -34,9 +52,11 @@ print(int((nxt - now).total_seconds()))
 PY
 )
       echo "[scraper] sleeping ${sleep_secs}s until next run at ${SCRAPE_HOUR}:${SCRAPE_MINUTE}"
-      sleep "$sleep_secs"
+      sleep "$sleep_secs" & child=$!
+      wait "$child" || true
+      child=""
       echo "[scraper] scheduled run $(date -Is)"
-      python scraper.py || echo "[scraper] run failed; continuing"
+      run_scrape
     done
     ;;
   *)

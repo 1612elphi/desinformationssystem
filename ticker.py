@@ -110,9 +110,13 @@ def _match_meeting(tk: dict, live: list[dict]) -> Optional[str]:
 
 def _process_vote(f: "scraper.Fetcher", meeting_id: str, top: dict, counts: dict) -> None:
     label = top["top_label"]
-    anchor = "top" + "".join(ch for ch in label if ch.isdigit())
-    if anchor == "top":  # no TOP number -> can't place under an agenda item
+    # Keep the dotted sub-item form ("TOP 3.1" -> top3.1): the scraped agenda
+    # anchors and the PDF backfill both use it, and stripping the dot would
+    # collide with TOP 31 and bypass the pdf-is-authoritative reconciliation.
+    m = re.search(r"([0-9]+(?:\.[0-9]+)*[a-z]?)", label.lower())
+    if not m:  # no TOP number -> can't place under an agenda item
         return
+    anchor = "top" + m.group(1)
     url = top["image_url"].replace(" ", "%20")
     r = f.get(url, binary=True)
     if not r:
@@ -180,10 +184,10 @@ def main() -> int:
     while True:
         try:
             c = run_once()
-        except Exception as e:  # noqa: BLE001
+            live = db.live_meetings()
+        except Exception as e:  # noqa: BLE001 — a transient DB/network error must not kill the loop
             log.warning("ticker run error: %s", e)
-            c = {"parsed": 0}
-        live = db.live_meetings()
+            c, live = {"parsed": 0}, []
         nap = POLL if live else IDLE_POLL
         if c.get("parsed") or live:
             log.info("ticker: %s | live=%d sleep=%ds", c, len(live), nap)

@@ -132,9 +132,18 @@ CREATE TABLE IF NOT EXISTS votes (
 );
 CREATE INDEX IF NOT EXISTS idx_votes_meeting ON votes(meeting_id);
 
+-- Vote-PDF parse attempts, so permanently unreadable scans stop re-billing the
+-- vision model on every run (see scraper.parse_pending_votes).
+CREATE TABLE IF NOT EXISTS vote_parse_attempts (
+    file_id      TEXT PRIMARY KEY,
+    attempts     INTEGER NOT NULL DEFAULT 0,
+    last_attempt TEXT
+);
+
 -- Full-text search over label + extracted text + summaries + topics.
 -- Regular (not contentless) FTS5 so we can DELETE+reINSERT on re-enrichment;
--- rows are keyed on the files table's implicit rowid (see reindex_file()).
+-- rows are keyed on files.fts_id, a stable integer we assign ourselves
+-- (the implicit rowid of a TEXT-PK table may be renumbered by VACUUM).
 CREATE VIRTUAL TABLE IF NOT EXISTS files_fts USING fts5(
     label, fulltext, summary_de, summary_en, topics, category,
     body_name, meeting_title
@@ -184,9 +193,14 @@ def init_db() -> None:
 def _migrate(conn: sqlite3.Connection) -> None:
     """Idempotent column adds for DBs created before a column existed."""
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(files)")}
-    for name, decl in (("remote_modified", "TEXT"), ("submitters", "TEXT")):
+    for name, decl in (("remote_modified", "TEXT"), ("submitters", "TEXT"),
+                       ("fts_id", "INTEGER")):
         if name not in cols:
             conn.execute(f"ALTER TABLE files ADD COLUMN {name} {decl}")
+    # Existing FTS rows were keyed on the implicit rowid; snapshot it into fts_id
+    # once so the index stays valid and future VACUUMs can't shear the mapping.
+    conn.execute("UPDATE files SET fts_id = rowid WHERE fts_id IS NULL")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_files_ftsid ON files(fts_id)")
 
 
 # ---------------------------------------------------------------------------
@@ -194,9 +208,9 @@ def _migrate(conn: sqlite3.Connection) -> None:
 # ---------------------------------------------------------------------------
 
 def reindex_file(conn: sqlite3.Connection, file_id: str) -> None:
-    """Refresh the FTS row for one file, keyed on the file row's own implicit rowid."""
+    """Refresh the FTS row for one file, keyed on files.fts_id (stable integer)."""
     row = conn.execute(
-        """SELECT f.rowid AS rid, f.label, f.fulltext, f.summary_de, f.summary_en,
+        """SELECT f.fts_id AS rid, f.label, f.fulltext, f.summary_de, f.summary_en,
                   f.topics, f.category, m.body_name, m.title AS meeting_title
            FROM files f LEFT JOIN meetings m ON m.id = f.meeting_id
            WHERE f.id = ?""",
@@ -204,6 +218,13 @@ def reindex_file(conn: sqlite3.Connection, file_id: str) -> None:
     ).fetchone()
     if not row:
         return
+    if row["rid"] is None:
+        # SQLite serialises writers, so MAX+1 inside this write txn can't race.
+        conn.execute(
+            "UPDATE files SET fts_id = (SELECT COALESCE(MAX(fts_id),0)+1 FROM files) WHERE id = ?",
+            (file_id,))
+        rid = conn.execute("SELECT fts_id FROM files WHERE id = ?", (file_id,)).fetchone()[0]
+        row = dict(row) | {"rid": rid}
     conn.execute("DELETE FROM files_fts WHERE rowid = ?", (row["rid"],))
     conn.execute(
         """INSERT INTO files_fts(rowid, label, fulltext, summary_de, summary_en,
@@ -282,7 +303,7 @@ def search_documents(
     if query:
         base = f"""
             FROM files f
-            JOIN files_fts ON files_fts.rowid = f.rowid
+            JOIN files_fts ON files_fts.rowid = f.fts_id
             LEFT JOIN meetings m ON m.id = f.meeting_id
             {agenda_join}
             {where_sql}
@@ -306,7 +327,13 @@ def search_documents(
 
     total = conn.execute(sql_count, params).fetchone()["n"]
     rows = conn.execute(sql, [*params, limit, offset]).fetchall()
-    return {"total": total, "results": [_row_to_doc(r) for r in rows]}
+    results = [_row_to_doc(r) for r in rows]
+    # Full extracted text is huge (up to 400k chars/doc) and this is a public,
+    # unauthenticated endpoint — list responses carry metadata only; fetch the
+    # text for one document via get_document.
+    for d in results:
+        d.pop("fulltext", None)
+    return {"total": total, "results": results}
 
 
 def _fts_query(q: str) -> str:
@@ -389,6 +416,24 @@ def list_meetings(
     return [dict(r) for r in rows]
 
 
+def count_meetings(
+    committee: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+) -> int:
+    conn = get_conn()
+    where, params = [], []
+    if committee:
+        where.append("(body_name = ? OR body_id = ?)")
+        params.extend([committee, committee])
+    if date_from:
+        where.append("date >= ?"); params.append(date_from)
+    if date_to:
+        where.append("date <= ?"); params.append(date_to)
+    where_sql = (" WHERE " + " AND ".join(where)) if where else ""
+    return conn.execute(f"SELECT COUNT(*) FROM meetings{where_sql}", params).fetchone()[0]
+
+
 def get_committee(body_id: str) -> Optional[dict[str, Any]]:
     conn = get_conn()
     b = conn.execute("SELECT * FROM bodies WHERE id = ?", (body_id,)).fetchone()
@@ -429,13 +474,22 @@ def get_meeting(meeting_id: str) -> Optional[dict[str, Any]]:
     return out
 
 
+# Numeric TOP ordering incl. dotted sub-items: "TOP 3.1" sorts as (3, 1), between
+# TOP 3 and TOP 4 (CAST stops at the first non-digit, so CAST('3.1')=3).
+_TOP_ORDER = """CAST(REPLACE(COALESCE({c},''),'TOP ','') AS INTEGER),
+    CASE WHEN instr(REPLACE(COALESCE({c},''),'TOP ',''), '.') > 0
+         THEN CAST(substr(REPLACE(COALESCE({c},''),'TOP ',''),
+                          instr(REPLACE(COALESCE({c},''),'TOP ',''), '.') + 1) AS INTEGER)
+         ELSE 0 END"""
+
+
 def meeting_votes(meeting_id: str) -> list[dict[str, Any]]:
     conn = get_conn()
     rows = conn.execute(
-        """SELECT id, agenda_anchor, top_label, result_text, ja, nein, enthaltung,
+        f"""SELECT id, agenda_anchor, top_label, result_text, ja, nein, enthaltung,
                   members, source, image_url FROM votes
            WHERE meeting_id = ?
-           ORDER BY CAST(REPLACE(REPLACE(COALESCE(top_label,''),'TOP ',''),'.','') AS INTEGER),
+           ORDER BY {_TOP_ORDER.format(c='top_label')},
                     top_label""", (meeting_id,)).fetchall()
     out = []
     for r in rows:
@@ -496,7 +550,7 @@ def search_votes(
                    ai.number AS agenda_number, ai.title AS agenda_title
             {base}
             ORDER BY m.date DESC,
-                     CAST(REPLACE(REPLACE(COALESCE(v.top_label,''),'TOP ',''),'.','') AS INTEGER)
+                     {_TOP_ORDER.format(c='v.top_label')}
             LIMIT ? OFFSET ?""",
         [*params, limit, offset]).fetchall()
     needle = member.casefold() if member else None
@@ -524,15 +578,13 @@ def upsert_vote(conn: sqlite3.Connection, v: dict) -> None:
     """Insert/update a vote keyed by meeting_id:agenda_anchor.
 
     Precedence: the official Abstimmungsergebnis PDF (source='pdf') is authoritative — a
-    'live' upsert never downgrades an existing 'pdf' row. Empty members/result_text never
-    clobber a stored non-empty value (COALESCE)."""
+    'live' upsert never downgrades an existing 'pdf' row (enforced atomically via the
+    conflict clause's WHERE, since ticker and scraper are separate processes). Empty
+    tallies/members/result_text never clobber a stored non-empty value (COALESCE)."""
     anchor = v.get("agenda_anchor")
     if not anchor:
         return  # need an agenda anchor to place/key the vote
     vid = f"{v['meeting_id']}:{anchor}"
-    ex = conn.execute("SELECT source FROM votes WHERE id=?", (vid,)).fetchone()
-    if ex and ex["source"] == "pdf" and v.get("source") != "pdf":
-        return  # don't let a live re-parse overwrite the authoritative PDF tally
     members = v.get("members")
     members_json = json.dumps(members, ensure_ascii=False) if members else None
     conn.execute(
@@ -541,13 +593,36 @@ def upsert_vote(conn: sqlite3.Connection, v: dict) -> None:
            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'))
            ON CONFLICT(id) DO UPDATE SET top_label=excluded.top_label,
              result_text=COALESCE(excluded.result_text, votes.result_text),
-             ja=excluded.ja, nein=excluded.nein, enthaltung=excluded.enthaltung,
+             ja=COALESCE(excluded.ja, votes.ja),
+             nein=COALESCE(excluded.nein, votes.nein),
+             enthaltung=COALESCE(excluded.enthaltung, votes.enthaltung),
              members=COALESCE(excluded.members, votes.members),
              source=excluded.source, image_url=excluded.image_url, image_sha=excluded.image_sha,
-             file_id=COALESCE(excluded.file_id, votes.file_id), parsed_at=datetime('now')""",
+             file_id=COALESCE(excluded.file_id, votes.file_id), parsed_at=datetime('now')
+           WHERE NOT (votes.source = 'pdf' AND excluded.source IS NOT 'pdf')""",
         (vid, v["meeting_id"], anchor, v["top_label"], v.get("result_text"),
          v.get("ja"), v.get("nein"), v.get("enthaltung"), members_json,
          v.get("source"), v.get("image_url"), v.get("image_sha"), v.get("file_id")))
+
+
+def vote_parse_attempts(file_id: str) -> int:
+    row = get_conn().execute(
+        "SELECT attempts FROM vote_parse_attempts WHERE file_id = ?", (file_id,)).fetchone()
+    return row["attempts"] if row else 0
+
+
+def record_vote_parse_attempt(file_id: str, success: bool) -> None:
+    """Track failed parses so unreadable scans stop re-billing the vision model;
+    a success clears the counter (the file may later change in place)."""
+    with write_conn() as c:
+        if success:
+            c.execute("DELETE FROM vote_parse_attempts WHERE file_id = ?", (file_id,))
+        else:
+            c.execute(
+                """INSERT INTO vote_parse_attempts(file_id, attempts, last_attempt)
+                   VALUES(?, 1, datetime('now'))
+                   ON CONFLICT(file_id) DO UPDATE SET attempts = attempts + 1,
+                     last_attempt = datetime('now')""", (file_id,))
 
 
 def vote_image_sha(meeting_id: str, agenda_anchor: str) -> Optional[str]:
@@ -592,14 +667,19 @@ def live_meetings(now: Optional[datetime] = None) -> list[dict[str, Any]]:
     if now is None:
         now = datetime.now(_BERLIN).replace(tzinfo=None)
     today = now.date()
+    # Include yesterday so a session running past midnight ("22.00 bis 0.30 Uhr",
+    # window extended by parse_time_window) stays live after 00:00.
+    yesterday = today - timedelta(days=1)
     conn = get_conn()
     rows = conn.execute(
-        "SELECT id, time FROM meetings WHERE date = ? AND time IS NOT NULL AND time != ''",
-        (today.isoformat(),),
+        "SELECT id, date, time FROM meetings WHERE date IN (?, ?) "
+        "AND time IS NOT NULL AND time != ''",
+        (today.isoformat(), yesterday.isoformat()),
     ).fetchall()
     live = []
     for r in rows:
-        win = parse_time_window(r["time"], today)
+        day = today if r["date"] == today.isoformat() else yesterday
+        win = parse_time_window(r["time"], day)
         if win and win[0] <= now <= win[1]:
             live.append((win[1], r["id"]))
     live.sort(key=lambda t: t[0])

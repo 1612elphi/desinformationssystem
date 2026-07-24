@@ -28,6 +28,7 @@ import time
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Optional
+from urllib.parse import urljoin, urlsplit
 
 import httpx
 from bs4 import BeautifulSoup
@@ -64,12 +65,15 @@ GERMAN_MONTHS = {
     "november": 11, "dezember": 12,
 }
 
-# label keyword -> document type (checked in order)
+# label keyword -> document type (checked in order — most specific first, since
+# matching is substring-based: "wortprotokoll" contains "protokoll", and a
+# combined "Protokoll mit Abstimmungsergebnis" must classify as the latter so
+# parse_pending_votes picks it up)
 DOC_TYPE_RULES = [
     ("niederschrift", "Niederschrift"),
-    ("protokoll", "Protokoll"),
-    ("wortprotokoll", "Wortprotokoll"),
     ("abstimmungsergebnis", "Abstimmungsergebnis"),
+    ("wortprotokoll", "Wortprotokoll"),
+    ("protokoll", "Protokoll"),
     ("beschlussvorlage", "Beschlussvorlage"),
     ("beschluss", "Beschluss"),
     ("einladung", "Einladung"),
@@ -121,7 +125,8 @@ class Fetcher:
                 r = self.client.get(url)
             except httpx.HTTPError as e:
                 log.warning("request error %s (%s) attempt %d", url, e, attempt + 1)
-                time.sleep(2 ** attempt)
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(2 ** attempt)
                 continue
             ct = r.headers.get("content-type", "")
             ok = r.status_code == 200 and (binary or "text/html" in ct or "json" in ct)
@@ -133,7 +138,8 @@ class Fetcher:
                 if fs is not None:
                     return fs
             log.warning("bad status %s for %s (attempt %d/%d)", r.status_code, url, attempt + 1, MAX_RETRIES)
-            time.sleep(min(60, 3 * (2 ** attempt)))
+            if attempt < MAX_RETRIES - 1:
+                time.sleep(min(60, 3 * (2 ** attempt)))
         log.error("giving up on %s", url)
         return None
 
@@ -255,8 +261,12 @@ def _public_flag(text: str) -> Optional[int]:
 def _meeting_public(title: str) -> Optional[int]:
     """Meeting titles often read '(öffentlich/nicht öffentlich)' = mixed -> NULL."""
     low = title.lower()
-    has_pub = "öffentlich" in low
     has_non = "nicht öffentlich" in low or "nichtöffentlich" in low
+    # strip the negated phrase before testing for a standalone "öffentlich" —
+    # it's a substring of "nicht öffentlich", so testing the raw title would
+    # make every purely non-public meeting look mixed.
+    rest = low.replace("nicht öffentlich", "").replace("nichtöffentlich", "")
+    has_pub = "öffentlich" in rest
     if has_pub and has_non:
         return None
     if has_non:
@@ -305,16 +315,28 @@ def parse_meeting(html: str, url: str, meeting_id: str) -> dict:
         href = a.get("href", "")
         if ".pdf" not in href.lower() or "downloadfiles" not in href:
             return
-        fid_m = re.search(r"/(\d+)\.pdf", href)
-        fid = fid_m.group(1) if fid_m else hashlib.sha1(href.encode()).hexdigest()[:16]
-        label = re.sub(r"\s+", " ", a.get_text(" ", strip=True)) or os.path.basename(href)
+        # Resolve relative hrefs and refuse anything that isn't an http(s) URL on
+        # a karlsruhe.de host — scraped hrefs end up both fetched by us and
+        # rendered as links on the public site.
+        abs_url = urljoin(url, href)
+        parts = urlsplit(abs_url)
+        host = (parts.hostname or "").lower()
+        if parts.scheme not in ("http", "https") or not (
+                host == "karlsruhe.de" or host.endswith(".karlsruhe.de")):
+            log.warning("skipping off-site/odd file href %r on %s", href, url)
+            return
+        fid_m = re.search(r"/(\d+)\.pdf", abs_url, re.IGNORECASE)
+        fid = fid_m.group(1) if fid_m else hashlib.sha1(abs_url.encode()).hexdigest()[:16]
+        if fid in files and anchor is None:
+            return  # agenda pass already placed it under a TOP — don't clobber
+        label = re.sub(r"\s+", " ", a.get_text(" ", strip=True)) or os.path.basename(parts.path)
         files[fid] = {
             "id": fid,
-            "url": href,
+            "url": abs_url,
             "label": label,
             "agenda_anchor": anchor,
             "doc_type": classify(label),
-            "filename": os.path.basename(href),
+            "filename": os.path.basename(parts.path),
         }
 
     seen_anchors: set[str] = set()
@@ -343,13 +365,9 @@ def parse_meeting(html: str, url: str, meeting_id: str) -> dict:
         for a in scope.select('a[href*="downloadfiles"]'):
             register_file(a, anchor)
 
-    # Files not inside any agenda detail block -> meeting-level
+    # Files not inside any agenda detail block -> meeting-level (register_file
+    # itself skips ids the agenda pass already placed, so anchors survive)
     for a in soup.select('a[href*="downloadfiles"]'):
-        href = a.get("href", "")
-        fid_m = re.search(r"/(\d+)\.pdf", href)
-        fid = fid_m.group(1) if fid_m else None
-        if fid and fid in files:
-            continue
         register_file(a, None)
 
     return {
@@ -481,6 +499,11 @@ def scrape(months: int, backfill_all: bool = False, enable_llm: bool = ENABLE_LL
             if not r:
                 continue
             mems = parse_members(r.text)
+            if not mems:
+                # A 200 page without a parseable roster (markup change, error page)
+                # must not wipe the stored membership.
+                log.warning("no members parsed for %s — keeping existing roster", cid)
+                continue
             with db.write_conn() as c:
                 c.execute("DELETE FROM members WHERE body_id=?", (cid,))
                 for mm in mems:
@@ -514,21 +537,29 @@ def scrape(months: int, backfill_all: bool = False, enable_llm: bool = ENABLE_LL
         log.info("discovered %d meetings (+%d recent re-checks since %s)",
                  len(termin_ids), len(new_recent), recheck_cutoff)
 
-        # 3. each meeting
+        # 3. each meeting (guarded — one bad meeting/file mustn't abort the run)
         for tid in sorted(termin_ids):
-            url = f"{RIS}/{tid}"
-            r = f.get(url)
-            if not r:
-                counts["errors"] += 1
-                continue
-            meeting = parse_meeting(r.text, url, tid)
-            recheck = bool(meeting["date"]) and meeting["date"] >= recheck_cutoff
-            body_id = name_to_id.get(meeting["body_name"])
-            counts["meetings"] += 1
-            _upsert_meeting(meeting, body_id)
+            try:
+                url = f"{RIS}/{tid}"
+                r = f.get(url)
+                if not r:
+                    counts["errors"] += 1
+                    continue
+                meeting = parse_meeting(r.text, url, tid)
+                recheck = bool(meeting["date"]) and meeting["date"] >= recheck_cutoff
+                body_id = name_to_id.get(meeting["body_name"])
+                counts["meetings"] += 1
+                _upsert_meeting(meeting, body_id)
 
-            for fmeta in meeting["files"]:
-                _process_file(f, fmeta, tid, counts, recheck=recheck)
+                for fmeta in meeting["files"]:
+                    try:
+                        _process_file(f, fmeta, tid, counts, recheck=recheck)
+                    except Exception as e:  # noqa: BLE001
+                        log.warning("file %s (%s) failed: %s", fmeta.get("id"), tid, e)
+                        counts["errors"] += 1
+            except Exception as e:  # noqa: BLE001
+                log.warning("meeting %s failed: %s", tid, e)
+                counts["errors"] += 1
         # 4. enrichment of anything pending (this run + leftovers)
         if enable_llm:
             counts["enriched"] += _enrich_pending(counts)
@@ -540,6 +571,14 @@ def scrape(months: int, backfill_all: bool = False, enable_llm: bool = ENABLE_LL
             db.set_meta(c, "last_scrape_status", f"ok {counts}")
         log.info("scrape done: %s", counts)
         return counts
+    except Exception as e:
+        # Record the failure so the dashboard doesn't keep showing a stale "ok".
+        try:
+            with db.write_conn() as c:
+                db.set_meta(c, "last_scrape_status", f"error {e}")
+        except Exception:  # noqa: BLE001
+            pass
+        raise
     finally:
         f.close()
 
@@ -564,6 +603,14 @@ def _upsert_meeting(meeting: dict, body_id: Optional[str]) -> None:
                    ON CONFLICT(meeting_id,anchor) DO UPDATE SET number=excluded.number,
                      title=excluded.title, public=excluded.public""",
                 (tid, ai["anchor"], ai["number"], ai["title"], ai["public"]))
+        # Drop TOPs the RIS removed/renumbered — but only when we actually parsed
+        # an agenda, so a markup change can't wipe a meeting's items.
+        if meeting["agenda"]:
+            anchors = [ai["anchor"] for ai in meeting["agenda"]]
+            ph = ",".join("?" * len(anchors))
+            c.execute(
+                f"DELETE FROM agenda_items WHERE meeting_id=? AND anchor NOT IN ({ph})",
+                (tid, *anchors))
 
 
 def _resolve_body_id(body_name: str) -> Optional[str]:
@@ -630,10 +677,14 @@ def _process_file(f: Fetcher, fmeta: dict, meeting_id: str, counts: dict,
                     if lm:
                         with db.write_conn() as c:
                             c.execute("UPDATE files SET remote_modified=? WHERE id=?", (lm, fid))
-                elif (lm and lm != prior) or (
-                        cl and existing["size"] and int(cl) != existing["size"]):
-                    changed = True
-                    log.info("file %s changed on server (recheck) — re-downloading", fid)
+                else:
+                    try:
+                        size_changed = bool(cl) and bool(existing["size"]) and int(cl) != existing["size"]
+                    except ValueError:  # malformed Content-Length
+                        size_changed = False
+                    if (lm and lm != prior) or size_changed:
+                        changed = True
+                        log.info("file %s changed on server (recheck) — re-downloading", fid)
         if not changed:
             counts["files_seen"] += 1
             with db.write_conn() as c:  # keep association/labels fresh
@@ -649,11 +700,14 @@ def _process_file(f: Fetcher, fmeta: dict, meeting_id: str, counts: dict,
     if not r:
         counts["errors"] += 1
         return False
-    os.makedirs(PDF_DIR, exist_ok=True)
-    local = os.path.join(PDF_DIR, f"{fid}.pdf")
-    with open(local, "wb") as fh:
-        fh.write(r.content)
-    sha = _sha256(local)
+    content = r.content
+    if not content.lstrip()[:5].startswith(b"%PDF"):
+        # A 200 that isn't a PDF (maintenance page, rate-limit interstitial) must
+        # never clobber a known-good cached file.
+        log.warning("file %s: response is not a PDF (%d bytes) — keeping existing", fid, len(content))
+        counts["errors"] += 1
+        return False
+    sha = hashlib.sha256(content).hexdigest()
     is_update = bool(existing)
     if is_update and existing["sha256"] == sha:
         # content identical after all — just refresh metadata, don't re-enrich
@@ -663,8 +717,25 @@ def _process_file(f: Fetcher, fmeta: dict, meeting_id: str, counts: dict,
                                           label=?, doc_type=? WHERE id=?""",
                       (r.headers.get("last-modified"), meeting_id, fmeta["agenda_anchor"],
                        fmeta["label"], fmeta["doc_type"], fid))
+            db.reindex_file(c, fid)  # label/meeting join columns feed the FTS index
         return False
-    status, text = extract_text(local)
+    os.makedirs(PDF_DIR, exist_ok=True)
+    local = os.path.join(PDF_DIR, f"{fid}.pdf")
+    # Write to a temp file, extract from it, then atomically rename into place —
+    # the daily scraper and the web refresh path can race on the same fid, and
+    # readers (/api/file) must never see a half-written PDF.
+    tmp = f"{local}.tmp.{os.getpid()}"
+    try:
+        with open(tmp, "wb") as fh:
+            fh.write(content)
+        status, text = extract_text(tmp)
+        os.replace(tmp, local)
+    finally:
+        if os.path.exists(tmp):
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
     if status == "ok":
         counts["text_ok"] += 1
     counts["files_updated" if is_update else "files_new"] = \
@@ -686,7 +757,7 @@ def _process_file(f: Fetcher, fmeta: dict, meeting_id: str, counts: dict,
                  submitters=excluded.submitters,
                  enrich_status='pending', downloaded_at=datetime('now')""",
             (fid, fmeta["url"], meeting_id, fmeta["agenda_anchor"], fmeta["label"],
-             fmeta["doc_type"], fmeta["filename"], sha, len(r.content),
+             fmeta["doc_type"], fmeta["filename"], sha, len(content),
              r.headers.get("last-modified"), local, status, text, subs))
         db.reindex_file(c, fid)
     return True
@@ -694,10 +765,12 @@ def _process_file(f: Fetcher, fmeta: dict, meeting_id: str, counts: dict,
 
 def _vote_anchor(row) -> Optional[str]:
     """Agenda anchor for a vote PDF: prefer the file's own agenda_anchor, else derive
-    'topN' from a 'TOP n' in the label. None if neither is available (don't guess)."""
+    'topN'/'topN.M' from a 'TOP n' in the label (dotted sub-items keep their dot so
+    they key/reconcile the same way as the scraped anchors). None if neither is
+    available (don't guess)."""
     if row["agenda_anchor"]:
         return row["agenda_anchor"]
-    m = re.search(r"TOP\s*(\d+)", row["label"] or "")
+    m = re.search(r"TOP\s*(\d+(?:\.\d+)*)", row["label"] or "")
     return f"top{m.group(1)}" if m else None
 
 
@@ -715,7 +788,7 @@ def parse_vote_pdf(file_id: str) -> bool:
     if not anchor:
         log.info("vote pdf %s: no agenda anchor (label %r) — skipping", file_id, row["label"])
         return False
-    m = re.search(r"TOP\s*(\d+)", row["label"] or "")
+    m = re.search(r"TOP\s*(\d+(?:\.\d+)*)", row["label"] or "")
     top_label = f"TOP {m.group(1)}" if m else f"TOP {anchor[3:]}"
     with tempfile.TemporaryDirectory() as td:
         base = os.path.join(td, "v")
@@ -753,6 +826,7 @@ def parse_pending_votes(limit: int = 1000) -> int:
         """SELECT id, meeting_id, label, agenda_anchor FROM files
            WHERE doc_type='Abstimmungsergebnis' AND meeting_id IS NOT NULL
            ORDER BY downloaded_at DESC LIMIT ?""", (limit,)).fetchall()
+    max_attempts = int(os.environ.get("VOTE_PARSE_MAX_ATTEMPTS", "3"))
     done = 0
     for r in rows:
         anchor = _vote_anchor(r)
@@ -762,11 +836,16 @@ def parse_pending_votes(limit: int = 1000) -> int:
                           (f"{r['meeting_id']}:{anchor}",)).fetchone()
         if ex and ex["source"] == "pdf":
             continue  # already have the authoritative PDF tally for this TOP
+        if db.vote_parse_attempts(r["id"]) >= max_attempts:
+            continue  # unreadable scan — stop re-billing the vision model every run
         try:
-            if parse_vote_pdf(r["id"]):  # parses + supersedes any earlier 'live' row
+            ok = parse_vote_pdf(r["id"])  # parses + supersedes any earlier 'live' row
+            db.record_vote_parse_attempt(r["id"], ok)
+            if ok:
                 done += 1
         except Exception as e:  # noqa: BLE001
             log.warning("vote pdf %s failed: %s", r["id"], e)
+            db.record_vote_parse_attempt(r["id"], False)
     if done:
         log.info("parsed %d vote PDFs", done)
     return done

@@ -134,20 +134,26 @@ export const getDocument = (id: string) => getJSON<Doc>(`/api/document/${id}`);
 export const fileUrl = (id: string, download = false) =>
   `/api/file/${id}${download ? "?download=true" : ""}`;
 
-export function getMeetings(p: {
+export async function getMeetings(p: {
   committee?: string;
   upcoming?: boolean;
   from?: string;
   to?: string;
   limit?: number;
-}): Promise<Meeting[]> {
+  offset?: number;
+}): Promise<{ meetings: Meeting[]; total: number }> {
   const qs = new URLSearchParams();
   if (p.committee) qs.set("committee", p.committee);
   if (p.upcoming) qs.set("upcoming", "true");
   if (p.from) qs.set("from", p.from);
   if (p.to) qs.set("to", p.to);
   qs.set("limit", String(p.limit ?? 200));
-  return getJSON<Meeting[]>(`/api/meetings?${qs.toString()}`);
+  if (p.offset) qs.set("offset", String(p.offset));
+  const r = await fetch(`/api/meetings?${qs.toString()}`);
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  const meetings = (await r.json()) as Meeting[];
+  const total = Number(r.headers.get("X-Total-Count") || meetings.length);
+  return { meetings, total };
 }
 
 export const getMeeting = (id: string) => getJSON<Meeting>(`/api/meeting/${id}`);

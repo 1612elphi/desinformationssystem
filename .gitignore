@@ -1,5 +1,9 @@
-# Archive data (SQLite DB + cached PDFs) — lives outside git
-data/
+# Archive data (SQLite DB + cached PDFs) — lives outside git. The .gitkeep is
+# tracked so a fresh clone gets a host-owned data/ dir (otherwise dockerd
+# creates the bind-mount target root-owned and every uid-1000 container
+# crash-loops on the DB).
+data/*
+!data/.gitkeep
 
 # Python
 __pycache__/

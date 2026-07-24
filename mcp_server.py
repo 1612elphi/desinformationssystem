@@ -13,6 +13,13 @@ from mcp.server.fastmcp import FastMCP
 
 import db
 
+
+def _clamp(n: int, cap: int) -> int:
+    """Pagination guard: SQLite treats a negative LIMIT as 'unbounded', so a floor
+    of 1 matters as much as the cap on these public unauthenticated tools."""
+    return max(1, min(n, cap))
+
+
 mcp = FastMCP(
     name="desinformationssystem",
     instructions=(
@@ -62,7 +69,7 @@ def search_documents(
     return db.search_documents(
         query=query, committee=committee, doc_type=doc_type, date_from=date_from,
         date_to=date_to, public=public, topic=topic, submitter=submitter,
-        limit=min(limit, 200), offset=offset,
+        limit=_clamp(limit, 200), offset=max(0, offset),
     )
 
 
@@ -100,7 +107,7 @@ def list_meetings(
         date_from = date_from or datetime.date.today().isoformat()
         order = "asc"
     return {"meetings": db.list_meetings(committee=committee, date_from=date_from,
-                                         date_to=date_to, order=order, limit=min(limit, 500))}
+                                         date_to=date_to, order=order, limit=_clamp(limit, 500))}
 
 
 @mcp.tool()
@@ -152,7 +159,7 @@ def search_votes(
     return db.search_votes(
         committee=committee, date_from=date_from, date_to=date_to, member=member,
         query=query, include_members=include_members,
-        limit=min(limit, 200), offset=offset,
+        limit=_clamp(limit, 200), offset=max(0, offset),
     )
 
 
@@ -166,7 +173,7 @@ def get_votes(meeting_id: str) -> dict:
 @mcp.tool()
 def recent_documents(since: Optional[str] = None, limit: int = 25) -> dict:
     """Most recently downloaded documents. 'since' is an ISO datetime lower bound."""
-    return {"documents": db.recent_documents(since=since, limit=min(limit, 200))}
+    return {"documents": db.recent_documents(since=since, limit=_clamp(limit, 200))}
 
 
 @mcp.tool()

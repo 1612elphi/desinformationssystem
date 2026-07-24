@@ -138,22 +138,43 @@ def _parse_json(content: str) -> dict:
         raise
 
 
+def _str_list(v, cap: int) -> list[str]:
+    """Coerce a model-supplied value into a clean list of strings — the model
+    occasionally returns a bare string, or dicts inside the list. Anything that
+    slips through here is persisted forever (enrich_status='ok' is terminal)."""
+    if isinstance(v, str):
+        v = [t.strip() for t in v.split(",")]
+    if not isinstance(v, list):
+        return []
+    out = []
+    for t in v:
+        if isinstance(t, dict):  # e.g. {"name": "..."} — take the obvious field
+            t = t.get("name") or t.get("value") or ""
+        if isinstance(t, (str, int, float)):
+            s = str(t).strip()
+            if s:
+                out.append(s)
+    return out[:cap]
+
+
 def _normalise(result: dict) -> dict:
-    cat = (result.get("category") or "Sonstiges").strip()
+    cat = (result.get("category") or "Sonstiges")
+    cat = cat.strip() if isinstance(cat, str) else "Sonstiges"
     if cat not in CATEGORIES:
         cat = next((c for c in CATEGORIES if c.lower() == cat.lower()), "Sonstiges")
-    topics = result.get("topics") or []
-    if isinstance(topics, str):
-        topics = [t.strip() for t in topics.split(",") if t.strip()]
     ents = result.get("entities") or {}
     if not isinstance(ents, dict):
         ents = {}
-    entities = {k: (ents.get(k) or []) for k in ("people", "orgs", "locations")}
+    entities = {k: _str_list(ents.get(k), 8) for k in ("people", "orgs", "locations")}
+
+    def _s(v) -> str:
+        return v.strip() if isinstance(v, str) else ""
+
     return {
-        "summary_de": (result.get("summary_de") or "").strip(),
-        "summary_en": (result.get("summary_en") or "").strip(),
+        "summary_de": _s(result.get("summary_de")),
+        "summary_en": _s(result.get("summary_en")),
         "category": cat,
-        "topics": [str(t).strip() for t in topics if str(t).strip()][:7],
+        "topics": _str_list(result.get("topics"), 7),
         "entities": entities,
     }
 
