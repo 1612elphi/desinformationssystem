@@ -262,6 +262,9 @@ class Ingest:
         # the watermark back to the oldest of these so the next run re-walks
         # them; without it a swallowed error drops the object permanently.
         self.failed: list = failed if failed is not None else []
+        # Indirection so the bulk seeder (seed.py) can substitute a local,
+        # network-free file writer and still reuse every mapping rule below.
+        self.process_file = filestore.process_file
         # OParl agendaitem numeric id -> (termin_id, anchor); filled while
         # ingesting meetings, extended on demand for consultations.
         self.aimap: dict[str, tuple[str, Optional[str]]] = {}
@@ -339,7 +342,7 @@ class Ingest:
             recheck = bool(mdate) and mdate >= self.recheck_cutoff
             for fmeta in self._meeting_files(m):
                 try:
-                    filestore.process_file(self.cli.f, fmeta, tid, self.counts,
+                    self.process_file(self.cli.f, fmeta, tid, self.counts,
                                            recheck=recheck)
                 except Exception as e:  # noqa: BLE001
                     log.warning("file %s (%s) failed: %s", fmeta.get("id"), tid, e)
@@ -449,7 +452,7 @@ class Ingest:
                 if meta["doc_type"] == "Sonstiges" and mapped:
                     meta["doc_type"] = mapped
                 try:
-                    filestore.process_file(self.cli.f, meta, tgt[0], self.counts,
+                    self.process_file(self.cli.f, meta, tgt[0], self.counts,
                                            recheck=recheck)
                 except Exception as e:  # noqa: BLE001
                     log.warning("paper file %s failed: %s", meta.get("id"), e)
