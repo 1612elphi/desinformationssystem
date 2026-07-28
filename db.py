@@ -221,7 +221,11 @@ def _migrate(conn: sqlite3.Connection) -> None:
     """Idempotent column adds for DBs created before a column existed."""
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(files)")}
     for name, decl in (("remote_modified", "TEXT"), ("submitters", "TEXT"),
-                       ("fts_id", "INTEGER"), ("vorlage", "TEXT")):
+                       ("fts_id", "INTEGER"), ("vorlage", "TEXT"),
+                       # OParl ingester (oparl.py): the source's own document type
+                       # + the full Vorlagen reference incl. amendment suffix
+                       # ("2026/0365/3"; files.vorlage keeps the base form).
+                       ("paper_type", "TEXT"), ("paper_reference", "TEXT")):
         if name not in cols:
             conn.execute(f"ALTER TABLE files ADD COLUMN {name} {decl}")
     # Existing FTS rows were keyed on the implicit rowid; snapshot it into fts_id

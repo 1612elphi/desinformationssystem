@@ -7,6 +7,9 @@ ROLE="${ROLE:-web}"
 WEB_PORT="${WEB_PORT:-3650}"
 SCRAPE_HOUR="${SCRAPE_HOUR:-3}"
 SCRAPE_MINUTE="${SCRAPE_MINUTE:-30}"
+# Ingestion engine for the scraper role: html (scraper.py, the proven default)
+# or oparl (oparl.py, the OParl API ingester — see docs/oparl-migration.md).
+INGEST="${INGEST:-html}"
 
 case "$ROLE" in
   web)
@@ -31,13 +34,19 @@ case "$ROLE" in
     }
     trap on_term TERM INT
 
+    case "$INGEST" in
+      oparl) SCRAPE_CMD="oparl.py" ;;
+      html)  SCRAPE_CMD="scraper.py" ;;
+      *) echo "unknown INGEST: $INGEST (want html|oparl)" >&2; exit 1 ;;
+    esac
+
     run_scrape() {
-      python scraper.py & child=$!
+      python "$SCRAPE_CMD" & child=$!
       wait "$child" || echo "[scraper] run failed; continuing"
       child=""
     }
 
-    echo "[scraper] initial run (months=${BACKFILL_MONTHS:-12})"
+    echo "[scraper] initial run (ingest=${INGEST}, months=${BACKFILL_MONTHS:-12})"
     run_scrape
     while true; do
       # seconds until the next SCRAPE_HOUR:SCRAPE_MINUTE

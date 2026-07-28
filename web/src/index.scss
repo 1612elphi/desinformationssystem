@@ -344,3 +344,93 @@ body { margin: 0; background: var(--cds-background); }
 .dis-matrix td { color: var(--cds-text-primary); }
 .dis-matrix__self { background: var(--cds-layer); }
 .dis-dissenters { margin-top: 0.75rem; }
+
+/* ═══ accents ══════════════════════════════════════════════════════════════
+   Two signal colors on the stock Carbon g100 dark theme, used sparingly:
+   acid-lime #C7FF05 as the one interactive accent (was Carbon blue), and pure
+   #0000FF as a rare brand mark. Appended last so it wins the cascade.        */
+.cds--g100 {
+  --cds-link-primary: #c7ff05;
+  --cds-link-primary-hover: #dcff6b;
+  --cds-focus: #c7ff05;
+  --cds-interactive: #c7ff05;          /* selected-tab underline, checkboxes, active */
+  --cds-border-interactive: #c7ff05;
+  --cds-button-primary: #c7ff05;
+  --cds-button-primary-hover: #dcff6b;
+  --cds-button-primary-active: #b2e600;
+}
+/* black label on the acid fill for contrast */
+.cds--btn--primary,
+.cds--btn--primary:hover,
+.cds--btn--primary:active,
+.cds--btn--primary:focus { color: #000; }
+
+/* pure-blue brand mark — only two places: a rule under the hero, the Open Data chip */
+.dis-hero h1 { position: relative; }
+.dis-hero h1::after {
+  content: ""; display: block; width: 3rem; height: 4px;
+  margin-top: 0.85rem; background: #0000ff;
+}
+.dis-header-right .cds--tag { background: #0000ff; color: #fff; }
+
+/* keep the app's own accents in step with the new interactive color */
+.dis-bar-fill { background: #c7ff05; }
+.dis-snippet mark { background: rgba(199, 255, 5, 0.22); color: var(--cds-text-primary); }
+
+/* ── solid-block selected states ──────────────────────────────────────────
+   Selected = a full acid block with BLACK text. !important because Carbon's
+   own contained-tab hover/selected selectors are highly specific and would
+   otherwise repaint the block grey or leave the label light on the lime.     */
+.cds--tabs__nav-item--selected,
+.cds--tabs__nav-item--selected:hover { background: #c7ff05 !important; }
+.cds--tabs__nav-item--selected,
+.cds--tabs__nav-item--selected *,
+.cds--tabs__nav-item--selected .cds--tabs__nav-item-label { color: #000 !important; }
+
+/* DatePicker: the selected day fills with --cds-button-primary (now acid), and
+   Carbon lays --cds-text-on-color (white) over it → white-on-lime. Force dark. */
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover,
+.flatpickr-day.selected:focus,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange { color: #000; }
+
+/* selected committee in the Gremien list → solid acid block */
+.dis-committee-item.is-selected {
+  background: #c7ff05;
+  box-shadow: none;
+  color: #000;
+}
+.dis-committee-item.is-selected .dis-meta-line { color: #1c1c1c; }
+
+/* clickable table rows: acid edge on hover (the "about to select" cue) */
+.dis-row-clickable:hover td:first-child { box-shadow: inset 4px 0 0 #c7ff05; }
+
+/* ── micrographics ────────────────────────────────────────────────────────
+   Small technical marks — registration ticks + framing brackets, mostly
+   muted, catching the acid on interaction. No text, no new type.            */
+
+/* corner registration tick on each stat tile (acid on hover) */
+.dis-stat { position: relative; }
+.dis-stat::after {
+  content: ""; position: absolute; top: 6px; right: 6px;
+  width: 6px; height: 6px;
+  border-top: 1px solid var(--cds-border-strong);
+  border-right: 1px solid var(--cds-border-strong);
+  transition: border-color 0.12s ease;
+}
+.dis-stat:hover::after { border-color: #c7ff05; }
+
+/* framing brackets on the filter panel — top-left / bottom-right */
+.dis-panel { position: relative; }
+.dis-panel::before, .dis-panel::after {
+  content: ""; position: absolute; width: 11px; height: 11px; pointer-events: none;
+}
+.dis-panel::before { top: -1px; left: -1px; border-top: 2px solid #c7ff05; border-left: 2px solid #c7ff05; }
+.dis-panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid #c7ff05; border-right: 2px solid #c7ff05; }
+
+/* small blue index square before the result count (the one recurring blue mark) */
+.dis-result-count::before {
+  content: ""; display: inline-block; width: 7px; height: 7px;
+  background: #0000ff; margin-right: 0.55rem; vertical-align: baseline;
+}

@@ -19,7 +19,7 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY db.py scraper.py enrich.py submitter.py vote_parse.py ticker.py web.py mcp_server.py entrypoint.sh ./
+COPY db.py scraper.py filestore.py oparl.py enrich.py submitter.py vote_parse.py ticker.py web.py mcp_server.py entrypoint.sh ./
 COPY --from=web /web/dist ./web/dist
 
 RUN chmod +x entrypoint.sh \
