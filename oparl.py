@@ -37,7 +37,7 @@ import logging
 import os
 import re
 import sys
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Iterator, Optional
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
@@ -90,12 +90,33 @@ class OparlError(RuntimeError):
     pass
 
 
+def _iso_key(ts: str) -> datetime:
+    """Parse an OParl ISO timestamp for ordering against the watermark. Offsets
+    make lexicographic comparison wrong across a DST change, so compare as
+    datetimes. Unparseable values sort oldest, which holds the watermark back —
+    the safe direction (re-walk too much, never skip)."""
+    try:
+        d = datetime.fromisoformat((ts or "").replace("Z", "+00:00"))
+    except ValueError:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    return d if d.tzinfo else d.replace(tzinfo=_BERLIN)
+
+
 def fix(url: Optional[str]) -> Optional[str]:
     return url.replace(_BROKEN, _FIXED) if url else url
 
 
 def _tail(url: str) -> str:
     return url.rstrip("/").rsplit("/", 1)[1]
+
+
+def _termin_num(tid: str) -> int:
+    """Numeric sort key for a 'termin-N' id. String ordering is wrong once the
+    archive crosses a digit-count boundary ("termin-9999" > "termin-10007")."""
+    try:
+        return int(tid.rsplit("-", 1)[1])
+    except (IndexError, ValueError):
+        return -1
 
 
 _ORG_RE = re.compile(r"/organizations/([a-z]+)/(\d+)")
@@ -209,10 +230,15 @@ def _ref_base(reference: Optional[str]) -> Optional[str]:
 
 
 class Ingest:
-    def __init__(self, cli: Client, recheck_cutoff: str, counts: dict) -> None:
+    def __init__(self, cli: Client, recheck_cutoff: str, counts: dict,
+                 failed: Optional[list] = None) -> None:
         self.cli = cli
         self.recheck_cutoff = recheck_cutoff
         self.counts = counts
+        # `modified` stamps of objects whose ingest partly failed. sync() holds
+        # the watermark back to the oldest of these so the next run re-walks
+        # them; without it a swallowed error drops the object permanently.
+        self.failed: list = failed if failed is not None else []
         # OParl agendaitem numeric id -> (termin_id, anchor); filled while
         # ingesting meetings, extended on demand for consultations.
         self.aimap: dict[str, tuple[str, Optional[str]]] = {}
@@ -240,7 +266,12 @@ class Ingest:
             self.counts["empty_meetings"] = self.counts.get("empty_meetings", 0) + 1
             return None
         body_name = re.sub(r"\s*\(.*?\)\s*$", "", title).strip()
-        body_id = _body_id_from_org((m.get("organization") or [None])[0])
+        # Scan the whole array: every meeting seen so far carries exactly one
+        # organization, but a non-gr entry (an Amt) listed first would otherwise
+        # null out body_id and orphan the meeting from its committee.
+        body_id = next(
+            (b for b in (_body_id_from_org(o) for o in (m.get("organization") or []))
+             if b), None)
 
         agenda = []
         for ai in m.get("agendaItem") or []:
@@ -382,9 +413,11 @@ class Ingest:
         fids: list[str] = []
         if stations:
             # Attach the paper's PDFs to its latest station (the HTML scraper's
-            # last-meeting-wins behaviour, made deterministic).
-            tgt = max(stations, key=lambda s: (s[2] or "", s[0]))
+            # last-meeting-wins behaviour, made deterministic). Sort the termin id
+            # numerically — lexicographically "termin-9999" > "termin-10007".
+            tgt = max(stations, key=lambda s: (s[2] or "", _termin_num(s[0])))
             recheck = bool(tgt[2]) and tgt[2] >= self.recheck_cutoff
+            conn = db.get_conn()
             for fobj in files:
                 meta = _file_meta(fobj, tgt[1])
                 if not meta:
@@ -395,10 +428,23 @@ class Ingest:
                 try:
                     filestore.process_file(self.cli.f, meta, tgt[0], self.counts,
                                            recheck=recheck)
-                    fids.append(meta["id"])
                 except Exception as e:  # noqa: BLE001
                     log.warning("paper file %s failed: %s", meta.get("id"), e)
                     self.counts["errors"] += 1
+                    self.failed.append(p.get("modified") or "")
+                    continue
+                # process_file returns False both for "download failed" and for
+                # "already present, unchanged", so its return value can't gate
+                # this — check the row instead, or we stamp paper metadata and
+                # file_vorlagen rows onto a file_id that doesn't exist.
+                if conn.execute("SELECT 1 FROM files WHERE id=?",
+                                (meta["id"],)).fetchone():
+                    fids.append(meta["id"])
+                else:
+                    # process_file already counted the error; the PDF never
+                    # landed, so this paper must come round again next run.
+                    self.counts["files_missing"] = self.counts.get("files_missing", 0) + 1
+                    self.failed.append(p.get("modified") or "")
         elif files:
             # No consultation on a known meeting -> nowhere to hang NEW files in
             # our meeting-rooted schema. But if a file already exists (e.g. the
@@ -420,6 +466,16 @@ class Ingest:
                 c.execute("UPDATE files SET paper_type=?, paper_reference=? WHERE id=?",
                           (ptype, ref_full, fid))
                 if base:
+                    # The OParl reference is authoritative, so demote any other
+                    # own=1 row that fulltext mining (process_file ->
+                    # db.set_file_vorlagen) set under a *different* number. The
+                    # (file_id,vorlage) PK means INSERT OR REPLACE can't clear
+                    # it, and two own=1 rows put this file at the head of two
+                    # unrelated Vorlage chains. Demote rather than delete: the
+                    # mined number really is mentioned in the document.
+                    c.execute(
+                        "UPDATE file_vorlagen SET own=0 WHERE file_id=? AND vorlage<>?",
+                        (fid, base))
                     c.execute(
                         "INSERT OR REPLACE INTO file_vorlagen(file_id,vorlage,own) VALUES(?,?,1)",
                         (fid, base))
@@ -474,7 +530,8 @@ def sync(full: bool = False, since: Optional[str] = None,
             committees, mcount = scraper.sync_committees_members(cli.f)
             counts["members"] = mcount
 
-        ing = Ingest(cli, recheck_cutoff, counts)
+        failed: list = []
+        ing = Ingest(cli, recheck_cutoff, counts, failed)
 
         # 2. meetings (incremental via modified_since)
         visited: set[str] = set()
@@ -486,6 +543,7 @@ def sync(full: bool = False, since: Optional[str] = None,
             except Exception as e:  # noqa: BLE001
                 log.warning("meeting %s failed: %s", m.get("id"), e)
                 counts["errors"] += 1
+                failed.append(m.get("modified") or "")
 
         # 3. recently-held meetings not in the modified window: re-fetch so
         # late-added Abstimmungsergebnis/Niederschrift files are caught even if
@@ -503,6 +561,10 @@ def sync(full: bool = False, since: Optional[str] = None,
             except Exception as e:  # noqa: BLE001
                 log.warning("recheck meeting %s failed: %s", tid, e)
                 counts["errors"] += 1
+                # Deliberately NOT recorded as a watermark failure: these
+                # meetings are outside the modified window by construction, so
+                # holding the watermark back can't reach them. Step 3 itself is
+                # the recovery — it re-runs by date every run inside RECHECK_DAYS.
 
         # 4. papers (Vorlagen/Anträge + their lifecycle via consultations)
         for p in cli.iter_list(f"{BASE}/bodies/{BODY}/papers", modified_since=watermark):
@@ -511,14 +573,36 @@ def sync(full: bool = False, since: Optional[str] = None,
             except Exception as e:  # noqa: BLE001
                 log.warning("paper %s failed: %s", p.get("id"), e)
                 counts["errors"] += 1
+                failed.append(p.get("modified") or "")
 
         # 5. enrichment + vote-PDF parsing (identical to the HTML pipeline)
         if enable_llm:
             counts["enriched"] += scraper._enrich_pending(counts)
         counts["votes"] = scraper.parse_pending_votes()
 
+        # Hold the watermark back to just before the oldest object we failed to
+        # ingest, so the next run re-walks it. Advancing past a swallowed error
+        # drops that object for good: the vendor won't bump its `modified`
+        # again, and only meetings get a date-based safety net (step 3) — papers
+        # have none. This is the same guarantee iter_list protects by raising
+        # rather than breaking mid-walk.
+        next_since = run_start
+        if failed:
+            # An object carrying no `modified` stamp can't be placed in time;
+            # fall back to re-walking the window we just walked. Never let a
+            # blank stamp reach set_meta — it reads back falsy and silently
+            # resets the watermark to the default backfill window.
+            stamps = [t for t in failed if t]
+            oldest = (min(stamps, key=_iso_key) if stamps
+                      else (watermark or run_start))
+            if _iso_key(oldest) < _iso_key(run_start):
+                next_since = oldest
+                counts["held_watermark"] = next_since
+                log.warning("%d object(s) failed — holding watermark at %s (not %s)",
+                            len(failed), next_since, run_start)
+
         with db.write_conn() as c:
-            db.set_meta(c, "oparl_since", run_start)
+            db.set_meta(c, "oparl_since", next_since)
             db.set_meta(c, "last_scrape", datetime.now().isoformat(timespec="seconds"))
             db.set_meta(c, "last_scrape_status", f"ok oparl {counts}")
         log.info("oparl sync done: %s", counts)

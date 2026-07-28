@@ -160,6 +160,12 @@ and stays keyed on the same DB schema.
 - Committee list + member rosters stay HTML (`scraper.sync_committees_members`) —
   OParl has no party data (see above).
 - Enrichment + vote-PDF parsing run at the end exactly like scrape() does.
+- **Watermark hold-back** (added 2026-07-28): per-item failures are swallowed so
+  one bad object can't abort the run, but each one records the object's
+  `modified` stamp, and the run then advances `oparl_since` only as far as the
+  *oldest* failure (`counts["held_watermark"]` reports it). Advancing past a
+  swallowed error would drop that object permanently — the vendor never bumps
+  `modified` again, and only meetings have the date-based recheck net.
 - `entrypoint.sh` gained `INGEST=html|oparl` (**default html** — flip only after
   validation); Dockerfile copies the new modules. db._migrate adds
   `files.paper_type` / `files.paper_reference` idempotently.
@@ -167,10 +173,13 @@ and stays keyed on the same DB schema.
 ### Validate before cutover (do NOT delete the scraper)
 - Run OParl ingest into a **copy** of the DB; diff counts (meetings/papers/files) and
   spot-check Vorlagen chains vs the current HTML-derived ones.
-- Confirm agenda anchors still line up with `votes.agenda_anchor` (the ticker keys on
-  `termin-N:topX` — OParl meeting ids differ from `termin-NNNNN` slugs, so a **stable
-  mapping between OParl meeting id and our `termin-` id is required** or the vote↔meeting
-  join breaks. This is the single biggest integration risk — resolve it first.).
+- ~~Confirm a stable mapping between OParl meeting id and our `termin-` id is required~~
+  — **superseded**: the id spaces are identical, so no crosswalk exists or is needed
+  (`oparl.py` builds `termin-{N}` directly). See "Open questions — RESOLVED" below;
+  re-verified against the live API 2026-07-28 (meeting 10802, agenda `14.1.1` →
+  `top14.1.1` vs the HTML's `dtop14.1.1`, file stem `00677201`, all 27 `gr` org ids).
+  There is no runtime assertion on this, so it stays worth a spot-check after any
+  vendor upgrade.
 - Keep `scraper.py` as a working fallback behind the `INGEST` switch indefinitely.
 
 ### Open questions — RESOLVED (verified live 2026-07-24, during the oparl.py build)
