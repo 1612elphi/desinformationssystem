@@ -142,6 +142,20 @@ _refreshing: set[str] = set()
 _refresh_sema = asyncio.Semaphore(2)
 
 
+def _refresh_fn():
+    """The on-demand meeting refresh matching the active ingester.
+
+    Read per call rather than at import: INGEST is a container env var, so this
+    keeps the live-session "Aktualisieren" button on the same source as the
+    daily job instead of silently crawling HTML after a switch to OParl.
+    Imported lazily so the web role doesn't pull the OParl module unless used.
+    """
+    if os.environ.get("INGEST", "html").lower() == "oparl":
+        import oparl
+        return oparl.refresh_one
+    return scraper.scrape_one
+
+
 @app.post("/api/meeting/{meeting_id}/refresh")
 async def api_meeting_refresh(meeting_id: str) -> dict:
     """On-demand re-scrape of one meeting (pulls newly-added live minutes/results)."""
@@ -153,7 +167,7 @@ async def api_meeting_refresh(meeting_id: str) -> dict:
     try:
         async with _refresh_sema:
             try:
-                result = await run_in_threadpool(scraper.scrape_one, meeting_id)
+                result = await run_in_threadpool(_refresh_fn(), meeting_id)
             except ValueError as e:
                 raise HTTPException(status_code=400, detail=str(e))
             except HTTPException:

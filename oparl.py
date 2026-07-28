@@ -551,6 +551,44 @@ class Ingest:
 # Sync orchestration
 # ---------------------------------------------------------------------------
 
+def refresh_one(termin_id: str, enable_llm: bool = False,
+                recheck: bool = False) -> dict:
+    """OParl equivalent of scraper.scrape_one: on-demand refresh of ONE meeting.
+
+    Same contract ({ok, counts, error?}) so web.py can dispatch on INGEST without
+    caring which ingester is active. Used by the live-session "Aktualisieren"
+    button, so it fetches the single meeting object (which embeds its agenda and
+    file links) and processes only NEW files by default — no per-file HEAD storm.
+    """
+    if not re.fullmatch(r"termin-\d+", termin_id or ""):
+        raise ValueError("invalid termin id")
+    os.makedirs(filestore.PDF_DIR, exist_ok=True)
+    db.init_db()
+    # "meetings" must be present: ingest_meeting does counts["meetings"] += 1
+    # without a .get() guard, unlike the files_new/files_updated counters.
+    counts = {"meetings": 0, "files_new": 0, "files_updated": 0, "files_seen": 0,
+              "text_ok": 0, "enriched": 0, "errors": 0}
+    num = termin_id.split("-", 1)[1]
+    cli = Client()
+    try:
+        m = cli.get_json(f"{BASE}/bodies/{BODY}/meetings/{num}")
+        if not m:
+            counts["errors"] += 1
+            return {"ok": False, "error": "Sitzung nicht erreichbar", "counts": counts}
+        if m.get("deleted"):
+            return {"ok": False, "error": "Sitzung wurde entfernt", "counts": counts}
+        # recheck_cutoff in the future would make _meeting_files re-HEAD every
+        # file; pass the caller's intent through instead.
+        cutoff = date.today().isoformat() if recheck else "9999-12-31"
+        ing = Ingest(cli, cutoff, counts)
+        ing.ingest_meeting(m)
+        if enable_llm:
+            counts["enriched"] += scraper._enrich_pending(counts)
+        return {"ok": True, "counts": counts}
+    finally:
+        cli.close()
+
+
 def _default_since() -> str:
     d = datetime.now(_BERLIN) - timedelta(days=BACKFILL_MONTHS * 31)
     return d.isoformat(timespec="seconds")
