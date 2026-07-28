@@ -55,6 +55,20 @@ under any UA; the right path works under any UA).
 **Pagination:** `?page=N`, `elementsPerPage=10`. `links.next` is present until the last
 page (remember to prefix-rewrite it).
 
+> **TRAP — `links.next` silently kills the `modified_since` filter.** The server emits the
+> filter in its own next-links with a **raw `+`** offset
+> (`…&modified_since=2026-07-25T16:46:24+02:00`). In a query string `+` decodes to a
+> space, so the timestamp fails to parse and the server **drops the filter entirely** —
+> without any error. Following `links.next` verbatim therefore turns every incremental run
+> into a full-archive walk from page 2 onward. Verified live 2026-07-28: page 40 fetched
+> via the raw-`+` link is identical to page 40 with no filter at all, while the same page
+> with `%2B` returns 0 items and no next-link. Measured cost of the bug: a 3-day window
+> ran 2h+/4400+ requests/3.9 GB and had processed 1150 papers without finishing; with the
+> fix the same window is **18 papers in 3m51s**. `oparl.py` now rebuilds the parameter from
+> its own value on every page (`_requote_since`) instead of trusting the returned query.
+> Corollary: you **cannot** probe the page count with a bare `?page=N&modified_since=…`
+> guess — only a correctly-encoded walk terminates where the real data ends.
+
 **Incremental sync:** **`?modified_since=<ISO8601>`** works and is the key to an efficient
 daily job — fetch only changed objects instead of re-crawling. Example verified:
 `?modified_since=2026-07-20T00:00:00+02:00` returned only papers modified on/after that
@@ -169,6 +183,34 @@ and stays keyed on the same DB schema.
 - `entrypoint.sh` gained `INGEST=html|oparl` (**default html** — flip only after
   validation); Dockerfile copies the new modules. db._migrate adds
   `files.paper_type` / `files.paper_reference` idempotently.
+
+### Trial run against a DB copy — results (2026-07-28)
+
+Ran `oparl.py --since <3 days> --no-llm --skip-members` with `DB_PATH`/`PDF_DIR` pointed at
+a snapshot copy (SQLite backup API, taken while the live scraper was writing). Result:
+`meetings 15 · papers 18 · files_new 4 · files_seen 53 · errors 0`, 3m51s.
+
+| table | prod (HTML) | trial (after OParl) | delta |
+|---|---|---|---|
+| meetings | 77 | 131 | +54 |
+| agenda_items | 336 | 703 | +367 |
+| files | 642 | 742 | +100 |
+| file_vorlagen | 345 | 624 | +279 |
+| votes | 41 | 41 | 0 |
+
+- **Crosswalk holds at scale:** all 77 pre-existing meetings kept their ids (0 lost), 0
+  malformed `termin-` ids, 0 anchors outside `top<n>`, 0 non-numeric file ids.
+- **No corruption of HTML-derived rows.** Only 4 field changes on shared rows, all
+  corrections: `termin-10560.body_id` NULL → `organisation-gr-54889` (HTML couldn't
+  resolve the committee, OParl could), and 3 files `doc_type` `Sonstiges` →
+  `Anfrage`/`Antrag` via the `paperType` fallback. `votes` untouched.
+- **`agenda_items.public` churn did not materialise**: 0 differences across 336 shared
+  rows, so the HTML keyword-scan and the OParl boolean agree in practice.
+- Integrity: 0 dangling `file_vorlagen`, 0 files with two `own=1` rows.
+- The +54 meetings / +367 agenda items come from consultation stations outside the window
+  (`ensure_meeting`), i.e. OParl enriches history the HTML crawl never reached at
+  `BACKFILL_MONTHS=1`. **A cutover is additive, not a quiet swap** — budget for the first
+  run growing the archive.
 
 ### Validate before cutover (do NOT delete the scraper)
 - Run OParl ingest into a **copy** of the DB; diff counts (meetings/papers/files) and

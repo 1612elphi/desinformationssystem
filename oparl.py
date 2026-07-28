@@ -39,7 +39,7 @@ import re
 import sys
 from datetime import date, datetime, timedelta, timezone
 from typing import Iterator, Optional
-from urllib.parse import quote
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 import db
@@ -106,6 +106,29 @@ def fix(url: Optional[str]) -> Optional[str]:
     return url.replace(_BROKEN, _FIXED) if url else url
 
 
+def _requote_since(url: str, modified_since: Optional[str]) -> str:
+    """Re-append modified_since, correctly percent-encoded.
+
+    The API's own links.next emits the filter with a RAW '+' offset
+    ("...modified_since=2026-07-25T16:46:24+02:00"). In a query string '+'
+    decodes to a space, so the server can't parse the timestamp and silently
+    drops the filter — verified live: page 40 followed that way is identical to
+    page 40 with no filter at all. Following links.next verbatim therefore turns
+    every incremental run into a full-archive walk from page 2 onward. Rebuild
+    the param from our own value instead of trusting the returned query."""
+    if not modified_since:
+        return url
+    parts = urlsplit(url)
+    # parse_qsl has already turned the raw '+' into a space, so the server's
+    # value is unrecoverable here — drop it and re-encode ours.
+    kept = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
+            if k != "modified_since"]
+    query = urlencode(kept, quote_via=quote)
+    since = f"modified_since={quote(modified_since, safe='')}"
+    query = f"{query}&{since}" if query else since
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
+
+
 def _tail(url: str) -> str:
     return url.rstrip("/").rsplit("/", 1)[1]
 
@@ -163,7 +186,7 @@ class Client:
             pages += 1
             yield from d.get("data", [])
             nxt = (d.get("links") or {}).get("next")
-            url = fix(nxt) if nxt else None
+            url = _requote_since(fix(nxt), modified_since) if nxt else None
 
     def close(self) -> None:
         self.f.close()
