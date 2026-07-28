@@ -54,8 +54,19 @@ BODY = os.environ.get("OPARL_BODY", "0001")
 _BROKEN = "https://web1.karlsruhe.de/oparl/"
 _FIXED = "https://web1.karlsruhe.de/ris/oparl/"
 
+# Page size. The server honours ?limit= (NOT ?elementsPerPage=, which it
+# silently ignores — that mistake made every walk 100x longer than necessary
+# and produced the wrong "elementsPerPage is fixed at 10" note in the migration
+# doc). Verified live: limit=100 -> 100 items, limit=1000 -> 1000, and
+# links.next carries the limit forward. Matches karlsruhe-oparl-syndication.
+PAGE_SIZE = int(os.environ.get("OPARL_PAGE_SIZE", "1000"))
 BACKFILL_MONTHS = int(os.environ.get("BACKFILL_MONTHS", "12"))
 RECHECK_DAYS = int(os.environ.get("RECHECK_DAYS", "21"))
+# Overlap the incremental window rather than resuming exactly at the last run's
+# start: guards against clock skew between us and the vendor, and against an
+# object whose `modified` lands during the run. Re-walking a day is cheap now
+# that a page holds 1000 objects.
+WATERMARK_OVERLAP_HOURS = int(os.environ.get("OPARL_OVERLAP_HOURS", "24"))
 ENABLE_LLM = os.environ.get("ENABLE_LLM", "1") == "1"
 _BERLIN = ZoneInfo("Europe/Berlin")
 
@@ -175,16 +186,28 @@ class Client:
         """Yield objects across all pages, following links.next (rewritten).
         Raises OparlError if a page fails — a silent break could advance the
         watermark past unseen objects."""
+        sep = "&" if "?" in url else "?"
+        url = f"{url}{sep}limit={PAGE_SIZE}"
         if modified_since:
-            sep = "&" if "?" in url else "?"
-            url = f"{url}{sep}modified_since={quote(modified_since, safe='')}"
+            url = f"{url}&modified_since={quote(modified_since, safe='')}"
         pages = 0
+        # A self-referential or cyclic links.next would otherwise spin against
+        # the API until max_pages; a repeat means the collection is broken, and
+        # continuing would silently yield duplicates.
+        seen: set[str] = set()
         while url and pages < max_pages:
+            if url in seen:
+                raise OparlError(f"pagination cycle at {url} after {pages} page(s)")
+            seen.add(url)
             d = self.get_json(url)
             if d is None:
                 raise OparlError(f"list page failed: {url}")
+            if not isinstance(d.get("data"), list):
+                # A 200 carrying a non-collection body (error page, maintenance
+                # notice) is still an incomplete crawl — never checkpoint it.
+                raise OparlError(f"no data array at {url}")
             pages += 1
-            yield from d.get("data", [])
+            yield from d["data"]
             nxt = (d.get("links") or {}).get("next")
             url = _requote_since(fix(nxt), modified_since) if nxt else None
 
@@ -612,7 +635,9 @@ def sync(full: bool = False, since: Optional[str] = None,
         # again, and only meetings get a date-based safety net (step 3) — papers
         # have none. This is the same guarantee iter_list protects by raising
         # rather than breaking mid-walk.
-        next_since = run_start
+        # Back the watermark off by the overlap margin (see WATERMARK_OVERLAP_HOURS).
+        next_since = (datetime.fromisoformat(run_start)
+                      - timedelta(hours=WATERMARK_OVERLAP_HOURS)).isoformat(timespec="seconds")
         if failed:
             # An object carrying no `modified` stamp can't be placed in time;
             # fall back to re-walking the window we just walked. Never let a
@@ -621,11 +646,14 @@ def sync(full: bool = False, since: Optional[str] = None,
             stamps = [t for t in failed if t]
             oldest = (min(stamps, key=_iso_key) if stamps
                       else (watermark or run_start))
-            if _iso_key(oldest) < _iso_key(run_start):
-                next_since = oldest
-                counts["held_watermark"] = next_since
+            # Take the EARLIER of the overlap margin and the oldest failure —
+            # comparing against run_start instead would let a recent failure
+            # push the watermark forward and cancel the overlap.
+            if _iso_key(oldest) < _iso_key(next_since):
+                counts["held_watermark"] = oldest
                 log.warning("%d object(s) failed — holding watermark at %s (not %s)",
-                            len(failed), next_since, run_start)
+                            len(failed), oldest, next_since)
+                next_since = oldest
 
         with db.write_conn() as c:
             db.set_meta(c, "oparl_since", next_since)

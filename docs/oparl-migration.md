@@ -212,6 +212,39 @@ a snapshot copy (SQLite backup API, taken while the live scraper was writing). R
   `BACKFILL_MONTHS=1`. **A cutover is additive, not a quiet swap** — budget for the first
   run growing the archive.
 
+### Cross-check against karlsruhe-oparl-syndication (2026-07-28)
+
+Compared our ingester against [maxliesegang/karlsruhe-oparl-syndication][synd] (MIT,
+TypeScript), which has crawled this same endpoint since 2025-01. Adopted from it:
+
+- **`?limit=1000`** — the page-size correction above. Biggest single win.
+- **Pagination cycle detection.** Their `fetchPaginatedCollection` keeps a visited-URL
+  set and fails on a repeat; we only had a `max_pages` ceiling, which would have
+  yielded duplicates for tens of thousands of pages before stopping. `iter_list` now
+  raises on a repeated URL.
+- **200-with-no-`data`-array is a failure, not an empty page.** An error/maintenance
+  page returning 200 would otherwise look like a clean end-of-collection and let a run
+  checkpoint as successful. `iter_list` now raises.
+- **Honour `Retry-After`.** Their axios client obeys it; our `Fetcher` used only its
+  own backoff curve. `filestore._retry_after` now prefers the server's value
+  (delta-seconds form, capped at 300s so a bad header can't park a run).
+- **Overlap the incremental window.** They query `modified_since = lastModified − 1 day`
+  rather than resuming exactly where they stopped, covering clock skew and objects
+  modified mid-run. `WATERMARK_OVERLAP_HOURS` (default 24) does the same; the
+  failure hold-back takes the *earlier* of the two.
+
+Confirmed independently (we already matched): add-only semantics — records are removed
+only on an explicit `deleted: true` tombstone, never because they dropped out of a
+collection (papers can become member-only and 401).
+
+**Where we are ahead:** their `fetchPaginatedCollection` follows `links.next` verbatim
+and their `normalizeOParlUrl` only rewrites the `/ris/` prefix, so they inherit the
+raw-`+` bug documented above — `modified_since` silently dies from page 2 on. Their
+weekly `FULL_RECONCILIATION_INTERVAL_DAYS` full re-crawl would mask it. Worth an
+upstream issue.
+
+[synd]: https://github.com/maxliesegang/karlsruhe-oparl-syndication
+
 ### Validate before cutover (do NOT delete the scraper)
 - Run OParl ingest into a **copy** of the DB; diff counts (meetings/papers/files) and
   spot-check Vorlagen chains vs the current HTML-derived ones.
@@ -265,9 +298,16 @@ a snapshot copy (SQLite backup API, taken while the live scraper was writing). R
   committee list + member rosters **stay HTML-scraped** even under `INGEST=oparl`
   (`scraper.sync_committees_members`, ~28 requests/run). This is the one deliberate
   hybrid piece.
-- **NEW quirk — `elementsPerPage` is fixed at 10**; the server ignores requests for a
-  larger page size. Full-archive walks are therefore slow (~1 page/s polite): plan
-  tens of minutes for a full paper backfill.
+- ~~**NEW quirk — `elementsPerPage` is fixed at 10**~~ — **WRONG, corrected 2026-07-28.**
+  The server ignores `elementsPerPage` but honours **`?limit=`**. Verified live:
+  no param → 10 items, `?elementsPerPage=1000` → 10, `?limit=100` → 100,
+  `?limit=1000` → 1000, and `links.next` carries the limit forward. We had simply
+  tested the wrong parameter name and concluded the API was slow. Measured: a full
+  papers walk is **14 requests / 114s** at `limit=1000` versus **1370 requests /
+  ~34 min** at 10. `oparl.PAGE_SIZE` (env `OPARL_PAGE_SIZE`) now defaults to 1000.
+  Credit: found by reading
+  [karlsruhe-oparl-syndication](https://github.com/maxliesegang/karlsruhe-oparl-syndication)
+  (MIT), which has used `limit=1000` against this endpoint since early 2025.
 - **NEW quirk — deleted objects**: cancelled meetings/papers stay in the lists as
   `deleted: true` stubs with empty name/start. oparl.py skips them (counted as
   `deleted_meetings`/`deleted_papers`) and never deletes existing rows.

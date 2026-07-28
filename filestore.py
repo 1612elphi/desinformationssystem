@@ -116,6 +116,22 @@ def extract_vorlagen(label: str, text: str, doc_type: str) -> tuple[Optional[str
 # Fetcher (polite, retrying)
 # ---------------------------------------------------------------------------
 
+def _retry_after(r, fallback: float) -> float:
+    """Seconds to wait before retrying, preferring the server's Retry-After.
+
+    Accepts the delta-seconds form (the only one web1 has been observed to
+    send); an HTTP-date value or junk falls back to our own backoff. Capped so
+    a hostile or mistaken header can't park a run for hours.
+    """
+    raw = (r.headers.get("retry-after") or "").strip()
+    if raw:
+        try:
+            return max(0.0, min(300.0, float(raw)))
+        except ValueError:
+            pass
+    return fallback
+
+
 class Fetcher:
     def __init__(self) -> None:
         self.client = httpx.Client(
@@ -153,7 +169,10 @@ class Fetcher:
                     return fs
             log.warning("bad status %s for %s (attempt %d/%d)", r.status_code, url, attempt + 1, MAX_RETRIES)
             if attempt < MAX_RETRIES - 1:
-                time.sleep(min(60, 3 * (2 ** attempt)))
+                # When the server states how long to wait (429/503), obey it
+                # rather than our own backoff curve — guessing shorter is rude
+                # and just earns another rejection.
+                time.sleep(_retry_after(r, min(60, 3 * (2 ** attempt))))
         log.error("giving up on %s", url)
         return None
 
