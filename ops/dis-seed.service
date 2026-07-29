@@ -1,0 +1,19 @@
+[Unit]
+Description=Desinformationssystem one-shot archive seed from the OParl syndication dump
+Documentation=file:/home/ruby/desinformationssystem/docs/oparl-migration.md
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/home/ruby/desinformationssystem/ops/seed-once.sh
+# Genuinely one-shot: disarm the timer once the seed has succeeded, or it
+# would re-run every night. ExecStartPost only fires on a successful
+# ExecStart, so a failed seed stays armed and retries tomorrow.
+ExecStartPost=/usr/bin/systemctl disable --now dis-seed.timer
+# The seed itself runs minutes, but leave headroom rather than risk a
+# half-applied archive if the box is loaded.
+TimeoutStartSec=3600
+StandardOutput=journal
+StandardError=journal

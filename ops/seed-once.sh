@@ -47,14 +47,12 @@ trap restore_scraper EXIT
 
 log "seeding from $DUMP"
 docker run --rm --user 1000:1000 \
-  -v "$APP":/src -v "$DUMP":/dump:ro -w /src \
-  -e DB_PATH=/src/data/desinformationssystem.db \
+  -v "$APP":/app -v "$DUMP":/dump:ro -w /app \
   --entrypoint python "$IMAGE" \
   seed.py --dir /dump
 
 log "seed finished; pending PDF backlog:"
-docker run --rm --user 1000:1000 -v "$APP":/src -w /src \
-  -e DB_PATH=/src/data/desinformationssystem.db \
+docker run --rm --user 1000:1000 -v "$APP":/app -w /app \
   --entrypoint python "$IMAGE" backfill_pdfs.py --count
 
 log "done"

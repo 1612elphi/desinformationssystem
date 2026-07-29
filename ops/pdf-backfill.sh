@@ -17,12 +17,10 @@ log() { echo "[pdf-backfill] $*"; }
 
 log "starting, budget ${BUDGET}s"
 docker run --rm --user 1000:1000 \
-  -v "$APP":/src -w /src \
-  -e DB_PATH=/src/data/desinformationssystem.db \
+  -v "$APP":/app -w /app \
   --entrypoint python "$IMAGE" \
   backfill_pdfs.py --max-seconds "$BUDGET"
 
 log "remaining:"
-docker run --rm --user 1000:1000 -v "$APP":/src -w /src \
-  -e DB_PATH=/src/data/desinformationssystem.db \
+docker run --rm --user 1000:1000 -v "$APP":/app -w /app \
   --entrypoint python "$IMAGE" backfill_pdfs.py --count

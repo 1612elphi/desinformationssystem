@@ -1,0 +1,13 @@
+[Unit]
+Description=Run the Desinformationssystem archive seed once, tonight at 23:00
+
+[Timer]
+OnCalendar=*-*-* 23:00:00
+# One-shot by intent: the unit disables itself after a successful run (see
+# ExecStartPost in the service). Persistent=false so a box that was off at
+# 23:00 does not fire the seed at an unexpected moment on boot.
+Persistent=false
+Unit=dis-seed.service
+
+[Install]
+WantedBy=timers.target

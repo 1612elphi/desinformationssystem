@@ -1,0 +1,12 @@
+[Unit]
+Description=Nightly bounded PDF backfill for the seeded archive
+
+[Timer]
+# 23:30 — after the seed on the first night, and comfortably before the
+# 03:30 scrape so the two never overlap on the write lock.
+OnCalendar=*-*-* 23:30:00
+Persistent=false
+Unit=dis-pdf-backfill.service
+
+[Install]
+WantedBy=timers.target
