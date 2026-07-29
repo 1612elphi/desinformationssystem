@@ -1,0 +1,18 @@
+[Unit]
+Description=Desinformationssystem bulk enrichment via headless Claude Code (Sonnet)
+After=network-online.target
+
+[Service]
+Type=oneshot
+# ruby, not root: the run needs ~ruby/.claude for the subscription credential,
+# and keeps the SQLite files ruby-owned for the uid-1000 containers.
+User=ruby
+Group=ruby
+Environment=ENRICH_CONCURRENCY=6
+Environment=BATCH_DOCS=25
+Environment=ENRICH_MAX_SECONDS=18000
+ExecStart=/home/ruby/desinformationssystem/ops/enrich-claude.sh
+# 5h budget plus margin for the final in-flight batch.
+TimeoutStartSec=21600
+StandardOutput=journal
+StandardError=journal

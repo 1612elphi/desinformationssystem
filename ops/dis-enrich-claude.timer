@@ -1,0 +1,12 @@
+[Unit]
+Description=Nightly bulk enrichment run at 05:00
+
+[Timer]
+# 05:00 — clear of the 23:30 PDF backfill and the 03:30 scrape, so the three
+# never contend for the SQLite write lock.
+OnCalendar=*-*-* 05:00:00
+Persistent=false
+Unit=dis-enrich-claude.service
+
+[Install]
+WantedBy=timers.target
