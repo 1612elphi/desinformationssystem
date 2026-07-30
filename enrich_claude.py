@@ -134,7 +134,12 @@ def call_claude(prompt: str) -> dict:
         cwd="/tmp",
     )
     if proc.returncode != 0:
-        raise RuntimeError(f"claude exited {proc.returncode}: {proc.stderr[:300]}")
+        # The CLI reports its own errors (usage limits, auth) as JSON on stdout
+        # and often leaves stderr empty, so capture both or the failure is
+        # undiagnosable — which is what happened on the first nightly run.
+        raise RuntimeError(
+            f"claude exited {proc.returncode}: "
+            f"stderr={proc.stderr[:300]!r} stdout={proc.stdout[:400]!r}")
     envelope = json.loads(proc.stdout)
     if envelope.get("is_error"):
         raise RuntimeError(f"claude reported error: {str(envelope)[:300]}")
