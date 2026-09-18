@@ -49,6 +49,7 @@ export interface Facets {
   doc_types: string[];
   submitters: string[];
   districts: string[];
+  district_counts?: Record<string, number>;
 }
 
 export interface Stats {

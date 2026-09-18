@@ -192,6 +192,15 @@ body { margin: 0; background: var(--cds-background); }
 .dis-doctable .dis-c-doc     { width: auto; min-width: 14rem; }
 .dis-doctable .dis-c-cat     { width: 11rem; }
 .dis-doctable .dis-c-stadtteil { width: 10rem; }
+
+.dis-map { padding: 1rem 0; }
+.dis-map-svg { width: 100%; max-width: 900px; height: auto; display: block; }
+.dis-teil { stroke: #161616; stroke-width: 0.75; cursor: pointer; transition: fill 0.1s; }
+.dis-teil:hover { stroke: #f4f4f4; stroke-width: 1.5; }
+.dis-teil-lbl {
+  font-size: 8px; fill: #f4f4f4; text-anchor: middle; pointer-events: none;
+  paint-order: stroke; stroke: rgba(0, 0, 0, 0.55); stroke-width: 2px;
+}
 .dis-doctable .dis-c-sub .dis-tags { flex-wrap: nowrap; overflow: hidden; }
 
 /* ---- live banner ---- */

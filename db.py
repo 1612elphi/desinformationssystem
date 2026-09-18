@@ -1224,10 +1224,13 @@ def facets() -> dict[str, Any]:
            FROM files, json_each(files.submitters) je
            WHERE files.submitters IS NOT NULL AND files.submitters != '[]'
            ORDER BY je.value""")]
-    districts = [r["district"] for r in conn.execute(
-        "SELECT DISTINCT district FROM files WHERE district IS NOT NULL AND district != '' ORDER BY district")]
-    return {"committees": committees, "doc_types": doc_types,
-            "submitters": submitters, "districts": districts}
+    district_rows = conn.execute(
+        "SELECT district, COUNT(*) AS n FROM files WHERE district IS NOT NULL AND district != '' "
+        "GROUP BY district ORDER BY district").fetchall()
+    districts = [r["district"] for r in district_rows]
+    district_counts = {r["district"]: r["n"] for r in district_rows}
+    return {"committees": committees, "doc_types": doc_types, "submitters": submitters,
+            "districts": districts, "district_counts": district_counts}
 
 
 def stats() -> dict[str, Any]:

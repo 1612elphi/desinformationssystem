@@ -63,6 +63,7 @@ import {
   type VorlageChain,
   type Analytics,
 } from "./api";
+import stadtteile from "./stadtteile.json";
 
 const PAGE_SIZE = 25;
 const RIS_BASE = "https://sitzungskalender.karlsruhe.de/db/ratsinformation";
@@ -169,7 +170,48 @@ function isoDate(d?: Date): string {
 
 // Shareable URLs: filters, tab and open modals live in the query string.
 const initQS = new URLSearchParams(window.location.search);
-const TAB_SLUGS = ["dokumente", "sitzungen", "gremien", "statistik"];
+const TAB_SLUGS = ["dokumente", "sitzungen", "gremien", "statistik", "karte"];
+
+// Choropleth of the 27 Stadtteile shaded by document count; click filters the Dokumente list.
+// Boundaries: web/src/stadtteile.json (simplified). Inline SVG, no map library or tiles.
+function StadtteilMap({ counts, onSelect }: {
+  counts: Record<string, number>;
+  onSelect: (name: string) => void;
+}) {
+  const feats = (stadtteile as any).features as { name: string; type: string; coordinates: any }[];
+  const rings = (f: any): number[][][] => (f.type === "MultiPolygon" ? f.coordinates.flat() : f.coordinates);
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const f of feats) for (const r of rings(f)) for (const [x, y] of r) {
+    if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+  }
+  const kx = Math.cos(((minY + maxY) / 2) * Math.PI / 180); // lon degrees are shorter this far north
+  const W = 780, H = W * (maxY - minY) / ((maxX - minX) * kx);
+  const px = (x: number) => ((x - minX) / (maxX - minX)) * W;
+  const py = (y: number) => ((maxY - y) / (maxY - minY)) * H;
+  const max = Math.max(1, ...Object.values(counts));
+  const fill = (n: number) => (n ? `rgba(0,157,154,${(0.18 + 0.72 * Math.sqrt(n / max)).toFixed(2)})` : "rgba(141,141,141,0.22)");
+  const d = (f: any) => rings(f).map((r) => "M" + r.map(([x, y]: number[]) => `${px(x).toFixed(1)} ${py(y).toFixed(1)}`).join("L") + "Z").join(" ");
+  const centroid = (f: any) => {
+    const r = rings(f)[0], n = r.length;
+    return [px(r.reduce((a: number, p: number[]) => a + p[0], 0) / n), py(r.reduce((a: number, p: number[]) => a + p[1], 0) / n)];
+  };
+  return (
+    <div className="dis-panel dis-map">
+      <svg viewBox={`0 0 ${W} ${H.toFixed(0)}`} className="dis-map-svg" role="img" aria-label="Karte der Stadtteile nach Dokumentanzahl">
+        {feats.map((f) => (
+          <path key={f.name} d={d(f)} fill={fill(counts[f.name] || 0)} className="dis-teil"
+            onClick={() => onSelect(f.name)}>
+            <title>{`${f.name}: ${counts[f.name] || 0}`}</title>
+          </path>
+        ))}
+        {feats.map((f) => {
+          const [cx, cy] = centroid(f);
+          return <text key={f.name} x={cx} y={cy} className="dis-teil-lbl" onClick={() => onSelect(f.name)}>{f.name}</text>;
+        })}
+      </svg>
+    </div>
+  );
+}
 
 // FTS snippet highlighting: the backend delimits matches with control chars
 // (\x01…\x02), never markup — split and wrap, so document text can't inject HTML.
@@ -469,6 +511,7 @@ export default function App() {
           <Tab>Sitzungen</Tab>
           <Tab>Gremien</Tab>
           <Tab>Statistik</Tab>
+          <Tab>Karte</Tab>
         </TabList>
         <TabPanels>
         <TabPanel>
@@ -648,6 +691,16 @@ export default function App() {
 
         <TabPanel>
           <StatsView active={tabIdx === 3} />
+        </TabPanel>
+
+        <TabPanel>
+          <StadtteilMap
+            counts={facets.district_counts || {}}
+            onSelect={(name) => {
+              setDistrict(name);
+              setTabIdx(0);
+            }}
+          />
         </TabPanel>
         </TabPanels>
         </Tabs>
