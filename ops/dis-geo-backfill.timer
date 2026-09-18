@@ -1,0 +1,12 @@
+[Unit]
+Description=Nightly geo tagging + data-quality report
+
+[Timer]
+# 10:30 — after the enrich window (05:00-10:00), so summaries exist to classify,
+# and clear of the 03:30 scrape and 23:30 PDF backfill on the write lock.
+OnCalendar=*-*-* 10:30:00
+Persistent=false
+Unit=dis-geo-backfill.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Desinformationssystem geo tagging (streets + Stadtteil) + data-quality report
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+# TYPESAFE_API_KEY comes from switchboard; point this at the file switchboard
+# writes (the leading - makes it non-fatal when absent — the script then errors
+# clearly). Never commit the key.
+EnvironmentFile=-/home/ruby/desinformationssystem/ops/typesafe.env
+ExecStart=/home/ruby/desinformationssystem/ops/geo-backfill.sh
+TimeoutStartSec=14400
+StandardOutput=journal
+StandardError=journal
