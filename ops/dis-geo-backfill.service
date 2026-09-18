@@ -1,15 +1,16 @@
 [Unit]
 Description=Desinformationssystem geo tagging (streets + Stadtteil) + data-quality report
-After=docker.service network-online.target
-Requires=docker.service
+After=network-online.target
 
 [Service]
 Type=oneshot
-User=root
-# TYPESAFE_API_KEY comes from switchboard; point this at the file switchboard
-# writes (the leading - makes it non-fatal when absent — the script then errors
-# clearly). Never commit the key.
-EnvironmentFile=-/home/ruby/desinformationssystem/ops/typesafe.env
+# ruby, not root: host Python reads the ruby-owned DB and keeps its -wal/-shm
+# files ruby-owned for the uid-1000 containers (same as enrich-claude).
+User=ruby
+Group=ruby
+# switchboard proxies TypeSafe and holds the key; no secret here. Override to
+# http://switchboard:3000/typesafe if this ever runs inside the compose network.
+Environment=TYPESAFE_BASE_URL=http://localhost:3990/typesafe
 ExecStart=/home/ruby/desinformationssystem/ops/geo-backfill.sh
 TimeoutStartSec=14400
 StandardOutput=journal

@@ -1,7 +1,11 @@
 """Minimal TypeSafe (Jev / System One) client — typed decisions with calibrated confidence.
 
 Used by geo.py for the street precision filter and the Stadtteil classification. Text-only,
-stdlib-only. Key from TYPESAFE_API_KEY. See https://docs.typesafe.ai/api.
+stdlib-only. See https://docs.typesafe.ai/api.
+
+Endpoint: TYPESAFE_BASE_URL + /v1/systemone. Point TYPESAFE_BASE_URL at the switchboard proxy
+(http://switchboard:3000/typesafe) and no key is needed — switchboard injects it. Set
+TYPESAFE_API_KEY only when calling api.typesafe.ai directly.
 
 One request evaluates a `state` against a map of typed `questions` (choice/noul/score) and
 returns one answer each. Questions in a request are independent and run in parallel, so batch
@@ -16,24 +20,24 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-ENDPOINT = os.environ.get("TYPESAFE_ENDPOINT", "https://api.typesafe.ai/v1/systemone")
+BASE_URL = os.environ.get("TYPESAFE_BASE_URL", "https://api.typesafe.ai").rstrip("/")
+ENDPOINT = BASE_URL + "/v1/systemone"
 MODEL = os.environ.get("TYPESAFE_MODEL", "jev-latest")
 
 
 def available() -> bool:
-    return bool(os.environ.get("TYPESAFE_API_KEY"))
+    # a proxy base (switchboard) authenticates upstream; direct calls need a key
+    return bool(os.environ.get("TYPESAFE_BASE_URL") or os.environ.get("TYPESAFE_API_KEY"))
 
 
 def system_one(state: Any, questions: dict[str, dict], retries: int = 5) -> dict[str, dict]:
     """Evaluate `questions` against `state`; return {id: answer}. Retries 429/529 with backoff."""
+    headers = {"Content-Type": "application/json"}
     key = os.environ.get("TYPESAFE_API_KEY")
-    if not key:
-        raise RuntimeError("TYPESAFE_API_KEY not set")
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
     body = json.dumps({"model": MODEL, "state": state, "questions": questions}).encode()
-    req = urllib.request.Request(
-        ENDPOINT, data=body,
-        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-    )
+    req = urllib.request.Request(ENDPOINT, data=body, headers=headers)
     for attempt in range(retries):
         try:
             with urllib.request.urlopen(req, timeout=60) as r:
