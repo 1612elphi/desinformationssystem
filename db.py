@@ -115,7 +115,6 @@ CREATE INDEX IF NOT EXISTS idx_files_meeting   ON files(meeting_id);
 CREATE INDEX IF NOT EXISTS idx_files_doctype   ON files(doc_type);
 CREATE INDEX IF NOT EXISTS idx_files_textstat  ON files(text_status);
 CREATE INDEX IF NOT EXISTS idx_files_enrich    ON files(enrich_status);
-CREATE INDEX IF NOT EXISTS idx_files_district  ON files(district);
 
 -- Abstimmungsergebnisse (vote tallies parsed from the live ticker / result PDFs).
 CREATE TABLE IF NOT EXISTS votes (
@@ -248,6 +247,9 @@ def _migrate(conn: sqlite3.Connection) -> None:
     # once so the index stays valid and future VACUUMs can't shear the mapping.
     conn.execute("UPDATE files SET fts_id = rowid WHERE fts_id IS NULL")
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_files_ftsid ON files(fts_id)")
+    # index on district must come after the ALTER above adds the column (an
+    # existing files table has no such column when SCHEMA's indexes first run).
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_files_district ON files(district)")
     vcols = {r["name"] for r in conn.execute("PRAGMA table_info(votes)")}
     if "members_ok" not in vcols:
         conn.execute("ALTER TABLE votes ADD COLUMN members_ok INTEGER")
