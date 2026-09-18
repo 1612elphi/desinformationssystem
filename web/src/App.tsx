@@ -136,6 +136,10 @@ const ALL_COLUMNS: ColumnDef[] = [
     key: "cat", label: "Kategorie", cls: "dis-c-cat",
     render: (d) => (d.category ? <Tag type="blue" size="sm">{d.category}</Tag> : ""),
   },
+  {
+    key: "stadtteil", label: "Stadtteil", cls: "dis-c-stadtteil",
+    render: (d) => (d.district ? <Tag type="teal" size="sm">{d.district}</Tag> : ""),
+  },
 ];
 const COL_KEYS = ALL_COLUMNS.map((c) => c.key);
 
@@ -190,7 +194,7 @@ function Snippet({ text }: { text: string }) {
 }
 
 export default function App() {
-  const [facets, setFacets] = useState<Facets>({ committees: [], doc_types: [], submitters: [] });
+  const [facets, setFacets] = useState<Facets>({ committees: [], doc_types: [], submitters: [], districts: [] });
   const [stats, setStats] = useState<Stats | null>(null);
 
   const [q, setQ] = useState(initQS.get("q") || "");
@@ -201,6 +205,8 @@ export default function App() {
   const [to, setTo] = useState(initQS.get("to") || "");
   const [topic, setTopic] = useState(initQS.get("topic") || "");
   const [submitterCode, setSubmitterCode] = useState(initQS.get("sub") || "");
+  const [district, setDistrict] = useState(initQS.get("district") || "");
+  const [street, setStreet] = useState(initQS.get("street") || "");
   const [tabIdx, setTabIdx] = useState(() =>
     Math.max(0, TAB_SLUGS.indexOf(initQS.get("tab") || "dokumente"))
   );
@@ -260,6 +266,8 @@ export default function App() {
     if (from) p.set("from", from);
     if (to) p.set("to", to);
     if (topic) p.set("topic", topic);
+    if (district) p.set("district", district);
+    if (street) p.set("street", street);
     if (tabIdx) p.set("tab", TAB_SLUGS[tabIdx]);
     if (selected) p.set("doc", selected.id);
     if (openMeeting) p.set("meeting", openMeeting.id);
@@ -267,7 +275,7 @@ export default function App() {
     if (vorlageNr) p.set("vorlage", vorlageNr);
     const s = p.toString();
     window.history.replaceState(null, "", s ? `?${s}` : window.location.pathname);
-  }, [q, committee, docType, submitterCode, pub, from, to, topic, tabIdx,
+  }, [q, committee, docType, submitterCode, pub, from, to, topic, district, street, tabIdx,
       selected, openMeeting, personId, vorlageNr]);
 
   // poll for a session happening right now
@@ -303,6 +311,8 @@ export default function App() {
           to,
           topic,
           submitter: submitterCode,
+          district,
+          street,
           limit: PAGE_SIZE,
           offset: (pageArg - 1) * PAGE_SIZE,
         });
@@ -319,14 +329,14 @@ export default function App() {
         if (seq === searchSeq.current) setLoading(false);
       }
     },
-    [q, committee, docType, pub, from, to, topic, submitterCode]
+    [q, committee, docType, pub, from, to, topic, submitterCode, district, street]
   );
 
   // initial + filter-driven load (debounced on the query string)
   useEffect(() => {
     const t = setTimeout(() => runSearch(1), q ? 350 : 0);
     return () => clearTimeout(t);
-  }, [q, committee, docType, pub, from, to, topic, submitterCode, runSearch]);
+  }, [q, committee, docType, pub, from, to, topic, submitterCode, district, street, runSearch]);
 
   const committeeItems = useMemo(
     () => [{ id: "", label: "Alle Gremien" }, ...facets.committees.map((c) => ({ id: c.name, label: c.name }))],
@@ -345,6 +355,10 @@ export default function App() {
       ...present.map((c) => ({ id: c, label: SUBMITTERS[c]?.name || c })),
     ];
   }, [facets]);
+  const districtItems = useMemo(
+    () => [{ id: "", label: "Alle Stadtteile" }, ...(facets.districts || []).map((d) => ({ id: d, label: d }))],
+    [facets]
+  );
 
   const applyTopic = (t: string) => {
     setSelected(null);
@@ -363,6 +377,8 @@ export default function App() {
     from && { k: "from", label: `ab ${from}`, clear: () => setFrom("") },
     to && { k: "to", label: `bis ${to}`, clear: () => setTo("") },
     topic && { k: "topic", label: `Thema: ${topic}`, clear: () => setTopic("") },
+    district && { k: "district", label: `Stadtteil: ${district}`, clear: () => setDistrict("") },
+    street && { k: "street", label: `Straße: ${street}`, clear: () => setStreet("") },
   ].filter(Boolean) as { k: string; label: string; clear: () => void }[];
 
   const resetAll = () => {
@@ -374,6 +390,8 @@ export default function App() {
     setFrom("");
     setTo("");
     setTopic("");
+    setDistrict("");
+    setStreet("");
   };
 
   return (
@@ -491,6 +509,15 @@ export default function App() {
             itemToString={(i: any) => (i ? i.label : "")}
             selectedItem={submitterItems.find((i) => i.id === submitterCode) || submitterItems[0]}
             onChange={({ selectedItem }: any) => setSubmitterCode(selectedItem?.id || "")}
+          />
+          <Dropdown
+            id="district"
+            titleText="Stadtteil"
+            label="Alle Stadtteile"
+            items={districtItems}
+            itemToString={(i: any) => (i ? i.label : "")}
+            selectedItem={districtItems.find((i) => i.id === district) || districtItems[0]}
+            onChange={({ selectedItem }: any) => setDistrict(selectedItem?.id || "")}
           />
           <Dropdown
             id="public"
@@ -673,6 +700,14 @@ export default function App() {
         doc={selected}
         onClose={() => setSelected(null)}
         onTopic={applyTopic}
+        onDistrict={(d) => {
+          setSelected(null);
+          setDistrict(d);
+        }}
+        onStreet={(s) => {
+          setSelected(null);
+          setStreet(s);
+        }}
         onVorlage={(nr) => {
           setSelected(null);
           setVorlageNr(nr);
@@ -704,11 +739,15 @@ function DocModal({
   doc,
   onClose,
   onTopic,
+  onDistrict,
+  onStreet,
   onVorlage,
 }: {
   doc: Doc | null;
   onClose: () => void;
   onTopic: (t: string) => void;
+  onDistrict: (d: string) => void;
+  onStreet: (s: string) => void;
   onVorlage: (nr: string) => void;
 }) {
   if (!doc) return null;
@@ -773,6 +812,22 @@ function DocModal({
               </dd>
             </>
           )}
+          {doc.district && (
+            <>
+              <dt>Stadtteil</dt>
+              <dd>
+                <Tag
+                  type="teal"
+                  size="sm"
+                  onClick={() => onDistrict(doc.district!)}
+                  style={{ cursor: "pointer" }}
+                  title="Dokumente aus diesem Stadtteil anzeigen"
+                >
+                  {doc.district}
+                </Tag>
+              </dd>
+            </>
+          )}
           {doc.vorlage && (
             <>
               <dt>Vorlage</dt>
@@ -811,6 +866,19 @@ function DocModal({
               {doc.topics.map((t) => (
                 <Tag key={t} type="teal" onClick={() => onTopic(t)} style={{ cursor: "pointer" }}>
                   {t}
+                </Tag>
+              ))}
+            </div>
+          </>
+        )}
+
+        {doc.streets && doc.streets.length > 0 && (
+          <>
+            <h4>Straßen</h4>
+            <div className="dis-tags">
+              {doc.streets.map((s) => (
+                <Tag key={s} type="green" onClick={() => onStreet(s)} style={{ cursor: "pointer" }}>
+                  {s}
                 </Tag>
               ))}
             </div>

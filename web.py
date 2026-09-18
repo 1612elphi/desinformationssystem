@@ -60,6 +60,8 @@ def api_search(
     public: Optional[str] = None,
     topic: Optional[str] = None,
     submitter: Optional[str] = None,
+    district: Optional[str] = None,
+    street: Optional[str] = None,
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ) -> dict:
@@ -68,7 +70,7 @@ def api_search(
         return db.search_documents(
             query=q, committee=committee, doc_type=doc_type, date_from=date_from,
             date_to=date_to, public=pub, topic=topic, submitter=submitter,
-            limit=limit, offset=offset)
+            district=district, street=street, limit=limit, offset=offset)
     except sqlite3.OperationalError:
         # bad FTS syntax and the like -> client error; anything else propagates
         # as a real 500 instead of leaking server internals in a fake 400

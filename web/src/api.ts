@@ -16,6 +16,9 @@ export interface Doc {
   summary_en?: string;
   topics?: string[];
   submitters?: string[];
+  district?: string;
+  district_conf?: number;
+  streets?: string[];
   entities?: { people?: string[]; orgs?: string[]; locations?: string[] };
   text_status?: string;
   enrich_status?: string;
@@ -45,6 +48,7 @@ export interface Facets {
   committees: { id: string; name: string }[];
   doc_types: string[];
   submitters: string[];
+  districts: string[];
 }
 
 export interface Stats {
@@ -66,6 +70,8 @@ export interface SearchParams {
   public?: string;
   topic?: string;
   submitter?: string;
+  district?: string;
+  street?: string;
   limit?: number;
   offset?: number;
 }
@@ -111,6 +117,7 @@ export interface Vote {
   nein?: number | null;
   enthaltung?: number | null;
   members?: { name: string; vote: string }[];
+  members_ok?: number | null; // 1 roll-call matches counts, 0 approximate, null no roll-call
   source?: string;
   image_url?: string;
 }

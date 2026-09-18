@@ -104,6 +104,9 @@ CREATE TABLE IF NOT EXISTS files (
     topics        TEXT,                    -- JSON array
     entities      TEXT,                    -- JSON object {people,orgs,locations}
     submitters    TEXT,                    -- JSON array of submitter codes (SVK/CDU/B90/…)
+    geo_status    TEXT DEFAULT 'pending',  -- pending | ok | error  (geo.py street/district tagging)
+    district      TEXT,                    -- primary Karlsruhe Stadtteil (geo.py), NULL = city-wide
+    district_conf REAL,                    -- confidence of the district classification
     downloaded_at TEXT,
     enriched_at   TEXT,
     first_seen    TEXT DEFAULT (datetime('now'))
@@ -112,6 +115,7 @@ CREATE INDEX IF NOT EXISTS idx_files_meeting   ON files(meeting_id);
 CREATE INDEX IF NOT EXISTS idx_files_doctype   ON files(doc_type);
 CREATE INDEX IF NOT EXISTS idx_files_textstat  ON files(text_status);
 CREATE INDEX IF NOT EXISTS idx_files_enrich    ON files(enrich_status);
+CREATE INDEX IF NOT EXISTS idx_files_district  ON files(district);
 
 -- Abstimmungsergebnisse (vote tallies parsed from the live ticker / result PDFs).
 CREATE TABLE IF NOT EXISTS votes (
@@ -124,6 +128,7 @@ CREATE TABLE IF NOT EXISTS votes (
     nein          INTEGER,
     enthaltung    INTEGER,
     members       TEXT,                     -- JSON [{name, vote}]
+    members_ok    INTEGER,                  -- 1/0: roll-call ja/nein/enth tally equals the counters; NULL = no roll-call
     source        TEXT,                     -- 'live' | 'pdf'
     image_url     TEXT,
     image_sha     TEXT,
@@ -166,6 +171,15 @@ CREATE TABLE IF NOT EXISTS file_vorlagen (
     PRIMARY KEY (file_id, vorlage)
 );
 CREATE INDEX IF NOT EXISTS idx_vorlagen_nr ON file_vorlagen(vorlage);
+
+-- Street/place mentions matched in a file's text and confirmed by the geo filter
+-- (geo.py). name is the gazetteer street name; matching only, no geometry stored.
+CREATE TABLE IF NOT EXISTS file_streets (
+    file_id  TEXT NOT NULL,
+    name     TEXT NOT NULL,
+    PRIMARY KEY (file_id, name)
+);
+CREATE INDEX IF NOT EXISTS idx_file_streets_name ON file_streets(name);
 
 -- Full-text search over label + extracted text + summaries + topics.
 -- Regular (not contentless) FTS5 so we can DELETE+reINSERT on re-enrichment;
@@ -225,13 +239,18 @@ def _migrate(conn: sqlite3.Connection) -> None:
                        # OParl ingester (oparl.py): the source's own document type
                        # + the full Vorlagen reference incl. amendment suffix
                        # ("2026/0365/3"; files.vorlage keeps the base form).
-                       ("paper_type", "TEXT"), ("paper_reference", "TEXT")):
+                       ("paper_type", "TEXT"), ("paper_reference", "TEXT"),
+                       # geo (geo.py): processing marker, primary Stadtteil + its confidence
+                       ("geo_status", "TEXT"), ("district", "TEXT"), ("district_conf", "REAL")):
         if name not in cols:
             conn.execute(f"ALTER TABLE files ADD COLUMN {name} {decl}")
     # Existing FTS rows were keyed on the implicit rowid; snapshot it into fts_id
     # once so the index stays valid and future VACUUMs can't shear the mapping.
     conn.execute("UPDATE files SET fts_id = rowid WHERE fts_id IS NULL")
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_files_ftsid ON files(fts_id)")
+    vcols = {r["name"] for r in conn.execute("PRAGMA table_info(votes)")}
+    if "members_ok" not in vcols:
+        conn.execute("ALTER TABLE votes ADD COLUMN members_ok INTEGER")
 
 
 # ---------------------------------------------------------------------------
@@ -291,6 +310,8 @@ def search_documents(
     public: Optional[bool] = None,
     topic: Optional[str] = None,
     submitter: Optional[str] = None,
+    district: Optional[str] = None,
+    street: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
 ) -> dict[str, Any]:
@@ -323,6 +344,12 @@ def search_documents(
     if submitter:
         where.append("f.submitters LIKE ?")
         params.append(f'%"{submitter}"%')
+    if district:
+        where.append("f.district = ?")
+        params.append(district)
+    if street:
+        where.append("f.id IN (SELECT file_id FROM file_streets WHERE name = ? COLLATE NOCASE)")
+        params.append(street)
 
     where_sql = (" WHERE " + " AND ".join(where)) if where else ""
 
@@ -416,6 +443,8 @@ def get_document(file_id: str) -> Optional[dict[str, Any]]:
     d["vorlagen"] = [dict(r) for r in conn.execute(
         "SELECT vorlage, own FROM file_vorlagen WHERE file_id = ? ORDER BY own DESC, vorlage",
         (file_id,))]
+    d["streets"] = [r["name"] for r in conn.execute(
+        "SELECT name FROM file_streets WHERE file_id = ? ORDER BY name", (file_id,))]
     return d
 
 
@@ -533,7 +562,7 @@ def meeting_votes(meeting_id: str) -> list[dict[str, Any]]:
     conn = get_conn()
     rows = conn.execute(
         f"""SELECT id, agenda_anchor, top_label, result_text, ja, nein, enthaltung,
-                  members, source, image_url FROM votes
+                  members, members_ok, source, image_url FROM votes
            WHERE meeting_id = ?
            ORDER BY {_TOP_ORDER.format(c='top_label')},
                     top_label""", (meeting_id,)).fetchall()
@@ -591,7 +620,7 @@ def search_votes(
     total = conn.execute(f"SELECT COUNT(*) {base}", params).fetchone()[0]
     rows = conn.execute(
         f"""SELECT v.meeting_id, v.agenda_anchor, v.top_label, v.result_text,
-                   v.ja, v.nein, v.enthaltung, v.members, v.source, v.file_id,
+                   v.ja, v.nein, v.enthaltung, v.members, v.members_ok, v.source, v.file_id,
                    m.body_name, m.body_id, m.date AS meeting_date,
                    ai.number AS agenda_number, ai.title AS agenda_title
             {base}
@@ -649,6 +678,63 @@ def upsert_vote(conn: sqlite3.Connection, v: dict) -> None:
         (vid, v["meeting_id"], anchor, v["top_label"], v.get("result_text"),
          v.get("ja"), v.get("nein"), v.get("enthaltung"), members_json,
          v.get("source"), v.get("image_url"), v.get("image_sha"), v.get("file_id")))
+    refresh_vote_consistency(conn, vid)  # recompute from the final stored row (COALESCE-safe)
+
+
+def _rollcall_ok(ja, nein, enth, members_json) -> Optional[int]:
+    """1 if the roll-call's ja/nein/enthaltung tally equals the counters, else 0; None = no roll-call.
+    The big counters are read from the numeric display and are reliable; the per-member tile parse
+    drifts, so ~2/3 of stored roll-calls mismatch. A 0 here marks an approximate roll-call."""
+    if not members_json:
+        return None
+    try:
+        mem = json.loads(members_json)
+    except (ValueError, TypeError):
+        return None
+    if not isinstance(mem, list) or not mem:  # empty/malformed roll-call = no roll-call
+        return None
+    tally = {"ja": 0, "nein": 0, "enthaltung": 0}
+    for m in mem:
+        if isinstance(m, dict) and m.get("vote") in tally:
+            tally[m["vote"]] += 1
+    return int(tally["ja"] == (ja or 0) and tally["nein"] == (nein or 0)
+               and tally["enthaltung"] == (enth or 0))
+
+
+def refresh_vote_consistency(conn: sqlite3.Connection, vote_id: Optional[str] = None) -> int:
+    """Recompute votes.members_ok from stored roll-call vs counters — one vote, or all (backfill)."""
+    q = "SELECT id, ja, nein, enthaltung, members FROM votes"
+    args: tuple = ()
+    if vote_id is not None:
+        q += " WHERE id = ?"
+        args = (vote_id,)
+    rows = conn.execute(q, args).fetchall()
+    for r in rows:
+        conn.execute("UPDATE votes SET members_ok = ? WHERE id = ?",
+                     (_rollcall_ok(r["ja"], r["nein"], r["enthaltung"], r["members"]), r["id"]))
+    return len(rows)
+
+
+def vote_consistency() -> dict[str, Any]:
+    """Data-quality summary: how many stored roll-calls match their counters."""
+    conn = get_conn()
+    g = lambda q: conn.execute(q).fetchone()[0]
+    return {
+        "with_rollcall": g("SELECT COUNT(*) FROM votes WHERE members IS NOT NULL"),
+        "consistent": g("SELECT COUNT(*) FROM votes WHERE members_ok = 1"),
+        "mismatch": g("SELECT COUNT(*) FROM votes WHERE members_ok = 0"),
+    }
+
+
+def orphan_files(limit: int = 500) -> list[dict[str, Any]]:
+    """Files attached to no meeting and no Vorlage — a post-sync data-quality check."""
+    conn = get_conn()
+    rows = conn.execute(
+        """SELECT f.id, f.label, f.url, f.first_seen FROM files f
+           WHERE (f.meeting_id IS NULL OR f.meeting_id NOT IN (SELECT id FROM meetings))
+             AND NOT EXISTS (SELECT 1 FROM file_vorlagen fv WHERE fv.file_id = f.id)
+           ORDER BY f.first_seen DESC LIMIT ?""", (limit,)).fetchall()
+    return [dict(r) for r in rows]
 
 
 def vote_parse_attempts(file_id: str) -> int:
@@ -1096,6 +1182,34 @@ def recent_documents(
     return [_row_to_doc(r) for r in rows]
 
 
+def docs_needing_geo(limit: int = 200) -> list[dict[str, Any]]:
+    """Enriched files not yet geo-tagged (geo_status NULL/pending/error), newest first."""
+    conn = get_conn()
+    rows = conn.execute(
+        """SELECT f.id, f.label, f.summary_de, ai.title AS agenda_title
+           FROM files f
+           LEFT JOIN agenda_items ai
+             ON ai.meeting_id = f.meeting_id AND ai.anchor = f.agenda_anchor
+           WHERE f.enrich_status = 'ok' AND (f.geo_status IS NULL OR f.geo_status <> 'ok')
+           ORDER BY f.id DESC LIMIT ?""", (limit,)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def file_fulltext(file_id: str) -> str:
+    row = get_conn().execute("SELECT fulltext FROM files WHERE id = ?", (file_id,)).fetchone()
+    return (row["fulltext"] if row else "") or ""
+
+
+def set_geo(conn: sqlite3.Connection, file_id: str, streets: list[str],
+            district: Optional[str], district_conf: Optional[float], status: str = "ok") -> None:
+    """Replace a file's street links and set its district + geo_status (call within write_conn)."""
+    conn.execute("DELETE FROM file_streets WHERE file_id = ?", (file_id,))
+    conn.executemany("INSERT OR IGNORE INTO file_streets(file_id, name) VALUES (?, ?)",
+                     [(file_id, n) for n in streets])
+    conn.execute("UPDATE files SET district = ?, district_conf = ?, geo_status = ? WHERE id = ?",
+                 (district, district_conf, status, file_id))
+
+
 def facets() -> dict[str, Any]:
     """Distinct values for the UI filter controls."""
     conn = get_conn()
@@ -1108,7 +1222,10 @@ def facets() -> dict[str, Any]:
            FROM files, json_each(files.submitters) je
            WHERE files.submitters IS NOT NULL AND files.submitters != '[]'
            ORDER BY je.value""")]
-    return {"committees": committees, "doc_types": doc_types, "submitters": submitters}
+    districts = [r["district"] for r in conn.execute(
+        "SELECT DISTINCT district FROM files WHERE district IS NOT NULL AND district != '' ORDER BY district")]
+    return {"committees": committees, "doc_types": doc_types,
+            "submitters": submitters, "districts": districts}
 
 
 def stats() -> dict[str, Any]:

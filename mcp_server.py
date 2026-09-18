@@ -48,6 +48,8 @@ def search_documents(
     public: Optional[bool] = None,
     topic: Optional[str] = None,
     submitter: Optional[str] = None,
+    district: Optional[str] = None,
+    street: Optional[str] = None,
     limit: int = 25,
     offset: int = 0,
 ) -> dict:
@@ -62,13 +64,17 @@ def search_documents(
         topic: filter to documents carrying this exact topic tag.
         submitter: filter by submitter code — SVK (Stadtverwaltung) or a fraction
             (CDU, B90, SPD, LIN, FDP, AFD, FWV, KAL, VOL, PAR, HEI).
+        district: filter to documents about a Karlsruhe Stadtteil (e.g. Durlach,
+            Weststadt, Innenstadt-Ost). See list_committees-style facets for values.
+        street: filter to documents mentioning this Karlsruhe street/place by name.
         limit / offset: pagination (limit <= 200).
     Returns: {"total": int, "results": [document, ...]}. Each document carries a
-    "submitters" list of such codes.
+    "submitters" list of such codes and, when known, a "district" Stadtteil.
     """
     return db.search_documents(
         query=query, committee=committee, doc_type=doc_type, date_from=date_from,
         date_to=date_to, public=public, topic=topic, submitter=submitter,
+        district=district, street=street,
         limit=_clamp(limit, 200), offset=max(0, offset),
     )
 
@@ -155,7 +161,9 @@ def search_votes(
         limit / offset: pagination (limit <= 200).
     Returns: {"total": int, "results": [vote, ...]} — each vote has meeting_id,
     body_name, meeting_date, top_label, agenda_number/title, ja/nein/enthaltung
-    counts and result_text."""
+    counts and result_text. 'members_ok': 1 if the per-member roll-call tally equals
+    those counts, 0 if it drifts (the vision-parsed grid is approximate — trust the
+    counts over the roll-call), null if no roll-call was parsed."""
     return db.search_votes(
         committee=committee, date_from=date_from, date_to=date_to, member=member,
         query=query, include_members=include_members,
