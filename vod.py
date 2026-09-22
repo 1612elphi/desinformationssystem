@@ -27,7 +27,7 @@ import db
 
 VOD_DIR = os.environ.get("VOD_DIR", os.path.join(os.path.dirname(db.DB_PATH), "vod"))
 WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "large-v3-turbo")
-# int8 on the box's Tesla P4: 14x realtime, vs 1.4x on 16 CPU threads.
+# int8 on the box's Tesla P4: ~11x realtime on a full session, vs 1.4x on 16 CPU threads.
 WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "auto")
 WHISPER_COMPUTE = os.environ.get("WHISPER_COMPUTE", "int8")
 WHISPER_THREADS = int(os.environ.get("WHISPER_THREADS", "16"))
