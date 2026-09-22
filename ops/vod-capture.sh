@@ -35,7 +35,9 @@ rc=$?
 echo "$out"
 
 # Scheduled (upcoming) streams always error during extraction; anything else is real.
-if [ $rc -ne 0 ] && echo "$out" | grep '^ERROR:' | grep -vqE 'will begin in|Premieres in|This live event'; then
+# lang=de means that error arrives in German ("Diese Live-Veranstaltung beginnt in 6 Tage.").
+if [ $rc -ne 0 ] && echo "$out" | grep '^ERROR:' \
+   | grep -vqE 'will begin in|Premieres in|This live event|beginnt in|Live-Veranstaltung|Premiere'; then
   log "yt-dlp failed (exit $rc)"
   exit 1
 fi
