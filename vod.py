@@ -13,6 +13,7 @@ scraped after the download still gets linked.
 from __future__ import annotations
 
 import argparse
+import functools
 import glob
 import json
 import os
@@ -26,16 +27,30 @@ import db
 
 VOD_DIR = os.environ.get("VOD_DIR", os.path.join(os.path.dirname(db.DB_PATH), "vod"))
 WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "large-v3-turbo")
+# int8 on the box's Tesla P4: 14x realtime, vs 1.4x on 16 CPU threads.
+WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "auto")
+WHISPER_COMPUTE = os.environ.get("WHISPER_COMPUTE", "int8")
+WHISPER_THREADS = int(os.environ.get("WHISPER_THREADS", "16"))
 BERLIN = ZoneInfo("Europe/Berlin")
 
 _TOP_RE = re.compile(r"\b(?:Tagesordnungspunkt|TOP|Punkt)\s+(\d+(?:\.\d+)*)", re.I)
 
 
-def transcribe(media: str) -> list[dict]:
+@functools.cache
+def _model():
     from faster_whisper import WhisperModel
 
-    model = WhisperModel(WHISPER_MODEL, device="auto", compute_type="auto")
-    segments, _ = model.transcribe(media, language="de", vad_filter=True)
+    try:
+        return WhisperModel(WHISPER_MODEL, device=WHISPER_DEVICE,
+                            compute_type=WHISPER_COMPUTE, cpu_threads=WHISPER_THREADS)
+    except Exception as e:  # a driver/CUDA-library change must not stall the backlog
+        print(f"  {WHISPER_DEVICE} unavailable ({e}), falling back to CPU", file=sys.stderr)
+        return WhisperModel(WHISPER_MODEL, device="cpu",
+                            compute_type="int8", cpu_threads=WHISPER_THREADS)
+
+
+def transcribe(media: str) -> list[dict]:
+    segments, _ = _model().transcribe(media, language="de", vad_filter=True)
     return [{"start": round(s.start, 1), "end": round(s.end, 1), "text": s.text.strip()}
             for s in segments]
 

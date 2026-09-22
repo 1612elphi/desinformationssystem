@@ -9,6 +9,8 @@ Group=ruby
 # Separate from capture so a multi-hour transcription never delays a download.
 Nice=10
 WorkingDirectory=/home/ruby/desinformationssystem
+# ctranslate2 loads CUDA from the venv's pip-installed nvidia packages.
+Environment=LD_LIBRARY_PATH=/home/ruby/.venvs/dis-vod/lib/python3.11/site-packages/nvidia/cublas/lib:/home/ruby/.venvs/dis-vod/lib/python3.11/site-packages/nvidia/cudnn/lib
 Environment=DB_PATH=/home/ruby/desinformationssystem/data/desinformationssystem.db
 ExecStart=/home/ruby/.venvs/dis-vod/bin/python vod.py
 TimeoutStartSec=86400

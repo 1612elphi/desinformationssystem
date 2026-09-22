@@ -98,8 +98,8 @@ docker compose up -d --build
 - Full historical backfill: `docker exec desinfo-scraper python scraper.py --backfill-all`
 - Backfill after logic changes: `... scraper.py --submitters` / `--votes`
 - Logs: `docker logs -f desinfo-scraper`
-- VOD archive (host, not the image): `python3 -m venv ~/.venvs/dis-vod && ~/.venvs/dis-vod/bin/pip install yt-dlp faster-whisper`,
-  needs `ffmpeg`; then enable `ops/dis-vod-capture.timer` + `ops/dis-vod-transcribe.timer`
+- VOD archive (host, not the image): `python3 -m venv ~/.venvs/dis-vod && ~/.venvs/dis-vod/bin/pip install yt-dlp faster-whisper nvidia-cublas-cu12 nvidia-cudnn-cu12`,
+  needs `ffmpeg` and `deno` (yt-dlp's JS runtime); then enable `ops/dis-vod-capture.timer` + `ops/dis-vod-transcribe.timer`
 
 All knobs are env vars — see `.env.example` (scrape window, politeness, schedule,
 models, ticker cadence, OCR, FlareSolverr fallback).
