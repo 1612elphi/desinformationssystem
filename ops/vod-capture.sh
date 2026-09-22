@@ -4,6 +4,8 @@
 # and independent of transcription (dis-vod-transcribe runs vod.py separately).
 #
 # The channel also carries unrelated city events (congresses run 8h), hence the title filter.
+# YouTube serves auto-translated titles, so the filter asks for German metadata and still
+# accepts the English wording ("Budget Speeches from the City Council").
 # live_status flips is_live -> post_live (YouTube still processing) -> was_live;
 # only was_live is complete, so the filter waits out processing by itself.
 # --download-archive makes re-runs idempotent.
@@ -22,7 +24,8 @@ mkdir -p "$OUT"
 
 out=$("$VENV/bin/yt-dlp" --no-update -i \
   --playlist-end 10 \
-  --match-filters "live_status=was_live & title~='(?i)gemeinderat|haushalt|sitzung'" \
+  --extractor-args "youtube:lang=de" \
+  --match-filters "live_status=was_live & title~='(?i)gemeinderat|haushalt|sitzung|council|budget'" \
   --download-archive "$OUT/archive.txt" \
   -f "bv*[height<=720]+ba/b[height<=720]" --merge-output-format mkv \
   --write-info-json --no-write-playlist-metafiles --no-progress \
