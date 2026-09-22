@@ -1,0 +1,16 @@
+[Unit]
+Description=Desinformationssystem VOD transcription (whisper) + meeting/TOP linking
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ruby
+Group=ruby
+# Separate from capture so a multi-hour transcription never delays a download.
+Nice=10
+WorkingDirectory=/home/ruby/desinformationssystem
+Environment=DB_PATH=/home/ruby/desinformationssystem/data/desinformationssystem.db
+ExecStart=/home/ruby/.venvs/dis-vod/bin/python vod.py
+TimeoutStartSec=86400
+StandardOutput=journal
+StandardError=journal

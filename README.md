@@ -77,6 +77,8 @@ links with descriptive labels), so we parse that. PDFs are pulled directly from 
 - `submitter.py` — rule-based Einbringer detection
 - `ticker.py` — live-ticker watcher (role `ticker`)
 - `vote_parse.py` — vision-model vote-tally image parser
+- `vod.py` — whisper transcripts of archived council VODs, linked to meeting + TOP offsets
+  (`ops/vod-capture.sh` downloads finished streams hourly; the city deletes them after 24h)
 - `web.py` — FastAPI API + serves the built SPA from `web/dist`
 - `web/` — Vite + React + TS SPA using `@carbon/react`
 - `mcp_server.py` — MCP tools: `search_documents`, `get_document`,
@@ -96,6 +98,8 @@ docker compose up -d --build
 - Full historical backfill: `docker exec desinfo-scraper python scraper.py --backfill-all`
 - Backfill after logic changes: `... scraper.py --submitters` / `--votes`
 - Logs: `docker logs -f desinfo-scraper`
+- VOD archive (host, not the image): `python3 -m venv ~/.venvs/dis-vod && ~/.venvs/dis-vod/bin/pip install yt-dlp faster-whisper`,
+  needs `ffmpeg`; then enable `ops/dis-vod-capture.timer` + `ops/dis-vod-transcribe.timer`
 
 All knobs are env vars — see `.env.example` (scrape window, politeness, schedule,
 models, ticker cadence, OCR, FlareSolverr fallback).

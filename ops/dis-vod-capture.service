@@ -1,0 +1,12 @@
+[Unit]
+Description=Desinformationssystem council VOD capture (YouTube, 24h window)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ruby
+Group=ruby
+ExecStart=/home/ruby/desinformationssystem/ops/vod-capture.sh
+TimeoutStartSec=10800
+StandardOutput=journal
+StandardError=journal
