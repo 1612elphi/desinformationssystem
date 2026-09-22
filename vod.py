@@ -34,6 +34,7 @@ WHISPER_THREADS = int(os.environ.get("WHISPER_THREADS", "16"))
 BERLIN = ZoneInfo("Europe/Berlin")
 
 _TOP_RE = re.compile(r"\b(?:Tagesordnungspunkt|TOP|Punkt)\s+(\d+(?:\.\d+)*)", re.I)
+_CALL_RE = re.compile(r"(?:rufe\w*\s.{0,20}?auf|aufrufen|kommen wir zu|wir kommen zu|ich eröffne)", re.I)
 
 
 @functools.cache
@@ -67,15 +68,21 @@ def match_meeting(release_ts: Optional[int]) -> Optional[str]:
 
 
 def top_offsets(segments: list[dict], anchors: set[str]) -> dict[str, float]:
-    # ponytail: first mention wins, so a speaker citing "TOP 3" before the chair calls it
-    # misplaces it; restrict to "rufe ... auf" phrasing if that shows up in practice.
-    out: dict[str, float] = {}
+    """Earliest offset per agenda item, preferring the chair calling it over a bare mention.
+
+    One segment can hold both ("Das war der Top 1 und ich rufe jetzt auf den
+    Tagesordnungspunkt 2"), so the call phrase is looked for in the text before each number.
+    """
+    best: dict[str, tuple[int, float]] = {}
     for s in segments:
-        for n in _TOP_RE.findall(s["text"]):
-            a = f"top{n}"
-            if a in anchors and a not in out:
-                out[a] = s["start"]
-    return out
+        for m in _TOP_RE.finditer(s["text"]):
+            a = f"top{m.group(1)}"
+            if a not in anchors:
+                continue
+            score = 1 if _CALL_RE.search(s["text"][: m.start()]) else 0
+            if a not in best or score > best[a][0]:
+                best[a] = (score, s["start"])
+    return {a: v[1] for a, v in sorted(best.items())}
 
 
 def _archived_ids() -> set[str]:
@@ -142,11 +149,14 @@ def main() -> int:
 
 
 def _selfcheck() -> None:
-    segs = [{"start": 10.0, "text": "Ich rufe auf Tagesordnungspunkt 3."},
-            {"start": 20.0, "text": "Dann kommen wir zu TOP 3.1, Sanierungsbeirat."},
-            {"start": 30.0, "text": "Zurück zu Punkt 3, wie gesagt."},
-            {"start": 40.0, "text": "Tagesordnungspunkt 31 ist abgesetzt."}]
-    assert top_offsets(segs, {"top3", "top3.1", "top31"}) == {"top3": 10.0, "top3.1": 20.0, "top31": 40.0}
+    segs = [{"start": 10.0, "text": "Wie schon bei Punkt 5 gesagt, dazu später."},
+            {"start": 20.0, "text": "Ich rufe auf Tagesordnungspunkt 3."},
+            {"start": 30.0, "text": "Dann kommen wir zu TOP 3.1, Sanierungsbeirat."},
+            {"start": 40.0, "text": "Das war der Top 3 und ich rufe jetzt auf den Tagesordnungspunkt 5."},
+            {"start": 50.0, "text": "Tagesordnungspunkt 31 ist abgesetzt."}]
+    got = top_offsets(segs, {"top3", "top3.1", "top5", "top31"})
+    # top5 moves from the bare mention at 10 to the chair's call at 40; top3 keeps its call at 20
+    assert got == {"top3": 20.0, "top3.1": 30.0, "top31": 50.0, "top5": 40.0}, got
     assert top_offsets(segs, {"top7"}) == {}
 
 
