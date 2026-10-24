@@ -1,0 +1,626 @@
+{
+ "committees": [
+  [
+   "organisation-gr-41797",
+   "Ausschuss für öffentliche Einrichtungen"
+  ],
+  [
+   "organisation-gr-48728",
+   "Ausschuss für Umwelt und Gesundheit"
+  ],
+  [
+   "organisation-gr-50069",
+   "Ausschuss für Wirtschaft und Wissenschaft"
+  ],
+  [
+   "organisation-gr-54833",
+   "Bäderausschuss"
+  ],
+  [
+   "organisation-gr-31180",
+   "Bauausschuss"
+  ],
+  [
+   "organisation-gr-54856",
+   "Betriebsausschuss \"Eigenbetrieb Fußballstadion im Wildpark\""
+  ],
+  [
+   "organisation-gr-54889",
+   "Betriebsausschuss Eigenbetrieb Abfallwirtschaft und Stadtreinigung"
+  ],
+  [
+   "organisation-gr-54910",
+   "Betriebsausschuss Eigenbetrieb Stadtentwässerung"
+  ],
+  [
+   "organisation-gr-32130",
+   "Gemeinderat"
+  ],
+  [
+   "organisation-gr-54902",
+   "Gemeinderat - Beratungen zum DHH"
+  ],
+  [
+   "organisation-gr-54847",
+   "Gestaltungsbeirat"
+  ],
+  [
+   "organisation-gr-28964",
+   "Haupt- und Finanzausschuss"
+  ],
+  [
+   "organisation-gr-39759",
+   "Integrationsausschuss"
+  ],
+  [
+   "organisation-gr-36218",
+   "Jugendhilfeausschuss"
+  ],
+  [
+   "organisation-gr-29599",
+   "Kulturausschuss"
+  ],
+  [
+   "organisation-gr-40333",
+   "Ortschaftsrat Durlach"
+  ],
+  [
+   "organisation-gr-33695",
+   "Ortschaftsrat Grötzingen"
+  ],
+  [
+   "organisation-gr-34322",
+   "Ortschaftsrat Hohenwettersbach"
+  ],
+  [
+   "organisation-gr-34531",
+   "Ortschaftsrat Neureut"
+  ],
+  [
+   "organisation-gr-34764",
+   "Ortschaftsrat Stupferich"
+  ],
+  [
+   "organisation-gr-34965",
+   "Ortschaftsrat Wettersbach"
+  ],
+  [
+   "organisation-gr-35147",
+   "Ortschaftsrat Wolfartsweier"
+  ],
+  [
+   "organisation-gr-31211",
+   "Personalausschuss"
+  ],
+  [
+   "organisation-gr-38449",
+   "Planungsausschuss"
+  ],
+  [
+   "organisation-gr-32806",
+   "Schulausschuss"
+  ],
+  [
+   "organisation-gr-33195",
+   "Sozialausschuss"
+  ],
+  [
+   "organisation-gr-33575",
+   "Sportausschuss"
+  ],
+  [
+   "organisation-gr-39355",
+   "Umlegungsausschuss"
+  ]
+ ],
+ "termine": [
+  "termin-10443",
+  "termin-10458",
+  "termin-10548",
+  "termin-10549",
+  "termin-10550",
+  "termin-10551",
+  "termin-10554",
+  "termin-10555",
+  "termin-10556",
+  "termin-10557",
+  "termin-10558",
+  "termin-10560",
+  "termin-10566",
+  "termin-10719",
+  "termin-10730",
+  "termin-10787"
+ ],
+ "members": [
+  {
+   "person_id": "449",
+   "name": "Dr. Frank Mentrup",
+   "party": "SPD",
+   "party_code": "SPD",
+   "role": "Oberbürgermeister Vorsitz",
+   "since": "seit 1. März 2013"
+  },
+  {
+   "person_id": "65304",
+   "name": "Anne Berghoff",
+   "party": "Die Linke",
+   "party_code": "LIN",
+   "role": "Stadträtin Ordentliches Mitglied",
+   "since": "seit 1. Mai 2026"
+  },
+  {
+   "person_id": "9",
+   "name": "Lüppo Cramer",
+   "party": "KAL",
+   "party_code": "KAL",
+   "role": "Stadtrat Ordentliches Mitglied",
+   "since": "seit 23. Juli 2019"
+  },
+  {
+   "person_id": "62108",
+   "name": "Dr. Clemens Cremer",
+   "party": "GRÜNE",
+   "party_code": "B90",
+   "role": "Stadtrat Ordentliches Mitglied",
+   "since": "seit 23. Juli 2024"
+  },
+  {
+   "person_id": "61482",
+   "name": "Dr. Rahsan Dogan",
+   "party": "CDU",
+   "party_code": "CDU",
+   "role": "Stadträtin Ordentliches Mitglied",
+   "since": "seit 23. Juli 2019"
+  },
+  {
+   "person_id": "62103",
+   "name": "Jorinda Fahringer",
+   "party": "GRÜNE",
+   "party_code": "B90",
+   "role": "Stadträtin Ordentliches Mitglied",
+   "since": "seit 23. Juli 2019"
+  },
+  {
+   "person_id": "65294",
+   "name": "Adina Geißinger",
+   "party": "Volt",
+   "party_code": "VOL",
+   "role": "Stadträtin Ordentliches Mitglied",
+   "since": "seit 23. Juli 2024"
+  },
+  {
+   "person_id": "122",
+   "name": "Detlef Hofmann",
+   "party": "CDU",
+   "party_code": "CDU",
+   "role": "Stadtrat, Ortschaftsrat Ordentliches Mitglied",
+   "since": "seit 29. September 2009"
+  },
+  {
+   "person_id": "457",
+   "name": "Dr. Anton Huber",
+   "party": "SPD",
+   "party_code": "SPD",
+   "role": "Stadtrat Ordentliches Mitglied",
+   "since": "seit 23. Juli 2024"
+  },
+  {
+   "person_id": "62102",
+   "name": "Aljoscha Löffler",
+   "party": "GRÜNE",
+   "party_code": "B90",
+   "role": "Stadtrat Ordentliches Mitglied",
+   "since": "seit 23. Juli 2019"
+  },
+  {
+   "person_id": "452",
+   "name": "Dirk Müller",
+   "party": "CDU",
+   "party_code": "CDU",
+   "role": "Stadtrat, Ortschaftsrat Ordentliches Mitglied",
+   "since": "seit 23. Juli 2024"
+  },
+  {
+   "person_id": "62145",
+   "name": "Dr. Stefan Noé",
+   "party": "FDP/FW",
+   "party_code": "FDP",
+   "role": "Stadtrat, Ortschaftsrat Ordentliches Mitglied",
+   "since": "seit 23. Juli 2024"
+  },
+  {
+   "person_id": "62117",
+   "name": "Oliver Schnell",
+   "party": "AfD",
+   "party_code": "AFD",
+   "role": "Stadtrat, Ortschaftsrat Ordentliches Mitglied",
+   "since": "seit 1. Juli 2026"
+  },
+  {
+   "person_id": "65300",
+   "name": "Mathias Tröndle",
+   "party": "SPD",
+   "party_code": "SPD",
+   "role": "Stadtrat, Ortschaftsrat Ordentliches Mitglied",
+   "since": "seit 1. Oktober 2025"
+  },
+  {
+   "person_id": "63698",
+   "name": "Leonie Wolf",
+   "party": "GRÜNE",
+   "party_code": "B90",
+   "role": "Stadträtin Ordentliches Mitglied",
+   "since": "seit 23. Juli 2024"
+  },
+  {
+   "person_id": "65306",
+   "name": "Franziska Buresch",
+   "party": "Die Linke",
+   "party_code": "LIN",
+   "role": "Altstadträtin | Altstadtrat Ordentliches Mitglied",
+   "since": "von 23. Juli 2024 bis 30. April 2026"
+  },
+  {
+   "person_id": "306",
+   "name": "Yvette Melchien",
+   "party": "SPD",
+   "party_code": "SPD",
+   "role": "Altstadträtin Ordentliches Mitglied",
+   "since": "von 23. September 2014 bis 31. August 2025"
+  },
+  {
+   "person_id": "61492",
+   "name": "Dr. Paul Schmidt",
+   "party": "AfD",
+   "party_code": "AFD",
+   "role": "Stadtrat Ordentliches Mitglied",
+   "since": "von 23. Juli 2019 bis 30. Juni 2026"
+  }
+ ],
+ "termin-10548": {
+  "id": "termin-10548",
+  "title": "Planungsausschuss (öffentlich/nicht öffentlich)",
+  "body_name": "Planungsausschuss",
+  "date": "2026-07-09",
+  "time": "16.30 bis 18.30 Uhr",
+  "location": "Bürgersaal",
+  "public": null,
+  "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-10548",
+  "agenda": [
+   {
+    "anchor": "top1",
+    "number": "1",
+    "title": "Potenzialanalyse für mehr Wohnungsbau durch Aufstockung eingschossiger Immobilien bis 2035",
+    "public": 1
+   },
+   {
+    "anchor": "top2",
+    "number": "2",
+    "title": "Umbau der Kreuzung Kriegs-/Brauer-/Reinhold-Frank-Straße",
+    "public": 1
+   }
+  ],
+  "files": [
+   {
+    "id": "00677689",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00677689.pdf",
+    "label": "Antrag",
+    "agenda_anchor": "top1",
+    "doc_type": "Antrag",
+    "filename": "00677689.pdf"
+   },
+   {
+    "id": "00678186",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00678186.pdf",
+    "label": "Stellungnahme Antrag",
+    "agenda_anchor": "top1",
+    "doc_type": "Antrag",
+    "filename": "00678186.pdf"
+   },
+   {
+    "id": "00678832",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00678832.pdf",
+    "label": "Protokoll GR 19.05.2026 TOP 11",
+    "agenda_anchor": "top1",
+    "doc_type": "Protokoll",
+    "filename": "00678832.pdf"
+   },
+   {
+    "id": "00679473",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679473.pdf",
+    "label": "Informationsvorlage",
+    "agenda_anchor": "top2",
+    "doc_type": "Vorlage",
+    "filename": "00679473.pdf"
+   },
+   {
+    "id": "00679130",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679130.pdf",
+    "label": "Untersuchungsbericht",
+    "agenda_anchor": "top2",
+    "doc_type": "Sonstiges",
+    "filename": "00679130.pdf"
+   },
+   {
+    "id": "00679411",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679411.pdf",
+    "label": "Tagesordnung (öffentlich) Ausschuss/Ortschaftsrat",
+    "agenda_anchor": null,
+    "doc_type": "Tagesordnung",
+    "filename": "00679411.pdf"
+   }
+  ]
+ },
+ "termin-10443": {
+  "id": "termin-10443",
+  "title": "Ortschaftsrat Grötzingen (öffentlich/nicht öffentlich)",
+  "body_name": "Ortschaftsrat Grötzingen",
+  "date": "2026-07-15",
+  "time": null,
+  "location": "Herbert-Schweizer-Haus Begegnungsstätte Grötzingen, Niddastraße 9, 76229 Karlsruhe",
+  "public": null,
+  "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-10443",
+  "agenda": [
+   {
+    "anchor": "top1",
+    "number": "1",
+    "title": "Fragen und Anregungen der Einwohnerinnen und Einwohner",
+    "public": 1
+   },
+   {
+    "anchor": "top2",
+    "number": "2",
+    "title": "Konzeptvergabe Niddaplatz",
+    "public": 1
+   },
+   {
+    "anchor": "top3",
+    "number": "3",
+    "title": "Bericht zum Gesetz zur Beschleunigung des Wohnungsbaus und zur Wohnraumsicherung (Bauturbo)",
+    "public": 1
+   },
+   {
+    "anchor": "top4",
+    "number": "4",
+    "title": "Überarbeitete Verkehrsknotenplanung Eisenbahnstraße / Oberausstraße",
+    "public": 1
+   },
+   {
+    "anchor": "top5",
+    "number": "5",
+    "title": "NBS/ABS Mannheim-Karlsruhe, Beteiligung Raumverträglichkeitsprüfung",
+    "public": 1
+   },
+   {
+    "anchor": "top6",
+    "number": "6",
+    "title": "Bewerbung für mobile Verkaufsstände auf dem \"Grötzinger Wochenmarkt\"",
+    "public": 1
+   },
+   {
+    "anchor": "top7",
+    "number": "7",
+    "title": "Rückbau von Spielanlagen als Instrument zur Qualitätssicherung",
+    "public": 1
+   },
+   {
+    "anchor": "top8",
+    "number": "8",
+    "title": "Umbenennung des Herbert-Schweizer-Haus Begegnungsstätte Grötzingen (Antrag der Ortschaftsräte Breier, Daubenberger und Galley)",
+    "public": 1
+   },
+   {
+    "anchor": "top9",
+    "number": "9",
+    "title": "Hundeauslauffläche für Grötzingen (CDU-Antrag)",
+    "public": 1
+   },
+   {
+    "anchor": "top10",
+    "number": "10",
+    "title": "Örtlichen Hochwasserschutz verbessern, Treibgut minimieren (CDU-Antrag)",
+    "public": 1
+   },
+   {
+    "anchor": "top11",
+    "number": "11",
+    "title": "Mitteilungen der Ortsverwaltung",
+    "public": 1
+   }
+  ],
+  "files": [
+   {
+    "id": "00678572",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00678572.pdf",
+    "label": "Beschlussvorlage Grötzingen",
+    "agenda_anchor": "top2",
+    "doc_type": "Beschlussvorlage",
+    "filename": "00678572.pdf"
+   },
+   {
+    "id": "00679122",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679122.pdf",
+    "label": "Informationsvorlage Grötzingen",
+    "agenda_anchor": "top4",
+    "doc_type": "Vorlage",
+    "filename": "00679122.pdf"
+   },
+   {
+    "id": "00679208",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679208.pdf",
+    "label": "2026-06-18 Oberausstr-erw. Parkierung",
+    "agenda_anchor": "top4",
+    "doc_type": "Sonstiges",
+    "filename": "00679208.pdf"
+   },
+   {
+    "id": "00678204",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00678204.pdf",
+    "label": "Beschlussvorlage_NBS_ABS_Mannheim-Karlsruhe_Beteiligung_RVP",
+    "agenda_anchor": "top5",
+    "doc_type": "Beschlussvorlage",
+    "filename": "00678204.pdf"
+   },
+   {
+    "id": "00678208",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00678208.pdf",
+    "label": "Anlage_1_Stellungnahme_Stadt_Karlsruhe",
+    "agenda_anchor": "top5",
+    "doc_type": "Anlage",
+    "filename": "00678208.pdf"
+   },
+   {
+    "id": "00679768",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679768.pdf",
+    "label": "Anlage_2.1_Anlage_Stellungnahme_Naturschutzbeauftragte",
+    "agenda_anchor": "top5",
+    "doc_type": "Anlage",
+    "filename": "00679768.pdf"
+   },
+   {
+    "id": "00679780",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679780.pdf",
+    "label": "Anlage_2_Stellungnahme_Stadt_Karlsruhe_als_TÖB",
+    "agenda_anchor": "top5",
+    "doc_type": "Anlage",
+    "filename": "00679780.pdf"
+   },
+   {
+    "id": "00680029",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00680029.pdf",
+    "label": "Abstimmungsergebnis TOP 26",
+    "agenda_anchor": "top5",
+    "doc_type": "Abstimmungsergebnis",
+    "filename": "00680029.pdf"
+   },
+   {
+    "id": "00680512",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00680512.pdf",
+    "label": "Protokoll GR 28.07.2026 TOP 26",
+    "agenda_anchor": "top5",
+    "doc_type": "Protokoll",
+    "filename": "00680512.pdf"
+   },
+   {
+    "id": "00679310",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679310.pdf",
+    "label": "Beschlussvorlage Grötzingen",
+    "agenda_anchor": "top6",
+    "doc_type": "Beschlussvorlage",
+    "filename": "00679310.pdf"
+   },
+   {
+    "id": "00677139",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00677139.pdf",
+    "label": "Beschlussvorlage",
+    "agenda_anchor": "top7",
+    "doc_type": "Beschlussvorlage",
+    "filename": "00677139.pdf"
+   },
+   {
+    "id": "00679798",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679798.pdf",
+    "label": "Anlage Rückbau Übersicht aktualisiert",
+    "agenda_anchor": "top7",
+    "doc_type": "Anlage",
+    "filename": "00679798.pdf"
+   },
+   {
+    "id": "00679799",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679799.pdf",
+    "label": "Anlage Anlagenübersicht aktualisiert",
+    "agenda_anchor": "top7",
+    "doc_type": "Anlage",
+    "filename": "00679799.pdf"
+   },
+   {
+    "id": "00679800",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679800.pdf",
+    "label": "Anlage Präsentation aktualisiert",
+    "agenda_anchor": "top7",
+    "doc_type": "Präsentation",
+    "filename": "00679800.pdf"
+   },
+   {
+    "id": "00680026",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00680026.pdf",
+    "label": "Abstimmungsergebnis TOP 24",
+    "agenda_anchor": "top7",
+    "doc_type": "Abstimmungsergebnis",
+    "filename": "00680026.pdf"
+   },
+   {
+    "id": "00680510",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00680510.pdf",
+    "label": "Protokoll GR 28.07.2026 TOP 24",
+    "agenda_anchor": "top7",
+    "doc_type": "Protokoll",
+    "filename": "00680510.pdf"
+   },
+   {
+    "id": "00677476",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00677476.pdf",
+    "label": "Antrag Grötzingen",
+    "agenda_anchor": "top8",
+    "doc_type": "Antrag",
+    "filename": "00677476.pdf"
+   },
+   {
+    "id": "00677477",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00677477.pdf",
+    "label": "Stellungnahme Antrag Grötzingen",
+    "agenda_anchor": "top8",
+    "doc_type": "Antrag",
+    "filename": "00677477.pdf"
+   },
+   {
+    "id": "00678320",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00678320.pdf",
+    "label": "Antrag Grötzingen",
+    "agenda_anchor": "top9",
+    "doc_type": "Antrag",
+    "filename": "00678320.pdf"
+   },
+   {
+    "id": "00678321",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00678321.pdf",
+    "label": "Stellungnahme Antrag Grötzingen",
+    "agenda_anchor": "top9",
+    "doc_type": "Antrag",
+    "filename": "00678321.pdf"
+   },
+   {
+    "id": "00678317",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00678317.pdf",
+    "label": "Antrag Grötzingen",
+    "agenda_anchor": "top10",
+    "doc_type": "Antrag",
+    "filename": "00678317.pdf"
+   },
+   {
+    "id": "00679239",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679239.pdf",
+    "label": "Stellungnahme Antrag Grötzingen",
+    "agenda_anchor": "top10",
+    "doc_type": "Antrag",
+    "filename": "00679239.pdf"
+   },
+   {
+    "id": "00679515",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00679515.pdf",
+    "label": "Tagesordnung (öffentlich) Ausschuss/Ortschaftsrat",
+    "agenda_anchor": null,
+    "doc_type": "Tagesordnung",
+    "filename": "00679515.pdf"
+   },
+   {
+    "id": "00680452",
+    "url": "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/00680452.pdf",
+    "label": "2026-07-15_Niederschrift_öffentlich",
+    "agenda_anchor": null,
+    "doc_type": "Niederschrift",
+    "filename": "00680452.pdf"
+   }
+  ]
+ }
+}

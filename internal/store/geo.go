@@ -2,7 +2,6 @@ package store
 
 import (
 	"database/sql"
-	"encoding/json"
 )
 
 // DocsNeedingGeo returns enriched files not yet geo-tagged (geo_status
@@ -37,75 +36,6 @@ func SetGeo(tx *sql.Tx, id string, streets []string, district *string, conf *flo
 	_, err := tx.Exec("UPDATE files SET district = ?, district_conf = ?, geo_status = ? WHERE id = ?",
 		district, conf, status, id)
 	return err
-}
-
-// rollcallOK is 1 if the roll-call's ja/nein/enthaltung tally equals the
-// counters, else 0; nil when there is no roll-call.
-func rollcallOK(ja, nein, enth, members any) any {
-	m, _ := members.(string)
-	if m == "" {
-		return nil
-	}
-	var mem []any
-	if json.Unmarshal([]byte(m), &mem) != nil || len(mem) == 0 {
-		return nil
-	}
-	tally := map[string]int64{"ja": 0, "nein": 0, "enthaltung": 0}
-	for _, e := range mem {
-		if d, ok := e.(map[string]any); ok {
-			if v, ok := d["vote"].(string); ok {
-				if _, ok := tally[v]; ok {
-					tally[v]++
-				}
-			}
-		}
-	}
-	if tally["ja"] == num(ja) && tally["nein"] == num(nein) && tally["enthaltung"] == num(enth) {
-		return 1
-	}
-	return 0
-}
-
-// RefreshVoteConsistency recomputes votes.members_ok from the stored roll-call
-// and counters, for one vote or all when voteID is "".
-func RefreshVoteConsistency(tx *sql.Tx, voteID string) (int, error) {
-	q := "SELECT id, ja, nein, enthaltung, members FROM votes"
-	var args []any
-	if voteID != "" {
-		q += " WHERE id = ?"
-		args = append(args, voteID)
-	}
-	rs, err := tx.Query(q, args...)
-	if err != nil {
-		return 0, err
-	}
-	type vote struct {
-		id                 string
-		ja, nein, enth, mb any
-	}
-	var votes []vote
-	for rs.Next() {
-		var v vote
-		if err := rs.Scan(&v.id, &v.ja, &v.nein, &v.enth, &v.mb); err != nil {
-			rs.Close()
-			return 0, err
-		}
-		if b, ok := v.mb.([]byte); ok {
-			v.mb = string(b)
-		}
-		votes = append(votes, v)
-	}
-	rs.Close()
-	if err := rs.Err(); err != nil {
-		return 0, err
-	}
-	for _, v := range votes {
-		if _, err := tx.Exec("UPDATE votes SET members_ok = ? WHERE id = ?",
-			rollcallOK(v.ja, v.nein, v.enth, v.mb), v.id); err != nil {
-			return 0, err
-		}
-	}
-	return len(votes), nil
 }
 
 // VoteConsistency counts how many stored roll-calls match their counters.

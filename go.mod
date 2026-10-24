@@ -3,11 +3,14 @@ module github.com/1612elphi/desinformationssystem
 go 1.26.0
 
 require (
+	github.com/PuerkitoBio/goquery v1.13.0
 	github.com/modelcontextprotocol/go-sdk v1.8.0
+	golang.org/x/net v0.58.0
 	modernc.org/sqlite v1.60.1
 )
 
 require (
+	github.com/andybalholm/cascadia v1.3.4 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
