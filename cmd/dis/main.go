@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 	_ "time/tzdata"
@@ -48,8 +49,9 @@ func main() {
 			PDFDir: env("PDF_DIR", filepath.Join("data", "pdfs")),
 			Dist:   env("WEB_DIST", filepath.Join("ui", "dist")),
 		}
-		// INGEST=oparl keeps Refresh nil (501) until oparl.py is ported
-		if env("INGEST", "html") == "html" {
+		if strings.ToLower(env("INGEST", "html")) == "oparl" {
+			srv.Refresh = func(id string) (any, error) { return ingest.RefreshOne(st, id, false, false) }
+		} else {
 			srv.Refresh = func(id string) (any, error) { return ingest.ScrapeOne(st, id, false, false) }
 		}
 		addr := ":" + env("WEB_PORT", "3650")
@@ -74,6 +76,12 @@ func main() {
 		os.Exit(code)
 	case "scrape":
 		os.Exit(scrapeCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "oparl":
+		os.Exit(oparlCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "seed":
+		os.Exit(seedCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "pdf-backfill":
+		os.Exit(backfillCLI(st, os.Args[min(2, len(os.Args)):]))
 	case "scraper":
 		scraperLoop(st)
 	case "ticker":
@@ -81,7 +89,7 @@ func main() {
 	case "init":
 		fmt.Println("initialised")
 	default:
-		log.Fatalf("unknown role %q (want web|mcp|scrape|scraper|ticker|geo-backfill|data-quality|init)", role)
+		log.Fatalf("unknown role %q (want web|mcp|scrape|oparl|seed|pdf-backfill|scraper|ticker|geo-backfill|data-quality|init)", role)
 	}
 }
 
@@ -129,11 +137,84 @@ func scrapeCLI(st *store.Store, args []string) int {
 	return 0
 }
 
+func oparlCLI(st *store.Store, args []string) int {
+	fs := flag.NewFlagSet("oparl", flag.ExitOnError)
+	full := fs.Bool("full", false, "ignore the watermark: walk the complete meeting/paper lists")
+	since := fs.String("since", "", "explicit modified_since ISO timestamp")
+	noLLM := fs.Bool("no-llm", false, "skip LLM enrichment this run")
+	skipMembers := fs.Bool("skip-members", false, "skip the HTML committee/roster crawl (validation runs)")
+	fs.Parse(args)
+	counts, err := ingest.OparlSync(st, *full, *since, ingest.EnableLLM && !*noLLM, *skipMembers)
+	if err != nil {
+		log.Print(err)
+		return 1
+	}
+	fmt.Println(counts)
+	return 0
+}
+
+func seedCLI(st *store.Store, args []string) int {
+	fs := flag.NewFlagSet("seed", flag.ExitOnError)
+	dir := fs.String("dir", "", "dump root (the repo's docs/ dir)")
+	limit := fs.Int("limit", 0, "only N of each kind")
+	newest := fs.Bool("newest", false, "with --limit, take the NEWEST N (validation runs; the oldest entries are pre-digital stubs and unrepresentative)")
+	skipMeetings := fs.Bool("skip-meetings", false, "")
+	skipPapers := fs.Bool("skip-papers", false, "")
+	noWatermark := fs.Bool("no-watermark", false, "don't set meta oparl_since from the dump manifest")
+	fs.Parse(args)
+	if fi, err := os.Stat(*dir); *dir == "" || err != nil || !fi.IsDir() {
+		fmt.Fprintf(os.Stderr, "no such dump dir: %s\n", *dir)
+		return 2
+	}
+	counts, err := ingest.Seed(st, *dir, *limit, *skipPapers, *skipMeetings, *newest)
+	if err != nil {
+		log.Print(err)
+		return 1
+	}
+	if !*noWatermark && *limit == 0 {
+		stamp, err := ingest.SeedWatermark(st, *dir)
+		if err != nil {
+			log.Print(err)
+			return 1
+		}
+		counts.SetStr("watermark", stamp)
+	}
+	log.Printf("seed: done: %s", counts)
+	fmt.Println(counts)
+	return 0
+}
+
+func backfillCLI(st *store.Store, args []string) int {
+	fs := flag.NewFlagSet("pdf-backfill", flag.ExitOnError)
+	limit := fs.Int("limit", ingest.BackfillMaxFiles, "max files this run (0 = all pending)")
+	maxSeconds := fs.Int("max-seconds", ingest.BackfillMaxSeconds, "stop after N seconds (0 = no limit)")
+	count := fs.Bool("count", false, "just report how many are pending, then exit")
+	fs.Parse(args)
+	if *count {
+		n, err := ingest.PendingPDFCount(st)
+		if err != nil {
+			log.Print(err)
+			return 1
+		}
+		fmt.Printf("%d files pending a cached PDF\n", n)
+		return 0
+	}
+	counts, err := ingest.BackfillPDFs(st, *limit, *maxSeconds)
+	if err != nil {
+		log.Print(err)
+		return 1
+	}
+	log.Printf("backfill: done: %s", counts)
+	fmt.Println(counts)
+	return 0
+}
+
 // scraperLoop is entrypoint.sh's scraper role: one run at start, then daily
 // at SCRAPE_HOUR:SCRAPE_MINUTE local time.
 func scraperLoop(st *store.Store) {
-	if mode := env("INGEST", "html"); mode != "html" {
-		log.Fatalf("[scraper] unknown INGEST: %s (the Go binary has html only)", mode)
+	mode := env("INGEST", "html")
+	if mode != "html" && mode != "oparl" {
+		log.Fatalf("unknown INGEST: %s (want html|oparl)", mode)
 	}
 	hour, minute := envInt("SCRAPE_HOUR", 3), envInt("SCRAPE_MINUTE", 30)
 	months := envInt("BACKFILL_MONTHS", 12)
@@ -151,11 +232,17 @@ func scraperLoop(st *store.Store) {
 				log.Printf("[scraper] run failed; continuing (%v)", r)
 			}
 		}()
-		if _, err := ingest.Scrape(st, months, false, ingest.EnableLLM); err != nil {
+		var err error
+		if mode == "oparl" {
+			_, err = ingest.OparlSync(st, false, "", ingest.EnableLLM, false)
+		} else {
+			_, err = ingest.Scrape(st, months, false, ingest.EnableLLM)
+		}
+		if err != nil {
 			log.Printf("[scraper] run failed; continuing (%v)", err)
 		}
 	}
-	log.Printf("[scraper] initial run (ingest=html, months=%d)", months)
+	log.Printf("[scraper] initial run (ingest=%s, months=%d)", mode, months)
 	run()
 	for {
 		now := time.Now()
