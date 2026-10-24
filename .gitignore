@@ -27,3 +27,6 @@ web/dist/
 # ember
 ui/node_modules/
 ui/dist/
+
+# agent worktrees
+/.claude/

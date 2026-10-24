@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	_ "time/tzdata"
 
+	"github.com/1612elphi/desinformationssystem/internal/mcp"
 	"github.com/1612elphi/desinformationssystem/internal/store"
 	"github.com/1612elphi/desinformationssystem/internal/web"
 )
@@ -43,10 +44,27 @@ func main() {
 		}
 		addr := ":" + env("WEB_PORT", "3650")
 		log.Printf("web: listening on %s", addr)
-		log.Fatal(http.ListenAndServe(addr, srv.Handler()))
+		mux := http.NewServeMux()
+		mux.Handle("/mcp", mcp.Handler(st))
+		mux.Handle("/", srv.Handler())
+		log.Fatal(http.ListenAndServe(addr, mux))
+	case "mcp":
+		addr := ":" + env("MCP_PORT", "3651")
+		mux := http.NewServeMux()
+		mux.Handle("/mcp", mcp.Handler(st))
+		log.Printf("mcp: listening on %s", addr)
+		log.Fatal(http.ListenAndServe(addr, mux))
+	case "geo-backfill":
+		code := geoBackfill(st, os.Args[min(2, len(os.Args)):])
+		st.Close()
+		os.Exit(code)
+	case "data-quality":
+		code := dataQuality(st)
+		st.Close()
+		os.Exit(code)
 	case "init":
 		fmt.Println("initialised")
 	default:
-		log.Fatalf("unknown role %q (want web|init)", role)
+		log.Fatalf("unknown role %q (want web|mcp|geo-backfill|data-quality|init)", role)
 	}
 }
