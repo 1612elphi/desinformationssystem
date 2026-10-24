@@ -1,0 +1,140 @@
+/* dis-main scrolls and holds the footer below the page */
+.dis-statistik.canon-page {
+  block-size: auto;
+  overflow: visible;
+}
+
+.dis-stat-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dis-stat-heading {
+  margin: 0;
+  font-size: var(--canon-text-title3);
+  font-weight: var(--canon-weight-semibold);
+  line-height: 1.3;
+}
+
+.dis-stat-note {
+  margin: 0;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-bar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  min-block-size: var(--canon-control-height);
+  padding: 8px var(--canon-panel-padding);
+  background: var(--canon-card);
+  font-size: var(--canon-text-subheadline);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-bar-label {
+  flex: 0 0 4rem;
+}
+
+.dis-bar.canon-bar,
+.dis-stack {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  block-size: 8px;
+}
+
+.dis-bar-value {
+  flex: 0 0 auto;
+  min-inline-size: 3.5rem;
+  text-align: end;
+}
+
+.dis-bar-meta {
+  flex: 0 0 auto;
+  min-inline-size: 11rem;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-stack {
+  display: flex;
+  background: var(--canon-muted);
+}
+
+.dis-seg {
+  flex: none;
+  background: var(--dis-vote);
+}
+
+.dis-seg--ja,
+.dis-vt--ja {
+  --dis-vote: var(--canon-primary);
+}
+
+.dis-seg--nein,
+.dis-vt--nein {
+  --dis-vote: var(--canon-destructive);
+}
+
+.dis-seg--enth,
+.dis-vt--enth {
+  --dis-vote: var(--canon-muted-foreground);
+}
+
+.dis-votetext {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-vt::before {
+  content: "";
+  display: inline-block;
+  inline-size: 8px;
+  block-size: 8px;
+  margin-inline-end: 6px;
+  background: var(--dis-vote);
+}
+
+.dis-matrix-wrap {
+  max-inline-size: 100%;
+  overflow-x: auto;
+}
+
+.dis-matrix {
+  border-collapse: collapse;
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-matrix th,
+.dis-matrix td {
+  min-inline-size: 2.75rem;
+  block-size: 2.25rem;
+  padding: 4px 8px;
+  border: var(--canon-hairline) solid var(--canon-border);
+  text-align: center;
+}
+
+.dis-matrix th {
+  background: var(--canon-muted);
+  color: var(--canon-muted-foreground);
+  font-weight: var(--canon-weight-semibold);
+}
+
+.dis-matrix td {
+  background: var(--canon-card);
+}
+
+.dis-matrix td.dis-matrix-self {
+  background: var(--canon-muted);
+}
+
+.dis-statistik .dis-num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
