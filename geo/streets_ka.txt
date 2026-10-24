@@ -1,4 +1,4 @@
-# Karlsruhe street/place gazetteer for geo.py mention-matching (names only, no geometry).
+# Karlsruhe street/place gazetteer for geo mention-matching (names only, no geometry).
 # Source: Karlsruhe Liegenschaftsamt Straßennamenverzeichnis. Street names are facts, used
 # internally for text matching, not redistributed as a dataset.
 # TODO: reconcile against OSM Karlsruhe street names (ODbL) via Overpass at the map-view step.

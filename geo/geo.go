@@ -1,5 +1,5 @@
 // Package geo matches Karlsruhe street/place mentions in a document and
-// classifies its Stadtteil, a port of geo.py. Both passes are text-only: a
+// classifies its Stadtteil. Both passes are text-only: a
 // gazetteer regex finds street candidates and Jev judges each occurrence,
 // then Jev picks the primary Stadtteil.
 package geo
