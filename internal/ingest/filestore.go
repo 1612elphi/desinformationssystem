@@ -172,6 +172,7 @@ type FileMeta struct {
 type Counts struct {
 	keys []string
 	m    map[string]int
+	strs map[string]*string
 }
 
 func NewCounts(keys ...string) *Counts {
@@ -191,12 +192,29 @@ func (c *Counts) Add(k string, n int) {
 
 func (c *Counts) Get(k string) int { return c.m[k] }
 
+// SetStr stores a string entry; nil prints as None.
+func (c *Counts) SetStr(k string, v *string) {
+	if c.strs == nil {
+		c.strs = map[string]*string{}
+	}
+	if _, ok := c.strs[k]; !ok {
+		c.keys = append(c.keys, k)
+	}
+	c.strs[k] = v
+}
+
 func (c *Counts) Map() map[string]int { return c.m }
 
 func (c *Counts) String() string {
 	parts := make([]string, len(c.keys))
 	for i, k := range c.keys {
-		parts[i] = fmt.Sprintf("'%s': %d", k, c.m[k])
+		if v, ok := c.strs[k]; !ok {
+			parts[i] = fmt.Sprintf("'%s': %d", k, c.m[k])
+		} else if v == nil {
+			parts[i] = fmt.Sprintf("'%s': None", k)
+		} else {
+			parts[i] = fmt.Sprintf("'%s': '%s'", k, *v)
+		}
 	}
 	return "{" + strings.Join(parts, ", ") + "}"
 }

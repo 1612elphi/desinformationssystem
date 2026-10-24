@@ -1,0 +1,2165 @@
+{
+ "refresh": {
+  "_result": [
+   {
+    "counts": {
+     "enriched": 0,
+     "errors": 0,
+     "files_new": 1,
+     "files_seen": 0,
+     "files_updated": 0,
+     "meetings": 1,
+     "text_ok": 1
+    },
+    "ok": true
+   },
+   {
+    "counts": {
+     "agenda_no_number": 3,
+     "enriched": 0,
+     "errors": 0,
+     "files_new": 1,
+     "files_seen": 0,
+     "files_updated": 0,
+     "meetings": 1,
+     "text_ok": 1
+    },
+    "ok": true
+   },
+   {
+    "counts": {
+     "enriched": 0,
+     "errors": 1,
+     "files_new": 0,
+     "files_seen": 0,
+     "files_updated": 0,
+     "meetings": 0,
+     "text_ok": 0
+    },
+    "error": "Sitzung nicht erreichbar",
+    "ok": false
+   }
+  ],
+  "agenda_items": [
+   {
+    "anchor": "top1",
+    "id": 1,
+    "meeting_id": "termin-10585",
+    "number": "1",
+    "public": 1,
+    "title": "Potenzialanalyse für mehr Wohnungsbau durch Aufstockung eingschossiger Immobilien bis 2035"
+   },
+   {
+    "anchor": "top2",
+    "id": 2,
+    "meeting_id": "termin-10585",
+    "number": "2",
+    "public": 1,
+    "title": "Potenzialanalyse für mehr Wohnungsbau durch Aufstockung eingschossiger Immobilien bis 2035 -"
+   },
+   {
+    "anchor": "top3",
+    "id": 3,
+    "meeting_id": "termin-10585",
+    "number": "3",
+    "public": 1,
+    "title": "Zusagen einlösen: SG Rüppurr muss in die Priorität 1"
+   },
+   {
+    "anchor": "top4",
+    "id": 4,
+    "meeting_id": "termin-10585",
+    "number": "4",
+    "public": 1,
+    "title": "Entwicklungsgebiet \"Am Gänsberg\" in Karlsruhe - Stupferich"
+   },
+   {
+    "anchor": "top5",
+    "id": 5,
+    "meeting_id": "termin-10585",
+    "number": "5",
+    "public": 1,
+    "title": "Nachhaltiges Parkraumkonzept Stadt Karlsruhe"
+   },
+   {
+    "anchor": "top1",
+    "id": 6,
+    "meeting_id": "termin-10588",
+    "number": "1",
+    "public": 1,
+    "title": "Satzung zur Änderung der Satzung der Stadt Karlsruhe über Erlaubnisse und Gebühren für Sondernutzungen an öffentlichen Straßen (Sondernutzungsgebührensatzung)"
+   },
+   {
+    "anchor": "top2",
+    "id": 7,
+    "meeting_id": "termin-10588",
+    "number": "2",
+    "public": 1,
+    "title": "Satzung zur Änderung der Gebührensatzung der Stadt Karlsruhe für den Großmarkt, die Wochenmärkte, die Jahrmärkte, die Kirchweihen und andere Volksfeste, den Christkindlesmarkt und die Spezialmärkte (Gebührensatzung für Märkte und Volksfeste)"
+   },
+   {
+    "anchor": "top3",
+    "id": 8,
+    "meeting_id": "termin-10588",
+    "number": "3",
+    "public": 1,
+    "title": "Bebauungsplan \"Michelinstraße 4 - Nutzungsartfestsetzung\", Karlsruhe-Grünwinkel; Satzungsbeschluss gemäß § 10 Baugesetzbuch (BauGB)"
+   },
+   {
+    "anchor": "top4",
+    "id": 9,
+    "meeting_id": "termin-10588",
+    "number": "4",
+    "public": 1,
+    "title": "Anpassung der Nutzungsentgelte für die durch die OV Stupferich zur Verfügung gestellten Räumlichkeiten im Gemeindezentrum Stupferich"
+   },
+   {
+    "anchor": "top4.1",
+    "id": 10,
+    "meeting_id": "termin-10588",
+    "number": "4.1",
+    "public": 1,
+    "title": "Anpassung der Nutzungsentgelte für die durch die OV Stupferich zur Verfügung gestellten Räumlichkeiten im Gemeindezentrum Stupferich"
+   },
+   {
+    "anchor": "top5",
+    "id": 11,
+    "meeting_id": "termin-10588",
+    "number": "5",
+    "public": 1,
+    "title": "Amtsvormundschaften und Amtspflegschaften – Anpassung der Fallquote im Rahmen gesetzlicher Veränderungen"
+   },
+   {
+    "anchor": "top5.1",
+    "id": 12,
+    "meeting_id": "termin-10588",
+    "number": "5.1",
+    "public": 1,
+    "title": "Beschaffung von Servern für die Stadtverwaltung Karlsruhe"
+   },
+   {
+    "anchor": "top6",
+    "id": 13,
+    "meeting_id": "termin-10588",
+    "number": "6",
+    "public": 1,
+    "title": "Auftragsvergabe für die Übernahme, Transport, Sortierung und Verwertung von kommunalen Wertstoffen"
+   },
+   {
+    "anchor": "top7",
+    "id": 14,
+    "meeting_id": "termin-10588",
+    "number": "7",
+    "public": 1,
+    "title": "Festsetzung des Wirtschaftsplans 2027 des Eigenbetriebs \"Team Sauberes Karlsruhe - Abfallwirtschaft und Stadtreinigung\""
+   },
+   {
+    "anchor": "top8",
+    "id": 15,
+    "meeting_id": "termin-10588",
+    "number": "8",
+    "public": 1,
+    "title": "Förderprogramm Starkregenvorsorge"
+   },
+   {
+    "anchor": "top8.1",
+    "id": 16,
+    "meeting_id": "termin-10588",
+    "number": "8.1",
+    "public": 1,
+    "title": "Förderprogramm Starkregenvorsorge"
+   },
+   {
+    "anchor": "top9",
+    "id": 17,
+    "meeting_id": "termin-10588",
+    "number": "9",
+    "public": 1,
+    "title": "Neuausrichtung des Förderprogramms \"KlimaBonus Karlsruhe\""
+   },
+   {
+    "anchor": "top9.1",
+    "id": 18,
+    "meeting_id": "termin-10588",
+    "number": "9.1",
+    "public": 1,
+    "title": "Neuausrichtung des Förderprogramms \"KlimaBonus Karlsruhe\": Förderfähigkeit von Eigenleistungen ermöglich"
+   },
+   {
+    "anchor": "top9.2",
+    "id": 19,
+    "meeting_id": "termin-10588",
+    "number": "9.2",
+    "public": 1,
+    "title": "Neuausrichtung des Förderprogramms \"KlimaBonus Karlsruhe\""
+   },
+   {
+    "anchor": "top10",
+    "id": 20,
+    "meeting_id": "termin-10588",
+    "number": "10",
+    "public": 1,
+    "title": "Nachhaltiges Parkraumkonzept Stadt Karlsruhe"
+   },
+   {
+    "anchor": "top10.1",
+    "id": 21,
+    "meeting_id": "termin-10588",
+    "number": "10.1",
+    "public": 1,
+    "title": "Nachhaltiges Parkraumkonzept Stadt Karlsruhe"
+   },
+   {
+    "anchor": "top11",
+    "id": 22,
+    "meeting_id": "termin-10588",
+    "number": "11",
+    "public": 1,
+    "title": "Einziehung der öffentlich gewidmeten Verkehrsfläche Parkplatz P3 in der Straße „Hinterm Hauptbahnhof“"
+   },
+   {
+    "anchor": "top11.1",
+    "id": 23,
+    "meeting_id": "termin-10588",
+    "number": "11.1",
+    "public": 1,
+    "title": "Vergabe der Reinigungsleistungen für das Goethegymnasium (Renckstr. 2, 76133 Karlsruhe) und das Verwaltungsgebäude Amt für Hochbau und Gebäudewirtschaft (Zähringerstr.)"
+   },
+   {
+    "anchor": "top11.2",
+    "id": 24,
+    "meeting_id": "termin-10588",
+    "number": "11.2",
+    "public": 1,
+    "title": "Vergabe der Reinigungsleistungen für die Eichendorff-Schule (Lötzener Straße 2, 76139 Karlsruhe) und die Waldschule (Moldaustraße 37, 76149 Karlsruhe) und die Rennbuckelschule (Bonner Straße 22, 76185 Karlsruhe)"
+   },
+   {
+    "anchor": "top12",
+    "id": 25,
+    "meeting_id": "termin-10588",
+    "number": "12",
+    "public": 1,
+    "title": "Klimatisierung öffentlicher Gebäude zum Schutz vulnerabler Gruppen"
+   },
+   {
+    "anchor": "top13",
+    "id": 26,
+    "meeting_id": "termin-10588",
+    "number": "13",
+    "public": 1,
+    "title": "Gebäude für Klimawandel ausstatten"
+   },
+   {
+    "anchor": "top13.1",
+    "id": 27,
+    "meeting_id": "termin-10588",
+    "number": "13.1",
+    "public": 1,
+    "title": "Mehr Sicherheit im öffentlichen Raum"
+   },
+   {
+    "anchor": "top14",
+    "id": 28,
+    "meeting_id": "termin-10588",
+    "number": "14",
+    "public": 1,
+    "title": "Verbot datenverarbeitender Brillen („Smart Glasses“) in Karlsruher Bäderbetrieben und weiteren öffentlichen Einrichtungen"
+   },
+   {
+    "anchor": "top15",
+    "id": 29,
+    "meeting_id": "termin-10588",
+    "number": "15",
+    "public": 1,
+    "title": "Gesamtkonzept klimaangepasster Marktplatz"
+   },
+   {
+    "anchor": "top16",
+    "id": 30,
+    "meeting_id": "termin-10588",
+    "number": "16",
+    "public": 1,
+    "title": "Kostenloses Trinkwasser bei städtischen Veranstaltungen"
+   },
+   {
+    "anchor": "top17",
+    "id": 31,
+    "meeting_id": "termin-10588",
+    "number": "17",
+    "public": 1,
+    "title": "Umgang mit Müll und Sauberkeit in Karlsruhe"
+   },
+   {
+    "anchor": "top18",
+    "id": 32,
+    "meeting_id": "termin-10588",
+    "number": "18",
+    "public": 1,
+    "title": "Wie gut gelingt die Umsetzung des Rechtsanspruchs auf Ganztagsbetreuung zu Beginn des Schuljahres 2026/27 in Karlsruhe"
+   },
+   {
+    "anchor": "top19",
+    "id": 33,
+    "meeting_id": "termin-10588",
+    "number": "19",
+    "public": 1,
+    "title": "Namensrechte Sponsoring"
+   },
+   {
+    "anchor": "top20",
+    "id": 34,
+    "meeting_id": "termin-10588",
+    "number": "20",
+    "public": 1,
+    "title": "Veröffentlichung Mietspiegel"
+   },
+   {
+    "anchor": "top21",
+    "id": 35,
+    "meeting_id": "termin-10588",
+    "number": "21",
+    "public": 1,
+    "title": "Öffentliche Sitzgelegenheiten in Karlsruhe"
+   },
+   {
+    "anchor": "top22",
+    "id": 36,
+    "meeting_id": "termin-10588",
+    "number": "22",
+    "public": 1,
+    "title": "Bekanntgabe nichtöffentlich gefasster Beschlüsse"
+   },
+   {
+    "anchor": "top23",
+    "id": 37,
+    "meeting_id": "termin-10588",
+    "number": "23",
+    "public": 1,
+    "title": "Mitteilungen des Bürgermeisteramtes"
+   }
+  ],
+  "bodies": [
+   {
+    "id": "organisation-gr-38449",
+    "name": "Planungsausschuss",
+    "url": null
+   },
+   {
+    "id": "organisation-gr-32130",
+    "name": "Gemeinderat",
+    "url": null
+   }
+  ],
+  "file_versions": [],
+  "file_vorlagen": [
+   {
+    "file_id": "00681288",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681506",
+    "own": 0,
+    "vorlage": "2026/0100"
+   }
+  ],
+  "files": [
+   {
+    "agenda_anchor": null,
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Tagesordnung",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681288.pdf",
+    "fts_id": 1,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681288",
+    "label": "Nachtrag zur Tagesordnung öffentlich 15.10.2026",
+    "local_path": "PDF/00681288.pdf",
+    "meeting_id": "termin-10585",
+    "paper_reference": null,
+    "paper_type": null,
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681288.pdf",
+    "vorlage": null
+   },
+   {
+    "agenda_anchor": null,
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Tagesordnung",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681506.pdf",
+    "fts_id": 2,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681506",
+    "label": "Tagesordnung (öffentlich)",
+    "local_path": "PDF/00681506.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": null,
+    "paper_type": null,
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681506.pdf",
+    "vorlage": null
+   }
+  ],
+  "files_fts": [
+   {
+    "_rowid": 1,
+    "body_name": "Planungsausschuss",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Nachtrag zur Tagesordnung öffentlich 15.10.2026",
+    "meeting_title": "Planungsausschuss (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 2,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Tagesordnung (öffentlich)",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   }
+  ],
+  "meetings": [
+   {
+    "body_id": "organisation-gr-38449",
+    "body_name": "Planungsausschuss",
+    "date": "2026-10-15",
+    "id": "termin-10585",
+    "location": "Bürgersaal",
+    "public": null,
+    "time": "16.30 bis 18.30 Uhr",
+    "title": "Planungsausschuss (öffentlich/nicht öffentlich)",
+    "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-10585"
+   },
+   {
+    "body_id": "organisation-gr-32130",
+    "body_name": "Gemeinderat",
+    "date": "2026-10-20",
+    "id": "termin-10588",
+    "location": "Bürgersaal",
+    "public": null,
+    "time": "15.30 bis 20 Uhr",
+    "title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-10588"
+   }
+  ],
+  "meta": []
+ },
+ "seed": {
+  "_result": [
+   "{'meetings': 2, 'papers': 3, 'files_new': 10, 'files_seen': 0, 'text_ok': 1, 'enriched': 0, 'errors': 0, 'text_missing': 9, 'agenda_no_number': 3, 'deleted_papers': 3, 'client_misses': 7, 'watermark': '2026-10-23T03:00:00.000Z'}",
+   "{'files_new': 0, 'files_updated': 10, 'files_seen': 0, 'text_ok': 10, 'errors': 0, 'processed': 10, 'remaining': 0}",
+   0
+  ],
+  "agenda_items": [
+   {
+    "anchor": "top1",
+    "id": 1,
+    "meeting_id": "termin-10585",
+    "number": "1",
+    "public": 1,
+    "title": "Potenzialanalyse für mehr Wohnungsbau durch Aufstockung eingschossiger Immobilien bis 2035"
+   },
+   {
+    "anchor": "top2",
+    "id": 2,
+    "meeting_id": "termin-10585",
+    "number": "2",
+    "public": 1,
+    "title": "Potenzialanalyse für mehr Wohnungsbau durch Aufstockung eingschossiger Immobilien bis 2035 -"
+   },
+   {
+    "anchor": "top3",
+    "id": 3,
+    "meeting_id": "termin-10585",
+    "number": "3",
+    "public": 1,
+    "title": "Zusagen einlösen: SG Rüppurr muss in die Priorität 1"
+   },
+   {
+    "anchor": "top4",
+    "id": 4,
+    "meeting_id": "termin-10585",
+    "number": "4",
+    "public": 1,
+    "title": "Entwicklungsgebiet \"Am Gänsberg\" in Karlsruhe - Stupferich"
+   },
+   {
+    "anchor": "top5",
+    "id": 5,
+    "meeting_id": "termin-10585",
+    "number": "5",
+    "public": 1,
+    "title": "Nachhaltiges Parkraumkonzept Stadt Karlsruhe"
+   },
+   {
+    "anchor": "top1",
+    "id": 6,
+    "meeting_id": "termin-10588",
+    "number": "1",
+    "public": 1,
+    "title": "Satzung zur Änderung der Satzung der Stadt Karlsruhe über Erlaubnisse und Gebühren für Sondernutzungen an öffentlichen Straßen (Sondernutzungsgebührensatzung)"
+   },
+   {
+    "anchor": "top2",
+    "id": 7,
+    "meeting_id": "termin-10588",
+    "number": "2",
+    "public": 1,
+    "title": "Satzung zur Änderung der Gebührensatzung der Stadt Karlsruhe für den Großmarkt, die Wochenmärkte, die Jahrmärkte, die Kirchweihen und andere Volksfeste, den Christkindlesmarkt und die Spezialmärkte (Gebührensatzung für Märkte und Volksfeste)"
+   },
+   {
+    "anchor": "top3",
+    "id": 8,
+    "meeting_id": "termin-10588",
+    "number": "3",
+    "public": 1,
+    "title": "Bebauungsplan \"Michelinstraße 4 - Nutzungsartfestsetzung\", Karlsruhe-Grünwinkel; Satzungsbeschluss gemäß § 10 Baugesetzbuch (BauGB)"
+   },
+   {
+    "anchor": "top4",
+    "id": 9,
+    "meeting_id": "termin-10588",
+    "number": "4",
+    "public": 1,
+    "title": "Anpassung der Nutzungsentgelte für die durch die OV Stupferich zur Verfügung gestellten Räumlichkeiten im Gemeindezentrum Stupferich"
+   },
+   {
+    "anchor": "top4.1",
+    "id": 10,
+    "meeting_id": "termin-10588",
+    "number": "4.1",
+    "public": 1,
+    "title": "Anpassung der Nutzungsentgelte für die durch die OV Stupferich zur Verfügung gestellten Räumlichkeiten im Gemeindezentrum Stupferich"
+   },
+   {
+    "anchor": "top5",
+    "id": 11,
+    "meeting_id": "termin-10588",
+    "number": "5",
+    "public": 1,
+    "title": "Amtsvormundschaften und Amtspflegschaften – Anpassung der Fallquote im Rahmen gesetzlicher Veränderungen"
+   },
+   {
+    "anchor": "top5.1",
+    "id": 12,
+    "meeting_id": "termin-10588",
+    "number": "5.1",
+    "public": 1,
+    "title": "Beschaffung von Servern für die Stadtverwaltung Karlsruhe"
+   },
+   {
+    "anchor": "top6",
+    "id": 13,
+    "meeting_id": "termin-10588",
+    "number": "6",
+    "public": 1,
+    "title": "Auftragsvergabe für die Übernahme, Transport, Sortierung und Verwertung von kommunalen Wertstoffen"
+   },
+   {
+    "anchor": "top7",
+    "id": 14,
+    "meeting_id": "termin-10588",
+    "number": "7",
+    "public": 1,
+    "title": "Festsetzung des Wirtschaftsplans 2027 des Eigenbetriebs \"Team Sauberes Karlsruhe - Abfallwirtschaft und Stadtreinigung\""
+   },
+   {
+    "anchor": "top8",
+    "id": 15,
+    "meeting_id": "termin-10588",
+    "number": "8",
+    "public": 1,
+    "title": "Förderprogramm Starkregenvorsorge"
+   },
+   {
+    "anchor": "top8.1",
+    "id": 16,
+    "meeting_id": "termin-10588",
+    "number": "8.1",
+    "public": 1,
+    "title": "Förderprogramm Starkregenvorsorge"
+   },
+   {
+    "anchor": "top9",
+    "id": 17,
+    "meeting_id": "termin-10588",
+    "number": "9",
+    "public": 1,
+    "title": "Neuausrichtung des Förderprogramms \"KlimaBonus Karlsruhe\""
+   },
+   {
+    "anchor": "top9.1",
+    "id": 18,
+    "meeting_id": "termin-10588",
+    "number": "9.1",
+    "public": 1,
+    "title": "Neuausrichtung des Förderprogramms \"KlimaBonus Karlsruhe\": Förderfähigkeit von Eigenleistungen ermöglich"
+   },
+   {
+    "anchor": "top9.2",
+    "id": 19,
+    "meeting_id": "termin-10588",
+    "number": "9.2",
+    "public": 1,
+    "title": "Neuausrichtung des Förderprogramms \"KlimaBonus Karlsruhe\""
+   },
+   {
+    "anchor": "top10",
+    "id": 20,
+    "meeting_id": "termin-10588",
+    "number": "10",
+    "public": 1,
+    "title": "Nachhaltiges Parkraumkonzept Stadt Karlsruhe"
+   },
+   {
+    "anchor": "top10.1",
+    "id": 21,
+    "meeting_id": "termin-10588",
+    "number": "10.1",
+    "public": 1,
+    "title": "Nachhaltiges Parkraumkonzept Stadt Karlsruhe"
+   },
+   {
+    "anchor": "top11",
+    "id": 22,
+    "meeting_id": "termin-10588",
+    "number": "11",
+    "public": 1,
+    "title": "Einziehung der öffentlich gewidmeten Verkehrsfläche Parkplatz P3 in der Straße „Hinterm Hauptbahnhof“"
+   },
+   {
+    "anchor": "top11.1",
+    "id": 23,
+    "meeting_id": "termin-10588",
+    "number": "11.1",
+    "public": 1,
+    "title": "Vergabe der Reinigungsleistungen für das Goethegymnasium (Renckstr. 2, 76133 Karlsruhe) und das Verwaltungsgebäude Amt für Hochbau und Gebäudewirtschaft (Zähringerstr.)"
+   },
+   {
+    "anchor": "top11.2",
+    "id": 24,
+    "meeting_id": "termin-10588",
+    "number": "11.2",
+    "public": 1,
+    "title": "Vergabe der Reinigungsleistungen für die Eichendorff-Schule (Lötzener Straße 2, 76139 Karlsruhe) und die Waldschule (Moldaustraße 37, 76149 Karlsruhe) und die Rennbuckelschule (Bonner Straße 22, 76185 Karlsruhe)"
+   },
+   {
+    "anchor": "top12",
+    "id": 25,
+    "meeting_id": "termin-10588",
+    "number": "12",
+    "public": 1,
+    "title": "Klimatisierung öffentlicher Gebäude zum Schutz vulnerabler Gruppen"
+   },
+   {
+    "anchor": "top13",
+    "id": 26,
+    "meeting_id": "termin-10588",
+    "number": "13",
+    "public": 1,
+    "title": "Gebäude für Klimawandel ausstatten"
+   },
+   {
+    "anchor": "top13.1",
+    "id": 27,
+    "meeting_id": "termin-10588",
+    "number": "13.1",
+    "public": 1,
+    "title": "Mehr Sicherheit im öffentlichen Raum"
+   },
+   {
+    "anchor": "top14",
+    "id": 28,
+    "meeting_id": "termin-10588",
+    "number": "14",
+    "public": 1,
+    "title": "Verbot datenverarbeitender Brillen („Smart Glasses“) in Karlsruher Bäderbetrieben und weiteren öffentlichen Einrichtungen"
+   },
+   {
+    "anchor": "top15",
+    "id": 29,
+    "meeting_id": "termin-10588",
+    "number": "15",
+    "public": 1,
+    "title": "Gesamtkonzept klimaangepasster Marktplatz"
+   },
+   {
+    "anchor": "top16",
+    "id": 30,
+    "meeting_id": "termin-10588",
+    "number": "16",
+    "public": 1,
+    "title": "Kostenloses Trinkwasser bei städtischen Veranstaltungen"
+   },
+   {
+    "anchor": "top17",
+    "id": 31,
+    "meeting_id": "termin-10588",
+    "number": "17",
+    "public": 1,
+    "title": "Umgang mit Müll und Sauberkeit in Karlsruhe"
+   },
+   {
+    "anchor": "top18",
+    "id": 32,
+    "meeting_id": "termin-10588",
+    "number": "18",
+    "public": 1,
+    "title": "Wie gut gelingt die Umsetzung des Rechtsanspruchs auf Ganztagsbetreuung zu Beginn des Schuljahres 2026/27 in Karlsruhe"
+   },
+   {
+    "anchor": "top19",
+    "id": 33,
+    "meeting_id": "termin-10588",
+    "number": "19",
+    "public": 1,
+    "title": "Namensrechte Sponsoring"
+   },
+   {
+    "anchor": "top20",
+    "id": 34,
+    "meeting_id": "termin-10588",
+    "number": "20",
+    "public": 1,
+    "title": "Veröffentlichung Mietspiegel"
+   },
+   {
+    "anchor": "top21",
+    "id": 35,
+    "meeting_id": "termin-10588",
+    "number": "21",
+    "public": 1,
+    "title": "Öffentliche Sitzgelegenheiten in Karlsruhe"
+   },
+   {
+    "anchor": "top22",
+    "id": 36,
+    "meeting_id": "termin-10588",
+    "number": "22",
+    "public": 1,
+    "title": "Bekanntgabe nichtöffentlich gefasster Beschlüsse"
+   },
+   {
+    "anchor": "top23",
+    "id": 37,
+    "meeting_id": "termin-10588",
+    "number": "23",
+    "public": 1,
+    "title": "Mitteilungen des Bürgermeisteramtes"
+   }
+  ],
+  "bodies": [
+   {
+    "id": "organisation-gr-38449",
+    "name": "Planungsausschuss",
+    "url": null
+   },
+   {
+    "id": "organisation-gr-32130",
+    "name": "Gemeinderat",
+    "url": null
+   }
+  ],
+  "file_versions": [],
+  "file_vorlagen": [
+   {
+    "file_id": "00681882",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681881",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681848",
+    "own": 1,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681838",
+    "own": 1,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681806",
+    "own": 1,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681506",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00680688",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00680685",
+    "own": 1,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681288",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681807",
+    "own": 1,
+    "vorlage": "2026/0100"
+   }
+  ],
+  "files": [
+   {
+    "agenda_anchor": null,
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Tagesordnung",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681288.pdf",
+    "fts_id": 1,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681288",
+    "label": "Nachtrag zur Tagesordnung öffentlich 15.10.2026",
+    "local_path": "PDF/00681288.pdf",
+    "meeting_id": "termin-10585",
+    "paper_reference": null,
+    "paper_type": null,
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681288.pdf",
+    "vorlage": null
+   },
+   {
+    "agenda_anchor": null,
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Tagesordnung",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681506.pdf",
+    "fts_id": 2,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681506",
+    "label": "Tagesordnung (öffentlich)",
+    "local_path": "PDF/00681506.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": null,
+    "paper_type": null,
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681506.pdf",
+    "vorlage": null
+   },
+   {
+    "agenda_anchor": "top10",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Beschlussvorlage",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00680685.pdf",
+    "fts_id": 3,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00680685",
+    "label": "alt - Beschlussvorlage Nachhaltiges Parkraumkonzept Stadt Karlsruhe",
+    "local_path": "PDF/00680685.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582",
+    "paper_type": "Beschlussvorlage",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00680685.pdf",
+    "vorlage": "2026/0100"
+   },
+   {
+    "agenda_anchor": "top10",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Anlage",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00680688.pdf",
+    "fts_id": 4,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00680688",
+    "label": "Anlage 1 Nachhaltiges Parkraumkonzept Stadt Karlsruhe",
+    "local_path": "PDF/00680688.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582",
+    "paper_type": "Beschlussvorlage",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00680688.pdf",
+    "vorlage": null
+   },
+   {
+    "agenda_anchor": "top9.2",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Antrag",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681806.pdf",
+    "fts_id": 5,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681806",
+    "label": "Änderungs-/Ergänzungsantrag",
+    "local_path": "PDF/00681806.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0615/2",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681806.pdf",
+    "vorlage": "2026/0100"
+   },
+   {
+    "agenda_anchor": "top9.2",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Antrag",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681838.pdf",
+    "fts_id": 6,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681838",
+    "label": "Stellungnahme Antrag",
+    "local_path": "PDF/00681838.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0615/2",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681838.pdf",
+    "vorlage": "2026/0100"
+   },
+   {
+    "agenda_anchor": "top9.2",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Abstimmungsergebnis",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681881.pdf",
+    "fts_id": 7,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681881",
+    "label": "Abstimmungsergebnis TOP 9.2",
+    "local_path": "PDF/00681881.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0615/2",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681881.pdf",
+    "vorlage": null
+   },
+   {
+    "agenda_anchor": "top10.1",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Antrag",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681807.pdf",
+    "fts_id": 8,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681807",
+    "label": "Änderungs-/Ergänzungsantrag",
+    "local_path": "PDF/00681807.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582/1",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681807.pdf",
+    "vorlage": "2026/0100"
+   },
+   {
+    "agenda_anchor": "top10.1",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Antrag",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681848.pdf",
+    "fts_id": 9,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681848",
+    "label": "Stellungnahme CDU Änderungsantrag",
+    "local_path": "PDF/00681848.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582/1",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"CDU\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681848.pdf",
+    "vorlage": "2026/0100"
+   },
+   {
+    "agenda_anchor": "top10.1",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Abstimmungsergebnis",
+    "enrich_status": "skipped",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681882.pdf",
+    "fts_id": 10,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681882",
+    "label": "Abstimmungsergebnis TOP 10.1 Ziff. 1",
+    "local_path": "PDF/00681882.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582/1",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681882.pdf",
+    "vorlage": null
+   }
+  ],
+  "files_fts": [
+   {
+    "_rowid": 1,
+    "body_name": "Planungsausschuss",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Nachtrag zur Tagesordnung öffentlich 15.10.2026",
+    "meeting_title": "Planungsausschuss (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 2,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Tagesordnung (öffentlich)",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 3,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "alt - Beschlussvorlage Nachhaltiges Parkraumkonzept Stadt Karlsruhe",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 4,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Anlage 1 Nachhaltiges Parkraumkonzept Stadt Karlsruhe",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 5,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Änderungs-/Ergänzungsantrag",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 6,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Stellungnahme Antrag",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 7,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Abstimmungsergebnis TOP 9.2",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 8,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Änderungs-/Ergänzungsantrag",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 9,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Stellungnahme CDU Änderungsantrag",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 10,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Abstimmungsergebnis TOP 10.1 Ziff. 1",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   }
+  ],
+  "meetings": [
+   {
+    "body_id": "organisation-gr-38449",
+    "body_name": "Planungsausschuss",
+    "date": "2026-10-15",
+    "id": "termin-10585",
+    "location": "Bürgersaal",
+    "public": null,
+    "time": "16.30 bis 18.30 Uhr",
+    "title": "Planungsausschuss (öffentlich/nicht öffentlich)",
+    "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-10585"
+   },
+   {
+    "body_id": "organisation-gr-32130",
+    "body_name": "Gemeinderat",
+    "date": "2026-10-20",
+    "id": "termin-10588",
+    "location": "Bürgersaal",
+    "public": null,
+    "time": "15.30 bis 20 Uhr",
+    "title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-10588"
+   }
+  ],
+  "meta": [
+   {
+    "key": "oparl_since",
+    "value": "2026-10-23T03:00:00.000Z"
+   }
+  ]
+ },
+ "sync": {
+  "_result": [
+   "{'meetings': 5, 'papers': 3, 'files_new': 9, 'files_seen': 0, 'text_ok': 9, 'enriched': 0, 'errors': 0, 'agenda_no_number': 3, 'deleted_papers': 3, 'votes': 0}",
+   "{'meetings': 4, 'papers': 3, 'files_new': 0, 'files_seen': 9, 'text_ok': 0, 'enriched': 0, 'errors': 0, 'agenda_no_number': 3, 'deleted_papers': 3, 'votes': 0}",
+   [
+    "2026-10-20T00:00:00+02:00",
+    "2026-10-20T00:00:00+02:00",
+    "2026-10-20T00:00:00+02:00",
+    "2026-10-20T00:00:00+02:00",
+    "2026-10-20T00:00:00+02:00",
+    "2026-10-20T00:00:00+02:00",
+    "2026-10-20T00:00:00+02:00",
+    "2026-10-20T00:00:00+02:00"
+   ]
+  ],
+  "agenda_items": [
+   {
+    "anchor": "top1",
+    "id": 1,
+    "meeting_id": "termin-10588",
+    "number": "1",
+    "public": 1,
+    "title": "Satzung zur Änderung der Satzung der Stadt Karlsruhe über Erlaubnisse und Gebühren für Sondernutzungen an öffentlichen Straßen (Sondernutzungsgebührensatzung)"
+   },
+   {
+    "anchor": "top2",
+    "id": 2,
+    "meeting_id": "termin-10588",
+    "number": "2",
+    "public": 1,
+    "title": "Satzung zur Änderung der Gebührensatzung der Stadt Karlsruhe für den Großmarkt, die Wochenmärkte, die Jahrmärkte, die Kirchweihen und andere Volksfeste, den Christkindlesmarkt und die Spezialmärkte (Gebührensatzung für Märkte und Volksfeste)"
+   },
+   {
+    "anchor": "top3",
+    "id": 3,
+    "meeting_id": "termin-10588",
+    "number": "3",
+    "public": 1,
+    "title": "Bebauungsplan \"Michelinstraße 4 - Nutzungsartfestsetzung\", Karlsruhe-Grünwinkel; Satzungsbeschluss gemäß § 10 Baugesetzbuch (BauGB)"
+   },
+   {
+    "anchor": "top4",
+    "id": 4,
+    "meeting_id": "termin-10588",
+    "number": "4",
+    "public": 1,
+    "title": "Anpassung der Nutzungsentgelte für die durch die OV Stupferich zur Verfügung gestellten Räumlichkeiten im Gemeindezentrum Stupferich"
+   },
+   {
+    "anchor": "top4.1",
+    "id": 5,
+    "meeting_id": "termin-10588",
+    "number": "4.1",
+    "public": 1,
+    "title": "Anpassung der Nutzungsentgelte für die durch die OV Stupferich zur Verfügung gestellten Räumlichkeiten im Gemeindezentrum Stupferich"
+   },
+   {
+    "anchor": "top5",
+    "id": 6,
+    "meeting_id": "termin-10588",
+    "number": "5",
+    "public": 1,
+    "title": "Amtsvormundschaften und Amtspflegschaften – Anpassung der Fallquote im Rahmen gesetzlicher Veränderungen"
+   },
+   {
+    "anchor": "top5.1",
+    "id": 7,
+    "meeting_id": "termin-10588",
+    "number": "5.1",
+    "public": 1,
+    "title": "Beschaffung von Servern für die Stadtverwaltung Karlsruhe"
+   },
+   {
+    "anchor": "top6",
+    "id": 8,
+    "meeting_id": "termin-10588",
+    "number": "6",
+    "public": 1,
+    "title": "Auftragsvergabe für die Übernahme, Transport, Sortierung und Verwertung von kommunalen Wertstoffen"
+   },
+   {
+    "anchor": "top7",
+    "id": 9,
+    "meeting_id": "termin-10588",
+    "number": "7",
+    "public": 1,
+    "title": "Festsetzung des Wirtschaftsplans 2027 des Eigenbetriebs \"Team Sauberes Karlsruhe - Abfallwirtschaft und Stadtreinigung\""
+   },
+   {
+    "anchor": "top8",
+    "id": 10,
+    "meeting_id": "termin-10588",
+    "number": "8",
+    "public": 1,
+    "title": "Förderprogramm Starkregenvorsorge"
+   },
+   {
+    "anchor": "top8.1",
+    "id": 11,
+    "meeting_id": "termin-10588",
+    "number": "8.1",
+    "public": 1,
+    "title": "Förderprogramm Starkregenvorsorge"
+   },
+   {
+    "anchor": "top9",
+    "id": 12,
+    "meeting_id": "termin-10588",
+    "number": "9",
+    "public": 1,
+    "title": "Neuausrichtung des Förderprogramms \"KlimaBonus Karlsruhe\""
+   },
+   {
+    "anchor": "top9.1",
+    "id": 13,
+    "meeting_id": "termin-10588",
+    "number": "9.1",
+    "public": 1,
+    "title": "Neuausrichtung des Förderprogramms \"KlimaBonus Karlsruhe\": Förderfähigkeit von Eigenleistungen ermöglich"
+   },
+   {
+    "anchor": "top9.2",
+    "id": 14,
+    "meeting_id": "termin-10588",
+    "number": "9.2",
+    "public": 1,
+    "title": "Neuausrichtung des Förderprogramms \"KlimaBonus Karlsruhe\""
+   },
+   {
+    "anchor": "top10",
+    "id": 15,
+    "meeting_id": "termin-10588",
+    "number": "10",
+    "public": 1,
+    "title": "Nachhaltiges Parkraumkonzept Stadt Karlsruhe"
+   },
+   {
+    "anchor": "top10.1",
+    "id": 16,
+    "meeting_id": "termin-10588",
+    "number": "10.1",
+    "public": 1,
+    "title": "Nachhaltiges Parkraumkonzept Stadt Karlsruhe"
+   },
+   {
+    "anchor": "top11",
+    "id": 17,
+    "meeting_id": "termin-10588",
+    "number": "11",
+    "public": 1,
+    "title": "Einziehung der öffentlich gewidmeten Verkehrsfläche Parkplatz P3 in der Straße „Hinterm Hauptbahnhof“"
+   },
+   {
+    "anchor": "top11.1",
+    "id": 18,
+    "meeting_id": "termin-10588",
+    "number": "11.1",
+    "public": 1,
+    "title": "Vergabe der Reinigungsleistungen für das Goethegymnasium (Renckstr. 2, 76133 Karlsruhe) und das Verwaltungsgebäude Amt für Hochbau und Gebäudewirtschaft (Zähringerstr.)"
+   },
+   {
+    "anchor": "top11.2",
+    "id": 19,
+    "meeting_id": "termin-10588",
+    "number": "11.2",
+    "public": 1,
+    "title": "Vergabe der Reinigungsleistungen für die Eichendorff-Schule (Lötzener Straße 2, 76139 Karlsruhe) und die Waldschule (Moldaustraße 37, 76149 Karlsruhe) und die Rennbuckelschule (Bonner Straße 22, 76185 Karlsruhe)"
+   },
+   {
+    "anchor": "top12",
+    "id": 20,
+    "meeting_id": "termin-10588",
+    "number": "12",
+    "public": 1,
+    "title": "Klimatisierung öffentlicher Gebäude zum Schutz vulnerabler Gruppen"
+   },
+   {
+    "anchor": "top13",
+    "id": 21,
+    "meeting_id": "termin-10588",
+    "number": "13",
+    "public": 1,
+    "title": "Gebäude für Klimawandel ausstatten"
+   },
+   {
+    "anchor": "top13.1",
+    "id": 22,
+    "meeting_id": "termin-10588",
+    "number": "13.1",
+    "public": 1,
+    "title": "Mehr Sicherheit im öffentlichen Raum"
+   },
+   {
+    "anchor": "top14",
+    "id": 23,
+    "meeting_id": "termin-10588",
+    "number": "14",
+    "public": 1,
+    "title": "Verbot datenverarbeitender Brillen („Smart Glasses“) in Karlsruher Bäderbetrieben und weiteren öffentlichen Einrichtungen"
+   },
+   {
+    "anchor": "top15",
+    "id": 24,
+    "meeting_id": "termin-10588",
+    "number": "15",
+    "public": 1,
+    "title": "Gesamtkonzept klimaangepasster Marktplatz"
+   },
+   {
+    "anchor": "top16",
+    "id": 25,
+    "meeting_id": "termin-10588",
+    "number": "16",
+    "public": 1,
+    "title": "Kostenloses Trinkwasser bei städtischen Veranstaltungen"
+   },
+   {
+    "anchor": "top17",
+    "id": 26,
+    "meeting_id": "termin-10588",
+    "number": "17",
+    "public": 1,
+    "title": "Umgang mit Müll und Sauberkeit in Karlsruhe"
+   },
+   {
+    "anchor": "top18",
+    "id": 27,
+    "meeting_id": "termin-10588",
+    "number": "18",
+    "public": 1,
+    "title": "Wie gut gelingt die Umsetzung des Rechtsanspruchs auf Ganztagsbetreuung zu Beginn des Schuljahres 2026/27 in Karlsruhe"
+   },
+   {
+    "anchor": "top19",
+    "id": 28,
+    "meeting_id": "termin-10588",
+    "number": "19",
+    "public": 1,
+    "title": "Namensrechte Sponsoring"
+   },
+   {
+    "anchor": "top20",
+    "id": 29,
+    "meeting_id": "termin-10588",
+    "number": "20",
+    "public": 1,
+    "title": "Veröffentlichung Mietspiegel"
+   },
+   {
+    "anchor": "top21",
+    "id": 30,
+    "meeting_id": "termin-10588",
+    "number": "21",
+    "public": 1,
+    "title": "Öffentliche Sitzgelegenheiten in Karlsruhe"
+   },
+   {
+    "anchor": "top22",
+    "id": 31,
+    "meeting_id": "termin-10588",
+    "number": "22",
+    "public": 1,
+    "title": "Bekanntgabe nichtöffentlich gefasster Beschlüsse"
+   },
+   {
+    "anchor": "top23",
+    "id": 32,
+    "meeting_id": "termin-10588",
+    "number": "23",
+    "public": 1,
+    "title": "Mitteilungen des Bürgermeisteramtes"
+   },
+   {
+    "anchor": "top1",
+    "id": 33,
+    "meeting_id": "termin-10585",
+    "number": "1",
+    "public": 1,
+    "title": "Potenzialanalyse für mehr Wohnungsbau durch Aufstockung eingschossiger Immobilien bis 2035"
+   },
+   {
+    "anchor": "top2",
+    "id": 34,
+    "meeting_id": "termin-10585",
+    "number": "2",
+    "public": 1,
+    "title": "Potenzialanalyse für mehr Wohnungsbau durch Aufstockung eingschossiger Immobilien bis 2035 -"
+   },
+   {
+    "anchor": "top3",
+    "id": 35,
+    "meeting_id": "termin-10585",
+    "number": "3",
+    "public": 1,
+    "title": "Zusagen einlösen: SG Rüppurr muss in die Priorität 1"
+   },
+   {
+    "anchor": "top4",
+    "id": 36,
+    "meeting_id": "termin-10585",
+    "number": "4",
+    "public": 1,
+    "title": "Entwicklungsgebiet \"Am Gänsberg\" in Karlsruhe - Stupferich"
+   },
+   {
+    "anchor": "top5",
+    "id": 37,
+    "meeting_id": "termin-10585",
+    "number": "5",
+    "public": 1,
+    "title": "Nachhaltiges Parkraumkonzept Stadt Karlsruhe"
+   }
+  ],
+  "bodies": [
+   {
+    "id": "organisation-gr-31211",
+    "name": "Personalausschuss",
+    "url": null
+   },
+   {
+    "id": "organisation-gr-32130",
+    "name": "Gemeinderat",
+    "url": null
+   },
+   {
+    "id": "organisation-gr-38449",
+    "name": "Planungsausschuss",
+    "url": null
+   }
+  ],
+  "file_versions": [],
+  "file_vorlagen": [
+   {
+    "file_id": "00681506",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681807",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681848",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681882",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681506",
+    "own": 0,
+    "vorlage": "2026/0582"
+   },
+   {
+    "file_id": "00681806",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681838",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681881",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681506",
+    "own": 0,
+    "vorlage": "2026/0615"
+   },
+   {
+    "file_id": "00680685",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00680688",
+    "own": 0,
+    "vorlage": "2026/0100"
+   },
+   {
+    "file_id": "00681807",
+    "own": 1,
+    "vorlage": "2026/0582"
+   },
+   {
+    "file_id": "00681848",
+    "own": 1,
+    "vorlage": "2026/0582"
+   },
+   {
+    "file_id": "00681882",
+    "own": 1,
+    "vorlage": "2026/0582"
+   },
+   {
+    "file_id": "00681806",
+    "own": 1,
+    "vorlage": "2026/0615"
+   },
+   {
+    "file_id": "00681838",
+    "own": 1,
+    "vorlage": "2026/0615"
+   },
+   {
+    "file_id": "00681881",
+    "own": 1,
+    "vorlage": "2026/0615"
+   },
+   {
+    "file_id": "00680685",
+    "own": 1,
+    "vorlage": "2026/0582"
+   },
+   {
+    "file_id": "00680688",
+    "own": 1,
+    "vorlage": "2026/0582"
+   }
+  ],
+  "files": [
+   {
+    "agenda_anchor": null,
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Tagesordnung",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681506.pdf",
+    "fts_id": 1,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681506",
+    "label": "Tagesordnung (öffentlich)",
+    "local_path": "PDF/00681506.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": null,
+    "paper_type": null,
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681506.pdf",
+    "vorlage": null
+   },
+   {
+    "agenda_anchor": "top10.1",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Antrag",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681807.pdf",
+    "fts_id": 2,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681807",
+    "label": "Änderungs-/Ergänzungsantrag",
+    "local_path": "PDF/00681807.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582/1",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681807.pdf",
+    "vorlage": "2026/0582"
+   },
+   {
+    "agenda_anchor": "top10.1",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Antrag",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681848.pdf",
+    "fts_id": 3,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681848",
+    "label": "Stellungnahme CDU Änderungsantrag",
+    "local_path": "PDF/00681848.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582/1",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"CDU\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681848.pdf",
+    "vorlage": "2026/0582"
+   },
+   {
+    "agenda_anchor": "top10.1",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Abstimmungsergebnis",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681882.pdf",
+    "fts_id": 4,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681882",
+    "label": "Abstimmungsergebnis TOP 10.1 Ziff. 1",
+    "local_path": "PDF/00681882.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582/1",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681882.pdf",
+    "vorlage": "2026/0582"
+   },
+   {
+    "agenda_anchor": "top9.2",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Antrag",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681806.pdf",
+    "fts_id": 5,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681806",
+    "label": "Änderungs-/Ergänzungsantrag",
+    "local_path": "PDF/00681806.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0615/2",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681806.pdf",
+    "vorlage": "2026/0615"
+   },
+   {
+    "agenda_anchor": "top9.2",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Antrag",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681838.pdf",
+    "fts_id": 6,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681838",
+    "label": "Stellungnahme Antrag",
+    "local_path": "PDF/00681838.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0615/2",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681838.pdf",
+    "vorlage": "2026/0615"
+   },
+   {
+    "agenda_anchor": "top9.2",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Abstimmungsergebnis",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00681881.pdf",
+    "fts_id": 7,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00681881",
+    "label": "Abstimmungsergebnis TOP 9.2",
+    "local_path": "PDF/00681881.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0615/2",
+    "paper_type": "Änderungs-/Ergänzungsantrag",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00681881.pdf",
+    "vorlage": "2026/0615"
+   },
+   {
+    "agenda_anchor": "top10",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Beschlussvorlage",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00680685.pdf",
+    "fts_id": 8,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00680685",
+    "label": "alt - Beschlussvorlage Nachhaltiges Parkraumkonzept Stadt Karlsruhe",
+    "local_path": "PDF/00680685.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582",
+    "paper_type": "Beschlussvorlage",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[\"SVK\"]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00680685.pdf",
+    "vorlage": "2026/0582"
+   },
+   {
+    "agenda_anchor": "top10",
+    "category": null,
+    "district": null,
+    "district_conf": null,
+    "doc_type": "Anlage",
+    "enrich_status": "pending",
+    "enriched_at": null,
+    "entities": null,
+    "filename": "00680688.pdf",
+    "fts_id": 9,
+    "fulltext": "Drucksache: 2026/0100",
+    "geo_status": "pending",
+    "id": "00680688",
+    "label": "Anlage 1 Nachhaltiges Parkraumkonzept Stadt Karlsruhe",
+    "local_path": "PDF/00680688.pdf",
+    "meeting_id": "termin-10588",
+    "paper_reference": "2026/0582",
+    "paper_type": "Beschlussvorlage",
+    "remote_modified": null,
+    "sha256": "afa3c59a879331544e95a5f72e2a5350946b83056a81b2aca5321f78f7832905",
+    "size": 553,
+    "submitters": "[]",
+    "summary_de": null,
+    "summary_en": null,
+    "text_status": "ok",
+    "topics": null,
+    "url": "BASE/ris/oparl/bodies/0001/downloadfiles/00680688.pdf",
+    "vorlage": "2026/0582"
+   }
+  ],
+  "files_fts": [
+   {
+    "_rowid": 1,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Tagesordnung (öffentlich)",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 2,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Änderungs-/Ergänzungsantrag",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 3,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Stellungnahme CDU Änderungsantrag",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 4,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Abstimmungsergebnis TOP 10.1 Ziff. 1",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 5,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Änderungs-/Ergänzungsantrag",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 6,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Stellungnahme Antrag",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 7,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Abstimmungsergebnis TOP 9.2",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 8,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "alt - Beschlussvorlage Nachhaltiges Parkraumkonzept Stadt Karlsruhe",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   },
+   {
+    "_rowid": 9,
+    "body_name": "Gemeinderat",
+    "category": "",
+    "fulltext": "Drucksache: 2026/0100",
+    "label": "Anlage 1 Nachhaltiges Parkraumkonzept Stadt Karlsruhe",
+    "meeting_title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "summary_de": "",
+    "summary_en": "",
+    "topics": ""
+   }
+  ],
+  "meetings": [
+   {
+    "body_id": "organisation-gr-31211",
+    "body_name": "Personalausschuss",
+    "date": "2027-12-15",
+    "id": "termin-11023",
+    "location": "Bürgersaal, Rathaus am Marktplatz",
+    "public": null,
+    "time": "16.30 bis 18.30 Uhr",
+    "title": "Personalausschuss (öffentlich/nicht öffentlich)",
+    "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-11023"
+   },
+   {
+    "body_id": "organisation-gr-31211",
+    "body_name": "Personalausschuss",
+    "date": "2027-10-22",
+    "id": "termin-11022",
+    "location": "Großer Sitzungssaal, Rathaus am Marktplatz",
+    "public": null,
+    "time": "16.30 bis 18.30 Uhr",
+    "title": "Personalausschuss (öffentlich/nicht öffentlich)",
+    "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-11022"
+   },
+   {
+    "body_id": "organisation-gr-31211",
+    "body_name": "Personalausschuss",
+    "date": "2027-07-15",
+    "id": "termin-11021",
+    "location": "Großer Sitzungssaal, Rathaus am Marktplatz",
+    "public": null,
+    "time": "16.30 bis 18.30 Uhr",
+    "title": "Personalausschuss (öffentlich/nicht öffentlich)",
+    "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-11021"
+   },
+   {
+    "body_id": "organisation-gr-32130",
+    "body_name": "Gemeinderat",
+    "date": "2026-10-20",
+    "id": "termin-10588",
+    "location": "Bürgersaal",
+    "public": null,
+    "time": "15.30 bis 20 Uhr",
+    "title": "Gemeinderat (öffentlich/nicht öffentlich)",
+    "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-10588"
+   },
+   {
+    "body_id": "organisation-gr-38449",
+    "body_name": "Planungsausschuss",
+    "date": "2026-10-15",
+    "id": "termin-10585",
+    "location": "Bürgersaal",
+    "public": null,
+    "time": "16.30 bis 18.30 Uhr",
+    "title": "Planungsausschuss (öffentlich/nicht öffentlich)",
+    "url": "https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-10585"
+   }
+  ],
+  "meta": [
+   {
+    "key": "oparl_since",
+    "value": "<now>"
+   },
+   {
+    "key": "last_scrape",
+    "value": "<now>"
+   },
+   {
+    "key": "last_scrape_status",
+    "value": "ok oparl {'meetings': 4, 'papers': 3, 'files_new': 0, 'files_seen': 9, 'text_ok': 0, 'enriched': 0, 'errors': 0, 'agenda_no_number': 3, 'deleted_papers': 3, 'votes': 0}"
+   }
+  ]
+ }
+}
