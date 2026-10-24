@@ -5,8 +5,10 @@ import Load from 'ui/utils/load';
 export default class StatistikRoute extends Route {
   #analytics?: Load<Analytics>;
 
-  // Fetched on the first visit, then kept for the session.
+  // kept for the session once it succeeds; a failed load is retried on the next visit
   model() {
-    return (this.#analytics ??= new Load(getAnalytics()));
+    if (!this.#analytics || this.#analytics.error)
+      this.#analytics = new Load(getAnalytics());
+    return this.#analytics;
   }
 }

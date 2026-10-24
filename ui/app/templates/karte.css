@@ -1,0 +1,116 @@
+/* dis-main scrolls and holds the footer below the page */
+.dis-karte.canon-page {
+  block-size: auto;
+  overflow: visible;
+}
+
+.dis-karte .dis-map {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-inline-size: 900px;
+}
+
+.dis-map-svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
+/* a foreground boundary keeps 3:1 against the lightest step */
+.dis-step-0 {
+  --dis-fill: var(--canon-muted);
+}
+
+.dis-step-1 {
+  --dis-fill: color-mix(in srgb, var(--canon-primary) 25%, var(--canon-card));
+}
+
+.dis-step-2 {
+  --dis-fill: color-mix(in srgb, var(--canon-primary) 50%, var(--canon-card));
+}
+
+.dis-step-3 {
+  --dis-fill: color-mix(in srgb, var(--canon-primary) 75%, var(--canon-card));
+}
+
+.dis-step-4 {
+  --dis-fill: var(--canon-primary);
+}
+
+.dis-teil path {
+  fill: var(--dis-fill);
+  stroke: var(--canon-foreground);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+
+.dis-teil:focus {
+  outline: none;
+}
+
+.dis-teil:focus-visible path {
+  stroke-width: 4;
+}
+
+@media (hover: hover) {
+  .dis-teil:hover path {
+    stroke-width: 3;
+  }
+}
+
+.dis-teil-lbl {
+  fill: var(--canon-foreground);
+  font-family: var(--canon-font);
+  font-size: 12px;
+  font-weight: var(--canon-weight-semibold);
+  text-anchor: middle;
+  dominant-baseline: central;
+  paint-order: stroke;
+  stroke: var(--canon-card);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* below this width the labels render under 12px; the table carries the names */
+@container (inline-size < 760px) {
+  .dis-teil-lbl {
+    display: none;
+  }
+}
+
+.dis-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: center;
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-legend-title {
+  color: var(--canon-muted-foreground);
+  font-weight: var(--canon-weight-semibold);
+}
+
+.dis-legend-item {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dis-swatch {
+  inline-size: 16px;
+  block-size: 16px;
+  border: var(--canon-hairline) solid var(--canon-foreground);
+  background: var(--dis-fill);
+}
+
+.dis-karte .dis-num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
