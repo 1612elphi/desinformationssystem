@@ -2,6 +2,7 @@ import type { TOC } from '@ember/component/template-only';
 import type { Vote } from 'ui/api';
 import Icon from 'ui/components/icon';
 import { hasTally } from 'ui/utils/meta';
+import './vote-block.css';
 
 const dash = (n?: number | null) => n ?? '—';
 const voteClass = (v?: string) => (v || '').replace(/[^a-z]/g, '');
@@ -35,7 +36,7 @@ const VoteBlock: TOC<{ Args: { vote: Vote } }> = <template>
     {{/if}}
     {{#if (isHttp @vote.image_url)}}
       <a
-        class="dis-meta-line"
+        class="dis-vote__image"
         href={{@vote.image_url}}
         target="_blank"
         rel="noopener noreferrer"

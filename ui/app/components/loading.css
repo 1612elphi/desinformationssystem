@@ -1,0 +1,8 @@
+.dis-loading {
+  display: flex;
+  gap: var(--canon-panel-spacing);
+  align-items: center;
+  padding: var(--canon-panel-padding);
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-subheadline);
+}

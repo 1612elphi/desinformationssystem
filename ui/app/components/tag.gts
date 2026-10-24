@@ -1,26 +1,31 @@
 import type { TOC } from '@ember/component/template-only';
 import { on } from '@ember/modifier';
+import { htmlSafe } from '@ember/template';
+import './tag.css';
 
+const markStyle = (mark?: string) =>
+  mark ? htmlSafe(`--dis-tag-mark: ${mark}`) : undefined;
+
+// A hairline label; @mark (a CSS colour, the party colour) draws a square before it.
 const Tag: TOC<{
   Element: HTMLElement;
-  Args: { type?: string; size?: 'sm'; onClick?: () => void };
+  Args: { mark?: string; onClick?: () => void };
   Blocks: { default: [] };
 }> = <template>
   {{#if @onClick}}
     <button
       type="button"
-      class="cds--tag cds--tag--{{if @type @type 'gray'}}
-        {{if @size 'cds--tag--sm'}}
-        dis-tag-button"
+      class="dis-tag dis-tag--button {{if @mark 'dis-tag--marked'}}"
+      style={{markStyle @mark}}
       {{on "click" @onClick}}
       ...attributes
-    ><span class="cds--tag__label">{{yield}}</span></button>
+    >{{yield}}</button>
   {{else}}
     <span
-      class="cds--tag cds--tag--{{if @type @type 'gray'}}
-        {{if @size 'cds--tag--sm'}}"
+      class="dis-tag {{if @mark 'dis-tag--marked'}}"
+      style={{markStyle @mark}}
       ...attributes
-    ><span class="cds--tag__label">{{yield}}</span></span>
+    >{{yield}}</span>
   {{/if}}
 </template>;
 

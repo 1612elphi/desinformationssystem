@@ -1,0 +1,15 @@
+.dis-pagination {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  min-block-size: var(--canon-control-height);
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-pagination-pos {
+  display: flex;
+  align-items: center;
+  padding-inline: var(--canon-panel-padding);
+  font-size: var(--canon-text-subheadline);
+  font-variant-numeric: tabular-nums;
+}

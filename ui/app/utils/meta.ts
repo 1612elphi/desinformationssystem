@@ -10,20 +10,24 @@ export const PUBLIC_OPTS = [
   { id: 'nonpublic', label: 'Nur nicht öffentlich' },
 ];
 
-// Submitter code: Carbon tag colour and full name (chip tooltip, filter list).
-export const SUBMITTERS: Record<string, { colour: string; name: string }> = {
-  SVK: { colour: 'cool-gray', name: 'Stadtverwaltung Karlsruhe' },
-  CDU: { colour: 'gray', name: 'Christlich Demokratische Union' },
-  B90: { colour: 'green', name: 'Bündnis 90/Die Grünen' },
-  SPD: { colour: 'red', name: 'Sozialdemokratische Partei Deutschlands' },
-  LIN: { colour: 'magenta', name: 'Die Linke' },
-  FDP: { colour: 'warm-gray', name: 'Freie Demokratische Partei' },
-  AFD: { colour: 'blue', name: 'Faschistische Nazi-Hurensöhne' },
-  FWV: { colour: 'teal', name: 'Freie Wähler' },
-  KAL: { colour: 'purple', name: 'Karlsruher Liste' },
-  VOL: { colour: 'purple', name: 'Volt' },
-  PAR: { colour: 'magenta', name: 'Die PARTEI' },
-  HEI: { colour: 'high-contrast', name: 'Die Heimat' },
+// Submitter code: chip mark colour (party colour where one is established) and
+// full name (chip tooltip, filter list).
+export const SUBMITTERS: Record<string, { mark?: string; name: string }> = {
+  SVK: { name: 'Stadtverwaltung Karlsruhe' },
+  CDU: {
+    mark: 'var(--canon-foreground)',
+    name: 'Christlich Demokratische Union',
+  },
+  B90: { mark: '#46962b', name: 'Bündnis 90/Die Grünen' },
+  SPD: { mark: '#e3000f', name: 'Sozialdemokratische Partei Deutschlands' },
+  LIN: { mark: '#be3075', name: 'Die Linke' },
+  FDP: { mark: '#ffed00', name: 'Freie Demokratische Partei' },
+  AFD: { mark: '#009ee0', name: 'Faschistische Nazi-Hurensöhne' },
+  FWV: { mark: '#f39200', name: 'Freie Wähler' },
+  KAL: { name: 'Karlsruher Liste' },
+  VOL: { mark: '#502379', name: 'Volt' },
+  PAR: { name: 'Die PARTEI' },
+  HEI: { name: 'Die Heimat' },
 };
 
 // Display order for the originator filter (SVK first, AfD near the end).
@@ -49,10 +53,10 @@ export const VOTE_LABEL: Record<string, string> = {
   abwesend: 'Abwesend',
 };
 
-export function publicLabel(p?: number | null): { text: string; type: string } {
-  if (p === 1) return { text: 'öffentlich', type: 'green' };
-  if (p === 0) return { text: 'nicht öffentlich', type: 'red' };
-  return { text: 'gemischt', type: 'gray' };
+export function publicLabel(p?: number | null): { text: string } {
+  if (p === 1) return { text: 'öffentlich' };
+  if (p === 0) return { text: 'nicht öffentlich' };
+  return { text: 'gemischt' };
 }
 
 export function pct(x: number | null | undefined): string {

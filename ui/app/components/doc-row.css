@@ -1,0 +1,34 @@
+.dis-docrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+  inline-size: 100%;
+  min-block-size: var(--canon-control-height);
+  padding: 10px var(--canon-panel-padding);
+  border: 0;
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font: inherit;
+  font-size: var(--canon-text-subheadline);
+  text-align: start;
+  cursor: pointer;
+}
+
+.dis-docrow-label {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (hover: hover) {
+  .dis-docrow:hover {
+    background: var(--canon-muted);
+  }
+}
+
+.dis-docrow:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: calc(-1 * var(--canon-frame));
+}

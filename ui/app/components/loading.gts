@@ -1,41 +1,37 @@
 import type { TOC } from '@ember/component/template-only';
-
-const range = (n: number) => Array.from({ length: n }, (_, i) => i);
+import { concat } from '@ember/helper';
+import CanonLoader from 'delphicanon/components/canon-loader';
+import CanonStatus from 'delphicanon/components/canon-status';
+import type Load from 'ui/utils/load';
+import './loading.css';
 
 export const InlineLoading: TOC<{ Args: { text: string } }> = <template>
-  <div class="cds--inline-loading" aria-live="assertive">
-    <div class="cds--inline-loading__animation">
-      <div class="cds--loading cds--loading--small">
-        <svg class="cds--loading__svg" viewBox="0 0 100 100">
-          <circle class="cds--loading__background" cx="50%" cy="50%" r="42" />
-          <circle class="cds--loading__stroke" cx="50%" cy="50%" r="42" />
-        </svg>
-      </div>
-    </div>
-    <div class="cds--inline-loading__text">{{@text}}</div>
+  <div class="dis-loading" role="status">
+    <CanonLoader />
+    <span>{{@text}}</span>
   </div>
 </template>;
 
-export const TableSkeleton: TOC<{ Args: { columns: number; rows: number } }> =
-  <template>
-    <div class="cds--skeleton cds--data-table-container">
-      <table class="cds--skeleton cds--data-table cds--data-table--zebra">
-        <thead>
-          <tr>
-            {{#each (range @columns)}}
-              <th><span></span></th>
-            {{/each}}
-          </tr>
-        </thead>
-        <tbody>
-          {{#each (range @rows)}}
-            <tr>
-              {{#each (range @columns)}}
-                <td><span></span></td>
-              {{/each}}
-            </tr>
-          {{/each}}
-        </tbody>
-      </table>
-    </div>
-  </template>;
+export const LoadError: TOC<{ Args: { error: string } }> = <template>
+  <div role="alert">
+    <CanonStatus
+      @tone="warn"
+      @row={{true}}
+      @text={{concat "Fehler: " @error}}
+    />
+  </div>
+</template>;
+
+// Loader until the first value, the error if the request failed, else the value.
+export const LoadState: TOC<{
+  Args: { load: Load<unknown> | undefined; text?: string };
+  Blocks: { default: [] };
+}> = <template>
+  {{#if @load.error}}
+    <LoadError @error={{@load.error}} />
+  {{else if @load.value}}
+    {{yield}}
+  {{else}}
+    <InlineLoading @text={{if @text @text "Lädt…"}} />
+  {{/if}}
+</template>;

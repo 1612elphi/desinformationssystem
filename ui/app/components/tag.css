@@ -1,0 +1,38 @@
+.dis-tag {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  max-inline-size: 100%;
+  padding: 1px 6px;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font: inherit;
+  font-size: var(--canon-text-footnote);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.dis-tag--marked::before {
+  content: "";
+  flex: none;
+  inline-size: 6px;
+  block-size: 6px;
+  background: var(--dis-tag-mark);
+}
+
+.dis-tag--button {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .dis-tag--button:hover {
+    background: var(--canon-muted);
+  }
+}
+
+.dis-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}

@@ -1,0 +1,101 @@
+.dis-table-wrap {
+  container-type: inline-size;
+  inline-size: 100%;
+}
+
+.dis-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--canon-text-subheadline);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-table caption {
+  padding: var(--canon-panel-padding);
+  font-size: var(--canon-text-title3);
+  font-weight: 600;
+  text-align: start;
+}
+
+.dis-table th {
+  padding: 8px var(--canon-panel-spacing);
+  border-block-end: var(--canon-frame) solid var(--canon-border);
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-weight: 600;
+  text-align: start;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dis-table td {
+  padding: 10px var(--canon-panel-spacing);
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.dis-table--open tbody tr {
+  position: relative;
+}
+
+.dis-table-open {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dis-table-open:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: calc(-1 * var(--canon-frame));
+}
+
+/* links and buttons inside cells stay clickable over the row button */
+.dis-table--open td :is(a, button:not(.dis-table-open)) {
+  position: relative;
+  z-index: 1;
+}
+
+@media (hover: hover) {
+  .dis-table--open tbody tr:hover {
+    background: var(--canon-muted);
+  }
+}
+
+@container (inline-size < 640px) {
+  .dis-table,
+  .dis-table tbody,
+  .dis-table tr,
+  .dis-table td {
+    display: block;
+  }
+
+  .dis-table thead {
+    display: none;
+  }
+
+  .dis-table tr {
+    padding-block: 8px;
+    border-block-end: var(--canon-hairline) solid var(--canon-border);
+  }
+
+  .dis-table td {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: var(--canon-panel-spacing);
+    padding-block: 2px;
+    border: 0;
+  }
+
+  .dis-table td::before {
+    content: attr(data-label);
+    color: var(--canon-muted-foreground);
+    font-size: var(--canon-text-footnote);
+  }
+}

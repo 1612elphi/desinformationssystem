@@ -1,0 +1,10 @@
+.dis-snippet {
+  display: block;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-snippet mark {
+  background: color-mix(in srgb, var(--canon-primary) 22%, transparent);
+  color: var(--canon-foreground);
+}

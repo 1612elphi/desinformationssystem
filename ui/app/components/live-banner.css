@@ -1,0 +1,42 @@
+.dis-live {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--canon-panel-padding);
+  align-items: center;
+  padding-inline-start: var(--canon-panel-padding);
+  border-block-end: var(--canon-frame) solid var(--canon-primary);
+  background: var(--canon-card);
+  font-size: var(--canon-text-subheadline);
+}
+
+.dis-live-pulse {
+  inline-size: 10px;
+  block-size: 10px;
+  background: var(--canon-destructive);
+  animation: dis-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dis-live-pulse {
+    animation: none;
+  }
+}
+
+@keyframes dis-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.dis-live-label {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.dis-live-text {
+  flex: 1 1 12rem;
+}
+
+.dis-live-open {
+  margin-inline-start: auto;
+}

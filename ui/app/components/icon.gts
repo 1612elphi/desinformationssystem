@@ -1,64 +1,56 @@
 import type { TOC } from '@ember/component/template-only';
+import { htmlSafe } from '@ember/template';
+import calendar from 'lucide-static/icons/calendar.svg?raw';
+import chartColumn from 'lucide-static/icons/chart-column.svg?raw';
+import check from 'lucide-static/icons/check.svg?raw';
+import chevronDown from 'lucide-static/icons/chevron-down.svg?raw';
+import chevronLeft from 'lucide-static/icons/chevron-left.svg?raw';
+import chevronRight from 'lucide-static/icons/chevron-right.svg?raw';
+import clock from 'lucide-static/icons/clock.svg?raw';
+import externalLink from 'lucide-static/icons/external-link.svg?raw';
+import fileText from 'lucide-static/icons/file-text.svg?raw';
+import map from 'lucide-static/icons/map.svg?raw';
+import radio from 'lucide-static/icons/radio.svg?raw';
+import refreshCw from 'lucide-static/icons/refresh-cw.svg?raw';
+import rss from 'lucide-static/icons/rss.svg?raw';
+import search from 'lucide-static/icons/search.svg?raw';
+import users from 'lucide-static/icons/users.svg?raw';
+import x from 'lucide-static/icons/x.svg?raw';
 
-// Path data from @carbon/icons 11.91 (32px grid).
-const PATHS: Record<string, string[]> = {
-  launch: [
-    'M26,28H6a2.0027,2.0027,0,0,1-2-2V6A2.0027,2.0027,0,0,1,6,4H16V6H6V26H26V16h2V26A2.0027,2.0027,0,0,1,26,28Z',
-    'M20 2 20 4 26.586 4 18 12.586 19.414 14 28 5.414 28 12 30 12 30 2 20 2z',
-  ],
-  document: [
-    'M25.7,9.3l-7-7C18.5,2.1,18.3,2,18,2H8C6.9,2,6,2.9,6,4v24c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V10C26,9.7,25.9,9.5,25.7,9.3z M18,4.4l5.6,5.6H18V4.4z M24,28H8V4h8v6c0,1.1,0.9,2,2,2h6V28z',
-    'M10 22H22V24H10z',
-    'M10 16H22V18H10z',
-  ],
-  time: [
-    'M16,30A14,14,0,1,1,30,16,14,14,0,0,1,16,30ZM16,4A12,12,0,1,0,28,16,12,12,0,0,0,16,4Z',
-    'M20.59 22 15 16.41 15 7 17 7 17 15.58 22 20.59 20.59 22z',
-  ],
-  renew: [
-    'M12,10H6.78A11,11,0,0,1,27,16h2A13,13,0,0,0,6,7.68V4H4v8h8Z',
-    'M20,22h5.22A11,11,0,0,1,5,16H3a13,13,0,0,0,23,8.32V28h2V20H20Z',
-  ],
-  rss: [
-    'M8,18c-3.3,0-6,2.7-6,6s2.7,6,6,6s6-2.7,6-6C14,20.7,11.3,18,8,18z M8,28c-2.2,0-4-1.8-4-4s1.8-4,4-4s4,1.8,4,4C12,26.2,10.2,28,8,28z',
-    'M30,24h-2C28,13,19,4,8,4V2C20.1,2,30,11.9,30,24z',
-    'M22,24h-2c0-6.6-5.4-12-12-12v-2C15.7,10,22,16.3,22,24z',
-  ],
-  calendar: [
-    'M26,4h-4V2h-2v2h-8V2h-2v2H6C4.9,4,4,4.9,4,6v20c0,1.1,0.9,2,2,2h20c1.1,0,2-0.9,2-2V6C28,4.9,27.1,4,26,4z M26,26H6V12h20V26z M26,10H6V6h4v2h2V6h8v2h2V6h4V10z',
-  ],
-  close: [
-    'M17.4141 16 24 9.4141 22.5859 8 16 14.5859 9.4143 8 8 9.4141 14.5859 16 8 22.5859 9.4143 24 16 17.4141 22.5859 24 24 22.5859 17.4141 16z',
-  ],
-  'chevron-down': ['M16 22 6 12 7.4 10.6 16 19.2 24.6 10.6 26 12z'],
-  'chevron-right': ['M22 16 12 26 10.6 24.6 19.2 16 10.6 7.4 12 6z'],
-  'caret-left': ['M20 24 10 16 20 8z'],
-  'caret-right': ['M12 8 22 16 12 24z'],
-  search: [
-    'M29,27.5859l-7.5521-7.5521a11.0177,11.0177,0,1,0-1.4141,1.4141L27.5859,29ZM4,13a9,9,0,1,1,9,9A9.01,9.01,0,0,1,4,13Z',
-  ],
-  checkmark: ['M13 24 4 15 5.414 13.586 13 21.171 26.586 7.586 28 9 13 24z'],
+const SVGS: Record<string, string> = {
+  calendar,
+  chart: chartColumn,
+  checkmark: check,
+  'chevron-down': chevronDown,
+  'chevron-left': chevronLeft,
+  'chevron-right': chevronRight,
+  'caret-left': chevronLeft,
+  'caret-right': chevronRight,
+  close: x,
+  document: fileText,
+  launch: externalLink,
+  live: radio,
+  map,
+  renew: refreshCw,
+  rss,
+  search,
+  time: clock,
+  users,
 };
 
-const paths = (name: string) => PATHS[name] ?? [];
+const svg = (name: string) => htmlSafe(SVGS[name] ?? '');
+const size = (px?: number) => htmlSafe(`--dis-icon-size: ${px ?? 16}px`);
 
 const Icon: TOC<{
-  Element: SVGSVGElement;
+  Element: HTMLSpanElement;
   Args: { name: string; size?: number };
 }> = <template>
-  <svg
-    width={{if @size @size 16}}
-    height={{if @size @size 16}}
-    viewBox="0 0 32 32"
-    fill="currentColor"
+  <span
+    class="dis-icon"
+    style={{size @size}}
     aria-hidden="true"
-    focusable="false"
     ...attributes
-  >
-    {{#each (paths @name) as |d|}}
-      <path d={{d}} />
-    {{/each}}
-  </svg>
+  >{{svg @name}}</span>
 </template>;
 
 export default Icon;

@@ -1,4 +1,5 @@
 import type { TOC } from '@ember/component/template-only';
+import './snippet.css';
 
 // FTS snippet highlighting: the backend delimits matches with control chars
 // (\x01…\x02), never markup, so document text cannot inject HTML.

@@ -5,7 +5,7 @@ import loadInitializers from 'ember-load-initializers';
 import config from 'ui/config/environment';
 import { importSync, isDevelopingApp, macroCondition } from '@embroider/macros';
 import setupInspector from '@embroider/legacy-inspector-support/ember-source-4.12';
-import '@carbon/styles/css/styles.css';
+import 'delphicanon/styles/tokens.css';
 import './app.css';
 
 if (macroCondition(isDevelopingApp())) {

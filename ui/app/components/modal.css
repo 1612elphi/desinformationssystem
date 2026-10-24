@@ -1,0 +1,17 @@
+.canon-dialog.canon-sheet.dis-sheet {
+  --canon-sheet-width: 720px;
+}
+
+.dis-sheet .canon-dialog-header {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+}
+
+.dis-sheet .canon-dialog-title {
+  padding-inline-end: var(--canon-control-height);
+}
+
+.dis-sheet-body {
+  padding: var(--canon-panel-padding);
+}

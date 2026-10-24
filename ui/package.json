@@ -73,6 +73,7 @@
     "eslint-plugin-n": "^17.24.0",
     "eslint-plugin-qunit": "^8.2.6",
     "globals": "^16.5.0",
+    "lucide-static": "1.30.0",
     "prettier": "^3.8.4",
     "prettier-plugin-ember-template-tag": "^2.1.6",
     "qunit": "^2.26.0",
@@ -89,5 +90,8 @@
   },
   "ember": {
     "edition": "octane"
+  },
+  "dependencies": {
+    "delphicanon": "0.1.0"
   }
 }

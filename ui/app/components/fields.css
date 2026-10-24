@@ -1,0 +1,17 @@
+.dis-date {
+  inline-size: 100%;
+  min-block-size: var(--canon-control-height);
+  padding-inline: var(--canon-panel-padding);
+  border: 0;
+  border-radius: 0;
+  background: var(--canon-background);
+  color: var(--canon-foreground);
+  font: inherit;
+  font-size: var(--canon-text-body);
+  color-scheme: light dark;
+}
+
+.dis-date:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: calc(-1 * var(--canon-frame));
+}

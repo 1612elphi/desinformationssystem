@@ -6,12 +6,10 @@ const meta = (code?: string) => (code ? SUBMITTERS[code] : undefined);
 
 export const SubmitterChips: TOC<{ Args: { codes?: string[] } }> = <template>
   {{#if @codes.length}}
-    <span class="dis-tags dis-tags--inline">
+    <span class="dis-tags">
       {{#each @codes as |c|}}
         {{#let (meta c) as |m|}}
-          <span title={{if m m.name c}}>
-            <Tag @type={{if m m.colour "cool-gray"}} @size="sm">{{c}}</Tag>
-          </span>
+          <Tag @mark={{m.mark}} title={{if m m.name c}}>{{c}}</Tag>
         {{/let}}
       {{/each}}
     </span>
@@ -21,12 +19,9 @@ export const SubmitterChips: TOC<{ Args: { codes?: string[] } }> = <template>
 const PartyChip: TOC<{ Args: { code?: string; party?: string } }> = <template>
   {{#let (meta @code) as |m|}}
     {{#if m}}
-      <span title={{m.name}}><Tag
-          @type={{m.colour}}
-          @size="sm"
-        >{{@code}}</Tag></span>
+      <Tag @mark={{m.mark}} title={{m.name}}>{{@code}}</Tag>
     {{else if @party}}
-      <Tag @type="cool-gray" @size="sm">{{@party}}</Tag>
+      <Tag>{{@party}}</Tag>
     {{/if}}
   {{/let}}
 </template>;

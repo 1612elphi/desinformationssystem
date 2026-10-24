@@ -1,29 +1,36 @@
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { service } from '@ember/service';
-import { on } from '@ember/modifier';
 import { registerDestructor } from '@ember/destroyable';
 import type Owner from '@ember/owner';
+import CanonButton from 'delphicanon/components/canon-button';
 import { getLive, type Meeting } from 'ui/api';
 import Icon from 'ui/components/icon';
 import type NavService from 'ui/services/nav';
+import './live-banner.css';
 
-// Polls /api/live for a session happening right now.
+// Polls /api/live for a session happening right now, while the tab is visible.
 export default class LiveBanner extends Component {
   @service declare nav: NavService;
   @tracked live: Meeting[] = [];
 
   constructor(owner: Owner, args: object) {
     super(owner, args);
-    const tick = () =>
+    const tick = () => {
+      if (document.hidden) return;
       getLive()
         .then((r) => {
           if (!this.isDestroying) this.live = r.meetings || [];
         })
         .catch(() => {});
-    void tick();
+    };
+    tick();
     const iv = setInterval(tick, 60_000);
-    registerDestructor(this, () => clearInterval(iv));
+    document.addEventListener('visibilitychange', tick);
+    registerDestructor(this, () => {
+      clearInterval(iv);
+      document.removeEventListener('visibilitychange', tick);
+    });
   }
 
   get text() {
@@ -42,20 +49,21 @@ export default class LiveBanner extends Component {
   };
 
   <template>
-    {{#if this.live.length}}
-      <div class="dis-live" role="status">
-        <span class="dis-live-pulse" aria-hidden="true"></span>
-        <span class="dis-live-label">Jetzt live</span>
-        <span class="dis-live-text">{{this.text}}</span>
-        <button
-          type="button"
-          class="cds--btn cds--btn--primary cds--btn--sm"
-          {{on "click" this.openFirst}}
-        >
-          Protokoll ansehen
-          <Icon @name="time" class="cds--btn__icon" />
-        </button>
-      </div>
-    {{/if}}
+    <div role="status">
+      {{#if this.live.length}}
+        <div class="dis-live">
+          <span class="dis-live-pulse" aria-hidden="true"></span>
+          <span class="dis-live-label">Jetzt live</span>
+          <span class="dis-live-text">{{this.text}}</span>
+          <CanonButton
+            class="dis-live-open"
+            @kind="cell"
+            @text="Protokoll ansehen"
+            @icon={{component Icon name="time"}}
+            @onClick={{this.openFirst}}
+          />
+        </div>
+      {{/if}}
+    </div>
   </template>
 }
