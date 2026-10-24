@@ -28,13 +28,15 @@ func env(key, def string) string {
 	return def
 }
 
+var dbPath = env("DB_PATH", filepath.Join("data", "desinformationssystem.db"))
+
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lmsgprefix)
 	role := env("ROLE", "web")
 	if len(os.Args) > 1 {
 		role = os.Args[1]
 	}
-	st, err := store.Open(env("DB_PATH", filepath.Join("data", "desinformationssystem.db")))
+	st, err := store.Open(dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,7 +92,7 @@ func main() {
 		if len(os.Args) != 3 {
 			log.Fatal("usage: dis backup <dest.db>")
 		}
-		// VACUUM INTO reads in one transaction, so the copy is consistent while containers write
+		// consistent live snapshot
 		if _, err := st.DB.Exec("VACUUM INTO ?", os.Args[2]); err != nil {
 			log.Fatal(err)
 		}
@@ -230,12 +232,12 @@ func enrichClaudeCLI(st *store.Store, args []string) int {
 	count := fs.Bool("count", false, "report backlog and exit")
 	fs.Parse(args)
 	if *count {
-		ids, err := ingest.PendingEnrichment(st, 0)
+		n, err := ingest.PendingEnrichmentCount(st)
 		if err != nil {
 			log.Print(err)
 			return 1
 		}
-		fmt.Printf("%d documents awaiting enrichment\n", len(ids))
+		fmt.Printf("%d documents awaiting enrichment\n", n)
 		return 0
 	}
 	totals, err := ingest.EnrichClaude(st, *batches, *maxSeconds, *batchDocs, *concurrency)
@@ -243,7 +245,7 @@ func enrichClaudeCLI(st *store.Store, args []string) int {
 		log.Print(err)
 		return 2
 	}
-	log.Printf("enrich-claude: done: %v", totals)
+	log.Printf("enrich-claude: done: %+v", totals)
 	return 0
 }
 
@@ -251,7 +253,7 @@ func vodCLI(st *store.Store, args []string) int {
 	fs := flag.NewFlagSet("vod", flag.ExitOnError)
 	linkOnly := fs.Bool("link-only", false, "skip transcription, relink only")
 	fs.Parse(args)
-	dir := env("VOD_DIR", filepath.Join(filepath.Dir(env("DB_PATH", filepath.Join("data", "desinformationssystem.db"))), "vod"))
+	dir := env("VOD_DIR", filepath.Join(filepath.Dir(dbPath), "vod"))
 	if err := ingest.ProcessVODs(st, dir, *linkOnly); err != nil {
 		log.Print(err)
 		return 1
@@ -259,8 +261,7 @@ func vodCLI(st *store.Store, args []string) int {
 	return 0
 }
 
-// scraperLoop runs one ingest at start, then daily at SCRAPE_HOUR:SCRAPE_MINUTE
-// local time.
+// daily ingest loop
 func scraperLoop(st *store.Store) {
 	mode := env("INGEST", "html")
 	if mode != "html" && mode != "oparl" {
@@ -276,7 +277,7 @@ func scraperLoop(st *store.Store) {
 		os.Exit(0)
 	}()
 	run := func() {
-		// a failed run must not end the loop
+		// keep looping on failure
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("[scraper] run failed; continuing (%v)", r)

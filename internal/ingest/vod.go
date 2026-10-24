@@ -2,7 +2,7 @@ package ingest
 
 import (
 	"bufio"
-	"database/sql"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -18,15 +18,7 @@ import (
 	"github.com/1612elphi/desinformationssystem/internal/store"
 )
 
-// ops/vod-capture.sh downloads finished livestreams into VOD_DIR. Per video
-// the vod role writes:
-//
-//	<base>.transcript.json  whisper segments [{start, end, text}], cached
-//	<base>.vod.json         {video_id, title, started_at, duration, media, meeting_id, tops}
-//
-// tops maps agenda anchors (top5, top3.1, as in votes.agenda_anchor) to the
-// second offset where the chair calls the item. vod.json is rebuilt on every
-// run so a meeting scraped after the download still gets linked.
+// outputs transcript.json, vod.json
 var (
 	WhisperBin      = envStr("WHISPER_BIN", "whisper-cli")
 	WhisperModel    = envStr("WHISPER_MODEL", "data/whisper/ggml-large-v3-turbo.bin")
@@ -110,7 +102,7 @@ func Transcribe(media string) ([]Segment, error) {
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
 	}
-	// a driver or CUDA library change must not stall the backlog
+	// keep backlog moving
 	if err := run(true); err != nil {
 		log.Printf("vod:   GPU run failed (%v), falling back to CPU", err)
 		if err := run(false); err != nil {
@@ -139,30 +131,17 @@ func Transcribe(media string) ([]Segment, error) {
 
 func round1(f float64) float64 { return math.Round(f*10) / 10 }
 
-// vodMeeting is the Gemeinderat meeting held on the stream's Berlin start
-// date, if there is exactly one.
+// unique same-day gemeinderat meeting
 func vodMeeting(st *store.Store, ts int64) (string, error) {
 	if ts == 0 {
 		return "", nil
 	}
 	day := time.Unix(ts, 0).In(store.Berlin).Format(time.DateOnly)
-	rows, err := st.DB.Query("SELECT id FROM meetings WHERE date = ? AND body_name LIKE 'Gemeinderat%'", day)
-	if err != nil {
+	ids, err := queryStrings(st, "SELECT id FROM meetings WHERE date = ? AND body_name LIKE 'Gemeinderat%'", day)
+	if err != nil || len(ids) != 1 {
 		return "", err
 	}
-	defer rows.Close()
-	var ids []string
-	for rows.Next() {
-		var id string
-		if err := rows.Scan(&id); err != nil {
-			return "", err
-		}
-		ids = append(ids, id)
-	}
-	if len(ids) != 1 {
-		return "", rows.Err()
-	}
-	return ids[0], rows.Err()
+	return ids[0], nil
 }
 
 func agendaAnchors(st *store.Store, meetingID string) (map[string]bool, error) {
@@ -170,23 +149,14 @@ func agendaAnchors(st *store.Store, meetingID string) (map[string]bool, error) {
 	if meetingID == "" {
 		return out, nil
 	}
-	rows, err := st.DB.Query("SELECT anchor FROM agenda_items WHERE meeting_id = ?", meetingID)
-	if err != nil {
-		return nil, err
+	anchors, err := queryStrings(st, "SELECT anchor FROM agenda_items WHERE meeting_id = ?", meetingID)
+	for _, a := range anchors {
+		out[a] = true
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var a sql.NullString
-		if err := rows.Scan(&a); err != nil {
-			return nil, err
-		}
-		out[a.String] = true
-	}
-	return out, rows.Err()
+	return out, err
 }
 
-// archivedIDs reads yt-dlp's download archive. yt-dlp appends "youtube <id>"
-// only once the merged file is complete, so in-progress downloads are absent.
+// lists completed downloads only
 func archivedIDs(dir string) (map[string]bool, error) {
 	f, err := os.Open(filepath.Join(dir, "archive.txt"))
 	if os.IsNotExist(err) {
@@ -231,11 +201,8 @@ func readJSON(path string, v any) error {
 	return json.Unmarshal(b, v)
 }
 
-func writeJSONAtomic(path string, v any, indent string) error {
+func writeJSONAtomic(path string, v any) error {
 	b, err := json.Marshal(v)
-	if indent != "" {
-		b, err = json.MarshalIndent(v, "", indent)
-	}
 	if err != nil {
 		return err
 	}
@@ -245,12 +212,8 @@ func writeJSONAtomic(path string, v any, indent string) error {
 	return os.Rename(path+".tmp", path)
 }
 
-func processVOD(st *store.Store, infoPath string, linkOnly bool) error {
+func processVOD(st *store.Store, infoPath string, info vodInfo, linkOnly bool) error {
 	base := strings.TrimSuffix(infoPath, ".info.json")
-	var info vodInfo
-	if err := readJSON(infoPath, &info); err != nil {
-		return err
-	}
 	matches, err := filepath.Glob(globEscape(base) + ".*")
 	if err != nil {
 		return err
@@ -269,7 +232,7 @@ func processVOD(st *store.Store, infoPath string, linkOnly bool) error {
 
 	tpath := base + ".transcript.json"
 	segments := []Segment{}
-	if _, err := os.Stat(tpath); err == nil {
+	if exists(tpath) {
 		if err := readJSON(tpath, &segments); err != nil {
 			return err
 		}
@@ -278,7 +241,7 @@ func processVOD(st *store.Store, infoPath string, linkOnly bool) error {
 		if segments, err = Transcribe(media); err != nil {
 			return err
 		}
-		if err := writeJSONAtomic(tpath, segments, ""); err != nil {
+		if err := writeJSONAtomic(tpath, segments); err != nil {
 			return err
 		}
 	}
@@ -306,18 +269,11 @@ func processVOD(st *store.Store, infoPath string, linkOnly bool) error {
 	if meetingID != "" {
 		rec.MeetingID = &meetingID
 	}
-	if err := writeJSONAtomic(base+".vod.json", rec, " "); err != nil {
+	if err := writeJSONAtomic(base+".vod.json", rec); err != nil {
 		return err
 	}
-	log.Printf("vod:   %s -> %s, %d/%d TOPs located", info.ID, firstNonEmpty(meetingID, "no meeting"), len(rec.Tops), len(anchors))
+	log.Printf("vod:   %s -> %s, %d/%d TOPs located", info.ID, cmp.Or(meetingID, "no meeting"), len(rec.Tops), len(anchors))
 	return nil
-}
-
-func firstNonEmpty(a, b string) string {
-	if a != "" {
-		return a
-	}
-	return b
 }
 
 var globMeta = strings.NewReplacer(`\`, `\\`, "*", `\*`, "?", `\?`, "[", `\[`)
@@ -340,7 +296,7 @@ func ProcessVODs(st *store.Store, dir string, linkOnly bool) error {
 			return err
 		}
 		if done[info.ID] {
-			if err := processVOD(st, p, linkOnly); err != nil {
+			if err := processVOD(st, p, info, linkOnly); err != nil {
 				return fmt.Errorf("%s: %w", filepath.Base(p), err)
 			}
 		}

@@ -19,7 +19,7 @@ OUT="$APP/data/vod"
 log() { echo "[vod-capture] $*"; }
 
 mkdir -p "$OUT"
-# the standalone release build bundles its own Python runtime
+# bundles its own python
 if [ ! -x "$YTDLP" ]; then
   curl -fsSL -o "$YTDLP" https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
   chmod +x "$YTDLP"
@@ -41,8 +41,10 @@ echo "$out"
 
 # Scheduled (upcoming) streams always error during extraction; anything else is real.
 # lang=de means that error arrives in German ("Diese Live-Veranstaltung beginnt in 6 Tage.").
-if [ $rc -ne 0 ] && echo "$out" | grep '^ERROR:' \
-   | grep -vqE 'will begin in|Premieres in|This live event|beginnt in|Live-Veranstaltung|Premiere'; then
+# pipes sigpipe under pipefail
+errors=$(grep '^ERROR:' <<<"$out" || true)
+if [ $rc -ne 0 ] && { [ -z "$errors" ] || grep -vqE \
+   'will begin in|Premieres in|This live event|beginnt in|Live-Veranstaltung|Premiere' <<<"$errors"; }; then
   log "yt-dlp failed (exit $rc)"
   exit 1
 fi

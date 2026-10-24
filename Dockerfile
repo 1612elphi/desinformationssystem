@@ -1,5 +1,4 @@
-# ---- Stage 1: build the Ember SPA ---------------------------------------
-# real node: ember build hangs under bun's node shim (oven/bun:1.4.4)
+# bun's node shim hangs
 FROM node:26.6.0-trixie-slim AS ui
 COPY --from=oven/bun:1.4.4-debian /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /ui
@@ -8,7 +7,6 @@ RUN bun install --frozen-lockfile
 COPY ui/ ./
 RUN bun run build
 
-# ---- Stage 2: build the dis binary --------------------------------------
 FROM golang:1.26.10-trixie AS go
 WORKDIR /src
 COPY go.mod go.sum ./
@@ -18,16 +16,14 @@ COPY internal/ internal/
 COPY geo/ geo/
 RUN CGO_ENABLED=0 go build -trimpath -ldflags=-s -o /dis ./cmd/dis
 
-# ---- Stage 3: runtime ----------------------------------------------------
 FROM debian:trixie-slim AS app
 
-# poppler-utils provides pdftotext and pdftoppm; curl is for the healthchecks.
-# For ENABLE_OCR=1 also add: tesseract-ocr tesseract-ocr-deu ocrmypdf
+# ocr: tesseract-ocr tesseract-ocr-deu ocrmypdf
 RUN apt-get update \
     && apt-get install -y --no-install-recommends poppler-utils ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
-# /usr/local/bin, not /app: the ops scripts bind-mount the host checkout over /app
+# /app is bind-mounted
 COPY --from=go /dis /usr/local/bin/dis
 COPY --from=ui /ui/dist /usr/local/share/dis/ui
 

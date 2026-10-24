@@ -21,8 +21,7 @@ log() { echo "[seed-once] $*"; }
 
 mkdir -p "$BACKUP"
 log "backing up DB -> $BACKUP/pre-seed-$STAMP.db"
-# VACUUM INTO, not cp: the snapshot must be consistent even though a
-# container may be mid-write.
+# consistent live snapshot
 docker run --rm --user 1000:1000 -v "$APP":/app -w /app \
   "$IMAGE" backup "/app/data/backups/pre-seed-$STAMP.db"
 ls -lh "$BACKUP/pre-seed-$STAMP.db"

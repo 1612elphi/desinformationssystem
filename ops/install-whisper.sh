@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Build whisper.cpp with CUDA for the Tesla P4 (compute capability 6.1) and
-# fetch the models dis vod reads from data/whisper/. Needs cmake, a C++
-# compiler and the CUDA toolkit.
+# cuda build for p4
 set -euo pipefail
 
 APP=/home/ruby/desinformationssystem

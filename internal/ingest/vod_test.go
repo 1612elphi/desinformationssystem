@@ -17,7 +17,7 @@ func TestTopOffsets(t *testing.T) {
 		{Start: 50, Text: "Tagesordnungspunkt 31 ist abgesetzt."},
 	}
 	got := TopOffsets(segs, map[string]bool{"top3": true, "top3.1": true, "top5": true, "top31": true})
-	// top5 moves from the bare mention at 10 to the chair's call at 40; top3 keeps its call at 20
+	// call beats bare mention
 	want := map[string]float64{"top3": 20, "top3.1": 30, "top31": 50, "top5": 40}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v, want %v", got, want)
@@ -34,9 +34,9 @@ func TestEnrichClaude(t *testing.T) {
 		mustExec(t, st, `INSERT INTO files(id, url, meeting_id, label, fulltext, text_status, enrich_status) VALUES(?,'u','termin-1','L','Text','ok','pending')`, id)
 	}
 	dir := t.TempDir()
-	// the fake answers for documents 0 and 1 of each batch only
+	// skips document 2
 	bin := filepath.Join(dir, "claude")
-	script := "#!/bin/sh\nprintf '%s' \"$2\" >> " + filepath.Join(dir, "prompts") + "\n" +
+	script := "#!/bin/sh\ncat >> " + filepath.Join(dir, "prompts") + "\n" +
 		`printf '%s' '{"is_error": false, "result": "` + "```json\\n" + `{\"0\": {\"summary_de\": \"A\", \"category\": \"Sonstiges\"}, \"1\": {\"summary_de\": \"B\"}}"}'` + "\n"
 	if err := os.WriteFile(bin, []byte(script), 0o755); err != nil {
 		t.Fatal(err)
@@ -49,8 +49,8 @@ func TestEnrichClaude(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := map[string]int{"written": 2, "failed": 1, "batches_ok": 1, "batches_failed": 0, "remaining": 1}
-	if !reflect.DeepEqual(totals, want) {
+	want := ClaudeTotals{Written: 2, Failed: 1, BatchesOK: 1, Remaining: 1}
+	if totals != want {
 		t.Errorf("totals %v, want %v", totals, want)
 	}
 	var sum, status string

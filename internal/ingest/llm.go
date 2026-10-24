@@ -353,10 +353,14 @@ func normaliseEnrichment(r map[string]any) enrichment {
 	return enrichment{s(r["summary_de"]), s(r["summary_en"]), cat, strList(r["topics"], 7), entities}
 }
 
-func setEnrichStatus(st *store.Store, id, status string) error {
+func setEnrichStatus(st *store.Store, status string, ids ...string) error {
 	return st.Write(func(tx *sql.Tx) error {
-		_, err := tx.Exec("UPDATE files SET enrich_status=? WHERE id=?", status, id)
-		return err
+		for _, id := range ids {
+			if _, err := tx.Exec("UPDATE files SET enrich_status=? WHERE id=?", status, id); err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 }
 
@@ -368,12 +372,12 @@ func EnrichFile(st *store.Store, id string) (bool, error) {
 		return false, err
 	}
 	if !EnrichEnabled() {
-		return false, setEnrichStatus(st, id, "skipped")
+		return false, setEnrichStatus(st, "skipped", id)
 	}
 	raw, err := callOpenRouter(buildPrompt(doc))
 	if err != nil {
 		log.Printf("enrich: enrich error for %s: %v", id, err)
-		return false, setEnrichStatus(st, id, "error")
+		return false, setEnrichStatus(st, "error", id)
 	}
 	return true, writeEnrichment(st, id, normaliseEnrichment(raw))
 }

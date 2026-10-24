@@ -1,11 +1,10 @@
 [Unit]
 Description=Desinformationssystem geo tagging (streets + Stadtteil) + data-quality report
-After=network-online.target
+After=docker.service network-online.target
+Requires=docker.service
 
 [Service]
 Type=oneshot
-# ruby, not root: the host dis binary reads the ruby-owned DB and keeps its -wal/-shm
-# files ruby-owned for the uid-1000 containers (same as enrich-claude).
 User=ruby
 Group=ruby
 # switchboard proxies TypeSafe and holds the key; no secret here. Override to

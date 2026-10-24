@@ -549,25 +549,30 @@ func BackfillSubmitters(st *store.Store) (int, error) {
 	return len(files), err
 }
 
+// first column, null as empty
+func queryStrings(st *store.Store, q string, args ...any) ([]string, error) {
+	rows, err := st.DB.Query(q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var v sql.NullString
+		if err := rows.Scan(&v); err != nil {
+			return nil, err
+		}
+		out = append(out, v.String)
+	}
+	return out, rows.Err()
+}
+
 // EnrichPending enriches every pending file with extracted text, with
 // ENRICH_CONCURRENCY workers.
 func EnrichPending(st *store.Store) (int, error) {
-	rs, err := st.DB.Query(`SELECT id FROM files WHERE enrich_status='pending' AND text_status='ok'
+	ids, err := queryStrings(st, `SELECT id FROM files WHERE enrich_status='pending' AND text_status='ok'
 		ORDER BY downloaded_at DESC`)
-	if err != nil {
-		return 0, err
-	}
-	var ids []string
-	for rs.Next() {
-		var id string
-		if err := rs.Scan(&id); err != nil {
-			rs.Close()
-			return 0, err
-		}
-		ids = append(ids, id)
-	}
-	rs.Close()
-	if err := rs.Err(); err != nil || len(ids) == 0 {
+	if err != nil || len(ids) == 0 {
 		return 0, err
 	}
 	conc := max(1, envInt("ENRICH_CONCURRENCY", 4))

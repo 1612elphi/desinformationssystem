@@ -9,7 +9,7 @@ Group=ruby
 # Separate from capture so a multi-hour transcription never delays a download.
 Nice=10
 WorkingDirectory=/home/ruby/desinformationssystem
-# whisper-cli from ops/install-whisper.sh
+# from install-whisper.sh
 Environment=WHISPER_BIN=/home/ruby/.local/bin/whisper-cli
 Environment=DB_PATH=/home/ruby/desinformationssystem/data/desinformationssystem.db
 ExecStart=/home/ruby/desinformationssystem/bin/dis vod
