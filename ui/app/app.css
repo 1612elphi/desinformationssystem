@@ -1,0 +1,1103 @@
+body {
+  margin: 0;
+  background: var(--cds-background);
+  color: var(--cds-text-primary);
+}
+
+/* full-width content (clear of the fixed Carbon header, 48px) */
+.dis-content {
+  max-width: none;
+  margin: 0;
+  padding: 4rem 2rem;
+}
+
+/* ---- header ---- */
+.dis-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 1rem;
+}
+
+.dis-header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--cds-text-secondary);
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.dis-header-link:hover {
+  color: var(--cds-text-primary);
+}
+
+/* ---- hero ---- */
+.dis-hero {
+  margin-bottom: 2rem;
+}
+
+.dis-hero h1 {
+  letter-spacing: -0.02em;
+  font-weight: 300;
+}
+
+.dis-hero .dis-sub {
+  color: var(--cds-text-secondary);
+  margin-top: 0.5rem;
+  max-width: 60ch;
+  line-height: 1.4;
+}
+
+/* ---- stats strip ---- */
+.dis-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px;
+  margin-bottom: 2.5rem;
+  background: var(--cds-border-subtle);
+  border: 1px solid var(--cds-border-subtle);
+}
+
+.dis-stat {
+  background: var(--cds-layer);
+  padding: 1rem 1.25rem;
+  transition: background 0.12s ease;
+}
+
+.dis-stat .num {
+  font-size: 1.75rem;
+  font-weight: 300;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-stat .num.dis-stat-time {
+  font-size: 0.95rem;
+}
+
+.dis-stat .lbl {
+  color: var(--cds-text-secondary);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 0.25rem;
+}
+
+.dis-stat:hover {
+  background: var(--cds-layer-hover);
+}
+
+/* ---- filter panel ---- */
+.dis-panel {
+  background: var(--cds-layer);
+  border: 1px solid var(--cds-border-subtle);
+  padding: 1.25rem 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dis-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+  align-items: end;
+}
+
+.dis-filterbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.75rem 0 1.25rem;
+  flex-wrap: wrap;
+}
+
+.dis-result-count {
+  color: var(--cds-text-secondary);
+  font-size: 0.85rem;
+}
+
+.dis-active-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.dis-colpick {
+  min-width: 13rem;
+}
+
+/* ---- tables ---- */
+.dis-row-clickable {
+  cursor: pointer;
+}
+
+.dis-row-clickable:hover td {
+  background: var(--cds-layer-hover) !important;
+}
+
+.dis-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* ---- detail / modal ---- */
+.dis-detail dl {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr;
+  gap: 0.45rem 1rem;
+  margin: 0;
+}
+
+.dis-detail dt {
+  color: var(--cds-text-secondary);
+}
+
+.dis-detail dd {
+  margin: 0;
+}
+
+.dis-detail h3 {
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+}
+
+.dis-detail h4 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cds-text-secondary);
+}
+
+.dis-detail .summary {
+  white-space: pre-wrap;
+  line-height: 1.55;
+  max-width: 70ch;
+}
+
+.dis-meta-line {
+  color: var(--cds-text-secondary);
+  font-size: 0.8rem;
+}
+
+.dis-empty {
+  padding: 4rem 1rem;
+  text-align: center;
+  color: var(--cds-text-secondary);
+  border: 1px dashed var(--cds-border-subtle);
+  background: var(--cds-layer);
+}
+
+/* ---- committees view ---- */
+.dis-committees {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) 2fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.dis-committee-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--cds-border-subtle);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.dis-committee-list h4 {
+  margin: 0;
+  padding: 0.75rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cds-text-secondary);
+  border-bottom: 1px solid var(--cds-border-subtle);
+  position: sticky;
+  top: 0;
+  background: var(--cds-layer);
+  z-index: 1;
+}
+
+.dis-committee-item {
+  text-align: left;
+  background: var(--cds-layer);
+  color: inherit;
+  font: inherit;
+  border: none;
+  border-bottom: 1px solid var(--cds-border-subtle);
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.dis-committee-item:hover {
+  background: var(--cds-layer-hover);
+}
+
+.dis-committee-item.is-selected {
+  background: var(--cds-layer-selected);
+  box-shadow: inset 3px 0 0 var(--cds-border-interactive);
+}
+
+.dis-detail-panel {
+  border: 1px solid var(--cds-border-subtle);
+  padding: 1.5rem;
+  min-height: 50vh;
+}
+
+@media (width <= 800px) {
+  .dis-committees {
+    grid-template-columns: 1fr;
+  }
+
+  .dis-committee-list {
+    max-height: none;
+  }
+}
+
+/* ---- footer ---- */
+.dis-footer {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  border-top: 1px solid var(--cds-border-subtle);
+  color: var(--cds-text-secondary);
+  font-size: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: center;
+}
+
+.dis-footer a {
+  color: var(--cds-link-primary);
+}
+
+.dis-footer .sep {
+  opacity: 0.4;
+}
+
+/* ---- dense primary table + TOP column ---- */
+.dis-doctable {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 60rem;
+}
+
+.dis-doctable .dis-ellip {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dis-doctable .dis-top-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dis-doctable .dis-top-title {
+  color: var(--cds-text-secondary);
+}
+
+.dis-doctable .dis-top-title::before {
+  content: " · ";
+  color: var(--cds-text-placeholder);
+}
+
+.dis-doctable .dis-top-none {
+  color: var(--cds-text-placeholder);
+}
+
+/* fixed-width side columns; TOP + Dokument absorb the slack at any width */
+.dis-doctable .dis-c-date {
+  width: 7rem;
+  white-space: nowrap;
+}
+
+.dis-doctable .dis-c-gremium {
+  width: 15rem;
+}
+
+.dis-doctable .dis-c-top {
+  width: auto;
+  min-width: 12rem;
+}
+
+.dis-doctable .dis-c-sub {
+  width: 9rem;
+}
+
+.dis-doctable .dis-c-typ {
+  width: 8rem;
+}
+
+.dis-doctable .dis-c-doc {
+  width: auto;
+  min-width: 14rem;
+}
+
+.dis-doctable .dis-c-cat {
+  width: 11rem;
+}
+
+.dis-doctable .dis-c-stadtteil {
+  width: 10rem;
+}
+
+.dis-map {
+  padding: 1rem 0;
+}
+
+.dis-map-svg {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  display: block;
+}
+
+.dis-teil {
+  stroke: #161616;
+  stroke-width: 0.75;
+  cursor: pointer;
+  transition: fill 0.1s;
+}
+
+.dis-teil:hover {
+  stroke: #f4f4f4;
+  stroke-width: 1.5;
+}
+
+.dis-teil-lbl {
+  font-size: 8px;
+  fill: #f4f4f4;
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgb(0 0 0 / 55%);
+  stroke-width: 2px;
+}
+
+.dis-doctable .dis-c-sub .dis-tags {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+/* ---- live banner ---- */
+.dis-live {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--cds-layer);
+  border: 1px solid var(--cds-support-success);
+  border-left: 3px solid var(--cds-support-success);
+}
+
+.dis-live-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cds-support-success);
+  animation: dis-pulse 1.8s ease-out infinite;
+}
+
+.dis-live-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--cds-support-success);
+  white-space: nowrap;
+}
+
+.dis-live-text {
+  color: var(--cds-text-primary);
+  margin-right: auto;
+}
+
+@keyframes dis-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(36 161 72 / 50%);
+  }
+
+  100% {
+    box-shadow: 0 0 0 10px rgb(36 161 72 / 0%);
+  }
+}
+
+/* ---- meeting detail ---- */
+.dis-meeting__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid var(--cds-border-subtle);
+}
+
+.dis-meeting__meta {
+  margin: 0;
+  color: var(--cds-text-secondary);
+}
+
+.dis-meeting__headtags {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dis-meeting__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0 0.25rem;
+  min-height: 2rem;
+}
+
+.dis-meeting__agenda {
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.dis-meeting__topttl {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.dis-meeting__topnum {
+  color: var(--cds-text-secondary);
+  white-space: nowrap;
+}
+
+.dis-meeting__toptext {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dis-meeting__topmeta {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.dis-meeting__docs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.dis-meeting-docrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  color: var(--cds-text-primary);
+  font: inherit;
+}
+
+.dis-meeting-docrow:hover {
+  background: var(--cds-layer-hover);
+}
+
+.dis-meeting-docrow__type {
+  flex-shrink: 0;
+}
+
+.dis-meeting-docrow__label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dis-meeting-docrow__sub {
+  flex-shrink: 0;
+}
+
+/* ---- vote tally block ---- */
+.dis-vote {
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--cds-layer-accent);
+}
+
+.dis-vote__result {
+  color: var(--cds-text-secondary);
+  margin-bottom: 0.4rem;
+}
+
+.dis-vote__tally {
+  display: flex;
+  gap: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-vote__n {
+  font-size: 1.05rem;
+}
+
+/* Vote semantics follow the council's own SITZUNG-LIVE panel: YELLOW = Ja,
+   RED = Nein, GREY = Enthaltung. (Also deutan-safe, unlike green/red.) */
+.dis-vote__ja {
+  color: #f1c21b;
+}
+
+.dis-vote__nein {
+  color: var(--cds-support-error);
+}
+
+.dis-vote__enth {
+  color: var(--cds-text-secondary);
+}
+
+.dis-vote__roll {
+  margin-top: 0.5rem;
+}
+
+.dis-vote__roll summary {
+  cursor: pointer;
+  color: var(--cds-link-primary);
+  font-size: 0.85rem;
+}
+
+.dis-vote__members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.dis-vote__m {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 2px;
+  background: var(--cds-layer);
+  border-left: 3px solid var(--cds-border-strong);
+}
+
+.dis-vote__m--ja {
+  border-left-color: #f1c21b;
+}
+
+.dis-vote__m--nein {
+  border-left-color: var(--cds-support-error);
+}
+
+.dis-vote__m--enthaltung {
+  border-left-color: var(--cds-border-strong);
+}
+
+.dis-vote__m--abwesend {
+  opacity: 0.5;
+}
+
+/* ---- FTS match snippets ---- */
+.dis-doccell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.dis-snippet {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--cds-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 42rem;
+}
+
+.dis-snippet mark {
+  background: rgb(69 137 255 / 25%);
+  color: var(--cds-text-primary);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ---- feed / calendar links ---- */
+.dis-feed-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.9rem;
+  color: var(--cds-link-primary);
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.dis-feed-link:hover {
+  text-decoration: underline;
+}
+
+/* ---- document version history ---- */
+.dis-versions {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.1rem;
+}
+
+.dis-versions li {
+  margin-bottom: 0.25rem;
+}
+
+.dis-versions a {
+  color: var(--cds-link-primary);
+}
+
+/* ---- vote chip (person record) ---- */
+.dis-votechip {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 2px;
+  background: var(--cds-layer);
+  border-left: 3px solid var(--cds-border-strong);
+  white-space: nowrap;
+}
+
+.dis-votechip--ja {
+  border-left-color: #f1c21b;
+}
+
+.dis-votechip--nein {
+  border-left-color: var(--cds-support-error);
+}
+
+.dis-votechip--enthaltung {
+  border-left-color: var(--cds-border-strong);
+}
+
+.dis-votechip--abwesend {
+  opacity: 0.55;
+}
+
+/* ---- Vorlage lifecycle timeline ---- */
+.dis-vorlage-title {
+  color: var(--cds-text-secondary);
+  margin: 0 0 0.75rem;
+}
+
+.dis-timeline {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+}
+
+.dis-timeline > li {
+  position: relative;
+  padding: 0 0 1rem 1.4rem;
+  border-left: 2px solid var(--cds-border-subtle);
+  margin-left: 0.4rem;
+}
+
+.dis-timeline > li:last-child {
+  border-left-color: transparent;
+}
+
+.dis-timeline > li::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 0.2rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cds-border-interactive);
+}
+
+.dis-timeline__head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.dis-timeline__date {
+  font-variant-numeric: tabular-nums;
+  color: var(--cds-text-secondary);
+}
+
+.dis-timeline__body {
+  font-weight: 600;
+}
+
+.dis-timeline__docs {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* ---- Statistik ---- */
+.dis-statsview h4 {
+  margin-top: 1.75rem;
+}
+
+.dis-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.dis-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 1.5rem;
+}
+
+.dis-bar-label {
+  flex: 0 0 4.5rem;
+}
+
+.dis-bar-track {
+  flex: 0 0 16rem;
+  max-width: 40vw;
+  height: 12px;
+  background: var(--cds-layer);
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+  gap: 2px; /* 2px surface gap between stacked segments */
+}
+
+.dis-bar-fill {
+  background: #4589ff;
+  height: 100%;
+  border-radius: 2px;
+}
+
+.dis-bar-value {
+  font-variant-numeric: tabular-nums;
+  min-width: 3.2rem;
+}
+
+.dis-votetext {
+  min-width: 12rem;
+  font-size: 0.8rem;
+}
+
+/* segment fills = the panel palette (validated deutan-safe), labels always beside */
+.dis-seg {
+  height: 100%;
+  border-radius: 1px;
+}
+
+.dis-seg--ja {
+  background: #f1c21b;
+}
+
+.dis-seg--nein {
+  background: #fa4d56;
+}
+
+.dis-seg--enth {
+  background: #8d8d8d;
+}
+
+.dis-matrix-wrap {
+  overflow-x: auto;
+  margin-top: 0.75rem;
+}
+
+.dis-matrix {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-matrix th,
+.dis-matrix td {
+  padding: 0.35rem 0.6rem;
+  text-align: center;
+  min-width: 3rem;
+  border: 1px solid var(--cds-border-subtle);
+  font-size: 0.8rem;
+}
+
+.dis-matrix th {
+  color: var(--cds-text-secondary);
+  font-weight: 600;
+  background: var(--cds-layer);
+}
+
+.dis-matrix td {
+  color: var(--cds-text-primary);
+}
+
+.dis-matrix__self {
+  background: var(--cds-layer);
+}
+
+.dis-dissenters {
+  margin-top: 0.75rem;
+}
+
+/* ═══ accents ══════════════════════════════════════════════════════════════
+   Two signal colors on the stock Carbon g100 dark theme, used sparingly:
+   acid-lime #C7FF05 as the one interactive accent (was Carbon blue), and pure
+   #0000FF as a rare brand mark. Appended last so it wins the cascade.        */
+.cds--g100 {
+  --cds-link-primary: #c7ff05;
+  --cds-link-primary-hover: #dcff6b;
+  --cds-focus: #c7ff05;
+  --cds-interactive: #c7ff05; /* selected-tab underline, checkboxes, active */
+  --cds-border-interactive: #c7ff05;
+  --cds-button-primary: #c7ff05;
+  --cds-button-primary-hover: #dcff6b;
+  --cds-button-primary-active: #b2e600;
+}
+
+/* black label on the acid fill for contrast */
+.cds--btn--primary,
+.cds--btn--primary:hover,
+.cds--btn--primary:active,
+.cds--btn--primary:focus {
+  color: #000;
+}
+
+/* pure-blue brand mark — only two places: a rule under the hero, the Open Data chip */
+.dis-hero h1 {
+  position: relative;
+}
+
+.dis-hero h1::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 4px;
+  margin-top: 0.85rem;
+  background: #00f;
+}
+
+.dis-header-right .cds--tag {
+  background: #00f;
+  color: #fff;
+}
+
+/* keep the app's own accents in step with the new interactive color */
+.dis-bar-fill {
+  background: #c7ff05;
+}
+
+.dis-snippet mark {
+  background: rgb(199 255 5 / 22%);
+  color: var(--cds-text-primary);
+}
+
+/* ── solid-block selected states ──────────────────────────────────────────
+   Selected = a full acid block with BLACK text. !important because Carbon's
+   own contained-tab hover/selected selectors are highly specific and would
+   otherwise repaint the block grey or leave the label light on the lime.     */
+.cds--tabs__nav-item--selected,
+.cds--tabs__nav-item--selected:hover {
+  background: #c7ff05 !important;
+}
+
+.cds--tabs__nav-item--selected,
+.cds--tabs__nav-item--selected *,
+.cds--tabs__nav-item--selected .cds--tabs__nav-item-label {
+  color: #000 !important;
+}
+
+/* DatePicker: the selected day fills with --cds-button-primary (now acid), and
+   Carbon lays --cds-text-on-color (white) over it → white-on-lime. Force dark. */
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover,
+.flatpickr-day.selected:focus,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  color: #000;
+}
+
+/* selected committee in the Gremien list → solid acid block */
+.dis-committee-item.is-selected {
+  background: #c7ff05;
+  box-shadow: none;
+  color: #000;
+}
+
+.dis-committee-item.is-selected .dis-meta-line {
+  color: #1c1c1c;
+}
+
+/* clickable table rows: acid edge on hover (the "about to select" cue) */
+.dis-row-clickable:hover td:first-child {
+  box-shadow: inset 4px 0 0 #c7ff05;
+}
+
+/* ── micrographics ────────────────────────────────────────────────────────
+   Small technical marks — registration ticks + framing brackets, mostly
+   muted, catching the acid on interaction. No text, no new type.            */
+
+/* corner registration tick on each stat tile (acid on hover) */
+.dis-stat {
+  position: relative;
+}
+
+.dis-stat::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-top: 1px solid var(--cds-border-strong);
+  border-right: 1px solid var(--cds-border-strong);
+  transition: border-color 0.12s ease;
+}
+
+.dis-stat:hover::after {
+  border-color: #c7ff05;
+}
+
+/* framing brackets on the filter panel — top-left / bottom-right */
+.dis-panel {
+  position: relative;
+}
+
+.dis-panel::before,
+.dis-panel::after {
+  content: "";
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+}
+
+.dis-panel::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid #c7ff05;
+  border-left: 2px solid #c7ff05;
+}
+
+.dis-panel::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid #c7ff05;
+  border-right: 2px solid #c7ff05;
+}
+
+/* small blue index square before the result count (the one recurring blue mark) */
+.dis-result-count::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #00f;
+  margin-right: 0.55rem;
+  vertical-align: baseline;
+}
+
+/* ---- plain-markup stand-ins for @carbon/react props ---- */
+.dis-tags--inline {
+  display: inline-flex;
+}
+
+.dis-tag-button {
+  border: 0;
+  cursor: pointer;
+}
+
+.dis-composition {
+  margin-right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.dis-filters.dis-filters--meetings {
+  grid-template-columns: auto minmax(220px, 1fr);
+  margin-top: 0;
+}
+
+.dis-ics {
+  margin-top: 0.75rem;
+}
+
+.dis-error {
+  color: var(--cds-text-error);
+}
+
+.dis-empty.dis-empty--bare {
+  border: none;
+  background: none;
+}
+
+.dis-spaced {
+  margin-top: 1rem;
+}
+
+.dis-spaced-sm {
+  margin-top: 0.75rem;
+}
+
+.dis-entity-row {
+  margin-bottom: 0.4rem;
+}
+
+.dis-person-top {
+  max-width: 24rem;
+  display: inline-block;
+}
+
+.dis-vote__tally--spaced {
+  margin-bottom: 0.75rem;
+}
+
+.dis-doc-actions {
+  margin-top: 1.75rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dis-date {
+  color-scheme: dark;
+}
+
+.cds--tabs__nav-link {
+  text-decoration: none;
+}
+
+.dis-colpick-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.cds--select-input::picker-icon {
+  display: none;
+}
+
+.cds--date-picker.cds--date-picker--single .dis-date {
+  inline-size: 100%;
+}
