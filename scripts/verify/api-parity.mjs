@@ -32,7 +32,7 @@ const paths = [
 ];
 
 // DTSTAMP is the request time; feed links carry the request host
-const norm = (s) => s.replace(/DTSTAMP:\d{8}T\d{6}Z/g, 'DTSTAMP:x').replace(/\/\/localhost:\d+/g, '//localhost');
+const norm = (s) => s.replace(/DTSTAMP:\d{8}T\d{6}Z/g, 'DTSTAMP:x').replace(/\/\/[^/<"]+:\d+/g, '//host');
 
 async function get(base, p) {
 	const r = await fetch(base + p, { redirect: 'manual' });
