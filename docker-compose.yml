@@ -1,5 +1,5 @@
 # Desinformationssystem — Karlsruhe Sitzungskalender archive.
-# One image (multi-stage: Carbon SPA + Python), four roles sharing ./data.
+# One image (multi-stage: Ember SPA + Go), four roles sharing ./data.
 #
 # This is the portable, clone-and-run compose (relative paths). Note that
 # compose resolves relative paths against the compose file, but `~` against
@@ -33,7 +33,7 @@ services:
     ports:
       - "3650:3650"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3650/health', timeout=5)"]
+      test: ["CMD", "curl", "-fsS", "-m", "5", "http://127.0.0.1:3650/health"]
       interval: 60s
       timeout: 10s
       retries: 3
@@ -48,9 +48,9 @@ services:
     ports:
       - "3651:3651"
     healthcheck:
-      # MCP streamable-http needs session headers for a real request; a TCP
-      # connect is enough to catch a dead/hung server process.
-      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 3651), timeout=5).close()"]
+      # MCP streamable-http needs session headers for a real request; any HTTP
+      # answer is enough to catch a dead/hung server process.
+      test: ["CMD", "curl", "-sS", "-o", "/dev/null", "-m", "5", "http://127.0.0.1:3651/mcp"]
       interval: 60s
       timeout: 10s
       retries: 3

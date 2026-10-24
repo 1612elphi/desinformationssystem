@@ -1,10 +1,11 @@
 data/
 .git/
-web/node_modules/
-web/dist/
+.claude/
+web/
+ui/node_modules/
+ui/dist/
 __pycache__/
 *.pyc
-test_parse.py
 .env
 *.db
 *.db-wal

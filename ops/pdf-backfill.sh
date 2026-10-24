@@ -18,9 +18,8 @@ log() { echo "[pdf-backfill] $*"; }
 log "starting, budget ${BUDGET}s"
 docker run --rm --user 1000:1000 \
   -v "$APP":/app -w /app \
-  --entrypoint python "$IMAGE" \
-  backfill_pdfs.py --max-seconds "$BUDGET"
+  "$IMAGE" pdf-backfill --max-seconds "$BUDGET"
 
 log "remaining:"
 docker run --rm --user 1000:1000 -v "$APP":/app -w /app \
-  --entrypoint python "$IMAGE" backfill_pdfs.py --count
+  "$IMAGE" pdf-backfill --count
