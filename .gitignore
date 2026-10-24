@@ -20,3 +20,10 @@ web/dist/
 *.db
 *.db-wal
 *.db-shm
+
+# go
+/dis
+
+# ember
+ui/node_modules/
+ui/dist/
