@@ -20,7 +20,7 @@ type pendingPDF struct {
 	enrichStatus string
 }
 
-// PendingPDFCount is backfill_pdfs.py --count.
+// PendingPDFCount counts files without a cached PDF.
 func PendingPDFCount(st *store.Store) (int, error) {
 	rows, err := pendingPDFs(st, 0)
 	return len(rows), err
@@ -65,7 +65,7 @@ func pendingPDFs(st *store.Store, limit int) ([]pendingPDF, error) {
 	return out, rs.Err()
 }
 
-// BackfillPDFs is backfill_pdfs.py: cache the PDFs of seeded rows at the
+// BackfillPDFs caches the PDFs of seeded rows at the
 // normal throttle, within limit files and maxSeconds (0 = unbounded).
 func BackfillPDFs(st *store.Store, limit, maxSeconds int) (*Counts, error) {
 	started := time.Now()

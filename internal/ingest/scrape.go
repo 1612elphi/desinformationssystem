@@ -121,7 +121,7 @@ func allMonthsSince(today time.Time, startYear int) []month {
 	return out
 }
 
-// Scrape is one full run of scraper.py: committees, the month window plus
+// Scrape is one full HTML scrape run: committees, the month window plus
 // FORWARD_MONTHS ahead, recent re-checks, files, enrichment and vote PDFs.
 func Scrape(st *store.Store, months int, backfillAll, enableLLM bool) (*Counts, error) {
 	counts := NewCounts("meetings", "files_new", "files_seen", "text_ok", "enriched", "errors")

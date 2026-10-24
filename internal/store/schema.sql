@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS files (
     topics        TEXT,                    -- JSON array
     entities      TEXT,                    -- JSON object {people,orgs,locations}
     submitters    TEXT,                    -- JSON array of submitter codes (SVK/CDU/B90/…)
-    geo_status    TEXT DEFAULT 'pending',  -- pending | ok | error  (geo.py street/district tagging)
-    district      TEXT,                    -- primary Karlsruhe Stadtteil (geo.py), NULL = city-wide
+    geo_status    TEXT DEFAULT 'pending',  -- pending | ok | error  (geo street/district tagging)
+    district      TEXT,                    -- primary Karlsruhe Stadtteil (geo), NULL = city-wide
     district_conf REAL,                    -- confidence of the district classification
     downloaded_at TEXT,
     enriched_at   TEXT,
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS file_vorlagen (
 CREATE INDEX IF NOT EXISTS idx_vorlagen_nr ON file_vorlagen(vorlage);
 
 -- Street/place mentions matched in a file's text and confirmed by the geo filter
--- (geo.py). name is the gazetteer street name; matching only, no geometry stored.
+-- (geo). name is the gazetteer street name; matching only, no geometry stored.
 CREATE TABLE IF NOT EXISTS file_streets (
     file_id  TEXT NOT NULL,
     name     TEXT NOT NULL,

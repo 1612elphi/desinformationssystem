@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// Write runs fn in one transaction, like db.py's write_conn.
+// Write runs fn in one transaction.
 func (s *Store) Write(fn func(tx *sql.Tx) error) error {
 	tx, err := s.DB.Begin()
 	if err != nil {

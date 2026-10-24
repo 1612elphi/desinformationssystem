@@ -713,7 +713,7 @@ func contains(l []string, s string) bool {
 	return false
 }
 
-// RefreshOne is oparl.py's refresh_one, the OParl counterpart of ScrapeOne.
+// RefreshOne re-fetches one meeting over OParl, the counterpart of ScrapeOne.
 func RefreshOne(st *store.Store, terminID string, enableLLM, recheck bool) (map[string]any, error) {
 	if !terminIDRE.MatchString(terminID) {
 		return nil, errors.New("invalid termin id")
@@ -783,7 +783,7 @@ func nextWatermark(runStart time.Time, watermark string, failed []string) (next 
 	return next, nil
 }
 
-// OparlSync is one oparl.py run. since overrides the stored watermark; with
+// OparlSync is one OParl ingest run. since overrides the stored watermark; with
 // full and no since it walks everything.
 func OparlSync(st *store.Store, full bool, since string, enableLLM, skipMembers bool) (*Counts, error) {
 	counts := NewCounts("meetings", "papers", "files_new", "files_seen", "text_ok", "enriched", "errors")

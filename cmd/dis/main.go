@@ -82,6 +82,18 @@ func main() {
 		os.Exit(seedCLI(st, os.Args[min(2, len(os.Args)):]))
 	case "pdf-backfill":
 		os.Exit(backfillCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "enrich-claude":
+		os.Exit(enrichClaudeCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "vod":
+		os.Exit(vodCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "backup":
+		if len(os.Args) != 3 {
+			log.Fatal("usage: dis backup <dest.db>")
+		}
+		// VACUUM INTO reads in one transaction, so the copy is consistent while containers write
+		if _, err := st.DB.Exec("VACUUM INTO ?", os.Args[2]); err != nil {
+			log.Fatal(err)
+		}
 	case "scraper":
 		scraperLoop(st)
 	case "ticker":
@@ -89,7 +101,7 @@ func main() {
 	case "init":
 		fmt.Println("initialised")
 	default:
-		log.Fatalf("unknown role %q (want web|mcp|scrape|oparl|seed|pdf-backfill|scraper|ticker|geo-backfill|data-quality|init)", role)
+		log.Fatalf("unknown role %q (want web|mcp|scrape|oparl|seed|pdf-backfill|enrich-claude|vod|backup|scraper|ticker|geo-backfill|data-quality|init)", role)
 	}
 }
 
@@ -209,8 +221,46 @@ func backfillCLI(st *store.Store, args []string) int {
 	return 0
 }
 
-// scraperLoop is entrypoint.sh's scraper role: one run at start, then daily
-// at SCRAPE_HOUR:SCRAPE_MINUTE local time.
+func enrichClaudeCLI(st *store.Store, args []string) int {
+	fs := flag.NewFlagSet("enrich-claude", flag.ExitOnError)
+	batches := fs.Int("batches", ingest.ClaudeMaxBatches, "max invocations this run (0 = until drained)")
+	maxSeconds := fs.Int("max-seconds", ingest.ClaudeMaxSeconds, "stop after N seconds (0 = no limit)")
+	batchDocs := fs.Int("batch-docs", ingest.ClaudeBatchDocs, "documents per invocation")
+	concurrency := fs.Int("concurrency", ingest.ClaudeConcurrency, "parallel invocations")
+	count := fs.Bool("count", false, "report backlog and exit")
+	fs.Parse(args)
+	if *count {
+		ids, err := ingest.PendingEnrichment(st, 0)
+		if err != nil {
+			log.Print(err)
+			return 1
+		}
+		fmt.Printf("%d documents awaiting enrichment\n", len(ids))
+		return 0
+	}
+	totals, err := ingest.EnrichClaude(st, *batches, *maxSeconds, *batchDocs, *concurrency)
+	if err != nil {
+		log.Print(err)
+		return 2
+	}
+	log.Printf("enrich-claude: done: %v", totals)
+	return 0
+}
+
+func vodCLI(st *store.Store, args []string) int {
+	fs := flag.NewFlagSet("vod", flag.ExitOnError)
+	linkOnly := fs.Bool("link-only", false, "skip transcription, relink only")
+	fs.Parse(args)
+	dir := env("VOD_DIR", filepath.Join(filepath.Dir(env("DB_PATH", filepath.Join("data", "desinformationssystem.db"))), "vod"))
+	if err := ingest.ProcessVODs(st, dir, *linkOnly); err != nil {
+		log.Print(err)
+		return 1
+	}
+	return 0
+}
+
+// scraperLoop runs one ingest at start, then daily at SCRAPE_HOUR:SCRAPE_MINUTE
+// local time.
 func scraperLoop(st *store.Store) {
 	mode := env("INGEST", "html")
 	if mode != "html" && mode != "oparl" {
@@ -226,7 +276,7 @@ func scraperLoop(st *store.Store) {
 		os.Exit(0)
 	}()
 	run := func() {
-		// a failed run must not end the loop, as with the Python child process
+		// a failed run must not end the loop
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("[scraper] run failed; continuing (%v)", r)

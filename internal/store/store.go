@@ -1,6 +1,6 @@
 // Package store is the SQLite schema and the read-side queries shared by the
-// web API, the MCP server and the ingesters. It reads and writes the same
-// database file as the Python roles, so both can run against one archive.
+// web API, the MCP server and the ingesters. The schema and JSON column
+// formats are the ones the earlier Python version wrote, so old archives open unchanged.
 package store
 
 import (
@@ -41,7 +41,7 @@ func Open(path string) (*Store, error) {
 
 func (s *Store) Close() error { return s.DB.Close() }
 
-// Init creates the schema and applies the column migrations from db.py.
+// Init creates the schema and applies the column migrations.
 func (s *Store) Init() error {
 	if _, err := s.DB.Exec(schema); err != nil {
 		return fmt.Errorf("schema: %w", err)

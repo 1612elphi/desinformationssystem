@@ -159,7 +159,7 @@ func readJSONObj(path string) (obj, error) {
 	return o, dec.Decode(&o)
 }
 
-// Seed is seed.py's bulk load from a karlsruhe-oparl-syndication dump. It
+// Seed is the bulk load from a karlsruhe-oparl-syndication dump. It
 // downloads nothing and leaves rows at enrich_status='skipped'.
 func Seed(st *store.Store, dump string, limit int, skipPapers, skipMeetings, newest bool) (*Counts, error) {
 	counts := NewCounts("meetings", "papers", "files_new", "files_seen", "text_ok", "enriched", "errors")

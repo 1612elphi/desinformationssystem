@@ -375,8 +375,11 @@ func EnrichFile(st *store.Store, id string) (bool, error) {
 		log.Printf("enrich: enrich error for %s: %v", id, err)
 		return false, setEnrichStatus(st, id, "error")
 	}
-	e := normaliseEnrichment(raw)
-	return true, st.Write(func(tx *sql.Tx) error {
+	return true, writeEnrichment(st, id, normaliseEnrichment(raw))
+}
+
+func writeEnrichment(st *store.Store, id string, e enrichment) error {
+	return st.Write(func(tx *sql.Tx) error {
 		if _, err := tx.Exec(`UPDATE files SET summary_de=?, summary_en=?, category=?, topics=?,
 				entities=?, enrich_status='ok', enriched_at=datetime('now')
 			WHERE id=?`, e.SummaryDE, e.SummaryEN, e.Category, store.PyJSON(e.Topics),

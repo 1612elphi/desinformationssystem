@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-# ruby, not root: host Python reads the ruby-owned DB and keeps its -wal/-shm
+# ruby, not root: the host dis binary reads the ruby-owned DB and keeps its -wal/-shm
 # files ruby-owned for the uid-1000 containers (same as enrich-claude).
 User=ruby
 Group=ruby

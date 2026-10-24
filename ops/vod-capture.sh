@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Hourly: download every finished livestream from the city's YouTube channel.
 # The city keeps council VODs up for only 24 hours, so this job must stay cheap
-# and independent of transcription (dis-vod-transcribe runs vod.py separately).
+# and independent of transcription (dis-vod-transcribe runs dis vod separately).
 #
 # The channel also carries unrelated city events (congresses run 8h), hence the title filter.
 # YouTube serves auto-translated titles, so the filter asks for German metadata and still
@@ -12,17 +12,22 @@
 set -uo pipefail
 
 APP=/home/ruby/desinformationssystem
-VENV="${VOD_VENV:-/home/ruby/.venvs/dis-vod}"
+YTDLP="${YTDLP:-/home/ruby/.local/bin/yt-dlp}"
 CHANNEL=https://www.youtube.com/channel/UCi-k4SVGHlSigCtILwczY-Q/streams
 OUT="$APP/data/vod"
 
 log() { echo "[vod-capture] $*"; }
 
 mkdir -p "$OUT"
+# the standalone release build bundles its own Python runtime
+if [ ! -x "$YTDLP" ]; then
+  curl -fsSL -o "$YTDLP" https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
+  chmod +x "$YTDLP"
+fi
 # YouTube extraction breaks every few weeks; a stale yt-dlp would miss the 24h window.
-"$VENV/bin/pip" install -q -U yt-dlp || log "yt-dlp self-update failed, using installed version"
+"$YTDLP" -U || log "yt-dlp self-update failed, using installed version"
 
-out=$("$VENV/bin/yt-dlp" --no-update -i \
+out=$("$YTDLP" --no-update -i \
   --playlist-end 10 \
   --extractor-args "youtube:lang=de" \
   --match-filters "live_status=was_live & title~='(?i)gemeinderat|haushalt|sitzung|council|budget'" \

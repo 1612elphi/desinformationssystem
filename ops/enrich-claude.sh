@@ -3,7 +3,8 @@
 # dis-enrich-claude.service/.timer.
 #
 # Runs on the HOST, not in a container: it needs the `claude` CLI and the
-# subscription credential in ~/.claude, neither of which the image has.
+# subscription credential in ~/.claude, neither of which the image has, so it
+# uses bin/dis from ops/install-dis.sh.
 # Therefore it runs as ruby (not root) so it reads the right ~/.claude and
 # leaves the DB and its -wal/-shm files ruby-owned.
 #
@@ -24,9 +25,9 @@ BUDGET="${ENRICH_MAX_SECONDS:-18000}"   # 5h: 05:00 -> 10:00
 log() { echo "[enrich-claude] $*"; }
 
 cd "$APP"
-log "backlog before:"; python3 enrich_claude.py --count
+log "backlog before:"; "$APP/bin/dis" enrich-claude --count
 
 log "starting (concurrency=$ENRICH_CONCURRENCY batch=$BATCH_DOCS budget=${BUDGET}s)"
-python3 enrich_claude.py --max-seconds "$BUDGET"
+"$APP/bin/dis" enrich-claude --max-seconds "$BUDGET"
 
-log "backlog after:"; python3 enrich_claude.py --count
+log "backlog after:"; "$APP/bin/dis" enrich-claude --count

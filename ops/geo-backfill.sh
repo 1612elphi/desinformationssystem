@@ -2,9 +2,9 @@
 # Nightly geo tagging: street mentions + primary Stadtteil over enriched docs,
 # then the data-quality report. Driven by dis-geo-backfill.service/.timer.
 #
-# Runs on the HOST like enrich-claude (stdlib-only Python, no image needed) and
+# Runs on the HOST like enrich-claude (bin/dis from ops/install-dis.sh) and
 # routes Jev calls through switchboard, which holds the TypeSafe key — so no key
-# lives here. Idempotent: geo_backfill.py processes rows with geo_status not
+# lives here. Idempotent: dis geo-backfill processes rows with geo_status not
 # 'ok', so the first run drains the enriched backlog and later runs pick up only
 # new documents. Scheduled after the enrich window so summaries exist.
 set -euo pipefail
@@ -17,7 +17,7 @@ log() { echo "[geo-backfill] $*"; }
 
 cd "$APP"
 log "tagging streets + Stadtteil over enriched docs (via $TYPESAFE_BASE_URL)"
-python3 geo_backfill.py
+"$APP/bin/dis" geo-backfill
 
 log "data quality (roll-call consistency + orphan files):"
-python3 data_quality.py
+"$APP/bin/dis" data-quality

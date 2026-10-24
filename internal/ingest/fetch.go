@@ -53,7 +53,7 @@ type Response struct {
 
 func (r *Response) Text() string { return string(r.Body) }
 
-// Fetcher is the polite, throttled, retrying HTTP client of filestore.py.
+// Fetcher is the polite, throttled, retrying HTTP client of the ingesters.
 // It is not safe for concurrent use.
 type Fetcher struct {
 	client *http.Client

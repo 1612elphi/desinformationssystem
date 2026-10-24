@@ -21,16 +21,10 @@ log() { echo "[seed-once] $*"; }
 
 mkdir -p "$BACKUP"
 log "backing up DB -> $BACKUP/pre-seed-$STAMP.db"
-# SQLite's backup API, not cp: the snapshot must be consistent even though a
-# container may be mid-write. (No sqlite3 CLI on this host; python3 has it.)
-python3 - "$DB" "$BACKUP/pre-seed-$STAMP.db" <<'PY'
-import sqlite3, sys
-src, dst = sys.argv[1], sys.argv[2]
-s = sqlite3.connect(f"file:{src}?mode=ro", uri=True)
-d = sqlite3.connect(dst)
-s.backup(d)
-d.close(); s.close()
-PY
+# VACUUM INTO, not cp: the snapshot must be consistent even though a
+# container may be mid-write.
+docker run --rm --user 1000:1000 -v "$APP":/app -w /app \
+  "$IMAGE" backup "/app/data/backups/pre-seed-$STAMP.db"
 ls -lh "$BACKUP/pre-seed-$STAMP.db"
 
 # The nightly scrape (03:30) and the seed would otherwise contend for the

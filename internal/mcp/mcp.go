@@ -1,5 +1,5 @@
-// Package mcp is the read-only MCP server over the archive, a port of
-// mcp_server.py served over Streamable HTTP.
+// Package mcp is the read-only MCP server over the archive, served over
+// Streamable HTTP.
 package mcp
 
 import (
