@@ -351,13 +351,13 @@ func servePDF(w http.ResponseWriter, r *http.Request, path, disposition, name st
 	http.ServeFile(w, r, path)
 }
 
-// spa serves the built frontend; paths that are not files get index.html so
-// client-side routes resolve.
+// spa serves the built frontend; extensionless paths that are not files get
+// index.html so client-side routes resolve, missing assets stay 404.
 func (s *Server) spa() http.Handler {
 	fs := http.FileServer(http.Dir(s.Dist))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := filepath.Join(s.Dist, filepath.FromSlash(filepath.Clean("/"+r.URL.Path)))
-		if st, err := os.Stat(p); err != nil || st.IsDir() {
+		if st, err := os.Stat(p); (err != nil && filepath.Ext(p) == "") || (err == nil && st.IsDir()) {
 			http.ServeFile(w, r, filepath.Join(s.Dist, "index.html"))
 			return
 		}
