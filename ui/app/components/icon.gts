@@ -9,6 +9,7 @@ import chevronRight from 'lucide-static/icons/chevron-right.svg?raw';
 import clock from 'lucide-static/icons/clock.svg?raw';
 import externalLink from 'lucide-static/icons/external-link.svg?raw';
 import fileText from 'lucide-static/icons/file-text.svg?raw';
+import mic from 'lucide-static/icons/mic.svg?raw';
 import map from 'lucide-static/icons/map.svg?raw';
 import radio from 'lucide-static/icons/radio.svg?raw';
 import refreshCw from 'lucide-static/icons/refresh-cw.svg?raw';
@@ -31,6 +32,7 @@ const SVGS: Record<string, string> = {
   launch: externalLink,
   live: radio,
   map,
+  mic,
   renew: refreshCw,
   rss,
   search,

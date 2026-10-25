@@ -10,5 +10,6 @@ Router.map(function () {
   this.route('sitzungen');
   this.route('gremien');
   this.route('statistik');
+  this.route('reden');
   this.route('karte');
 });

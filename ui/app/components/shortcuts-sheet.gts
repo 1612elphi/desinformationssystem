@@ -84,6 +84,10 @@ export const SHORTCUTS: {
       { keys: [['↵']], label: 'Öffnen' },
     ],
   },
+  {
+    group: 'Reden',
+    items: [{ keys: [['['], [']']], label: 'Vorige / nächste Sitzung' }],
+  },
 ];
 
 const GO = Object.fromEntries(VIEWS.map((v) => [v.key, v.route]));

@@ -31,6 +31,7 @@ export const VIEWS = [
   { route: 'sitzungen', label: 'Sitzungen', icon: 'calendar', key: 's' },
   { route: 'gremien', label: 'Gremien', icon: 'users', key: 'g' },
   { route: 'statistik', label: 'Statistik', icon: 'chart', key: 't' },
+  { route: 'reden', label: 'Reden', icon: 'mic', key: 'r' },
   { route: 'karte', label: 'Karte', icon: 'map', key: 'k' },
 ];
 

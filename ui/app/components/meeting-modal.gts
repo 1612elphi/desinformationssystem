@@ -21,22 +21,29 @@ import Icon from 'ui/components/icon';
 import { InlineLoading, LoadState } from 'ui/components/loading';
 import MeetingTop, { type TopItem } from 'ui/components/meeting-top';
 import Modal, { type PaneContext } from 'ui/components/modal';
+import SpeechList from 'ui/components/speech-list';
 import Tag from 'ui/components/tag';
 import { outcome } from 'ui/components/vote-block';
 import shortcut from 'ui/modifiers/shortcut';
 import type NavService from 'ui/services/nav';
+import { getPersonIds, getSpeeches, type Speech } from 'ui/utils/api-reden';
 import { getNeighbours } from 'ui/utils/api-sitzung';
 import Load from 'ui/utils/load';
 import { RIS_BASE, num, publicLabel } from 'ui/utils/meta';
 import './meeting-modal.css';
 
-const FILTERS = ['Alle', 'Abstimmungen', 'Strittig', 'Dokumente'];
+const FILTERS = ['Alle', 'Abstimmungen', 'Strittig', 'Dokumente', 'Reden'];
 const MATCH: ((i: TopItem) => boolean)[] = [
   () => true,
   (i) => !!i.vote,
   (i) => i.kind === 'contested',
   (i) => i.docs.length > 0,
+  (i) => i.speechCount > 0,
 ];
+
+const SPEECH_NOTE = 'Gedächtnisprotokoll, hihi';
+
+type SpeechMeeting = Meeting & { speech_counts?: Record<string, number> };
 
 const parts = (n?: string) => (n ?? '').split('.').map((x) => Number(x));
 const numeric = (n?: string) => !!n && parts(n).every(Number.isInteger);
@@ -89,6 +96,26 @@ export default class MeetingModal extends Component<Signature> {
     return this.args.id ? new Load(getMeeting(this.args.id)) : undefined;
   }
 
+  get speechCounts() {
+    return this.meeting?.speech_counts ?? {};
+  }
+
+  get hasSpeeches() {
+    return Object.keys(this.speechCounts).length > 0;
+  }
+
+  get filters() {
+    return this.hasSpeeches ? FILTERS : FILTERS.slice(0, -1);
+  }
+
+  @cached
+  get speechLoad() {
+    const id = this.meeting?.id;
+    return id && this.hasSpeeches ? new Load(getSpeeches(id)) : undefined;
+  }
+
+  personIds = new Load(getPersonIds());
+
   @cached
   get neighbours() {
     const m = this.load?.value;
@@ -111,7 +138,7 @@ export default class MeetingModal extends Component<Signature> {
     this.state = { ...this.local, ...patch };
   }
 
-  get meeting() {
+  get meeting(): SpeechMeeting | undefined {
     return this.local.fresh ?? this.load?.value;
   }
 
@@ -155,6 +182,13 @@ export default class MeetingModal extends Component<Signature> {
       if (a && known.has(a)) byAnchor.set(a, [...(byAnchor.get(a) ?? []), f]);
       else extra.push(f);
     }
+    const speeches = new Map<string, Speech[]>();
+    for (const sp of this.speechLoad?.value ?? []) {
+      const a =
+        sp.agenda_anchor && known.has(sp.agenda_anchor) ? sp.agenda_anchor : '';
+      speeches.set(a, [...(speeches.get(a) ?? []), sp]);
+    }
+    const counts = this.speechCounts;
     const votes = new Map<string, Vote>();
     for (const v of m?.votes ?? [])
       if (v.agenda_anchor) votes.set(v.agenda_anchor, v);
@@ -162,6 +196,7 @@ export default class MeetingModal extends Component<Signature> {
       const docs = byAnchor.get(a.anchor) ?? [];
       const vote = votes.get(a.anchor);
       const result = outcome(vote);
+      const speechCount = counts[a.anchor] ?? 0;
       return {
         key: `${m?.id}:${a.anchor}`,
         dom: `dis-mtop-${i}`,
@@ -171,8 +206,10 @@ export default class MeetingModal extends Component<Signature> {
         docs,
         vote,
         outcome: result,
+        speeches: speeches.get(a.anchor) ?? [],
+        speechCount,
         nonPublic: a.public === 0 ? publicLabel(0).text : '',
-        expandable: docs.length > 0 || !!vote,
+        expandable: docs.length > 0 || !!vote || speechCount > 0,
         kind: result?.contested
           ? 'contested'
           : vote
@@ -182,7 +219,7 @@ export default class MeetingModal extends Component<Signature> {
               : 'none',
       };
     });
-    return { items, extra };
+    return { items, extra, speeches: speeches.get('') ?? [] };
   }
 
   get tiles() {
@@ -198,11 +235,21 @@ export default class MeetingModal extends Component<Signature> {
         level: votes ? contested / votes : undefined,
       },
       { label: 'Dokumente', value: num(this.meeting?.files?.length) },
+      ...(this.hasSpeeches
+        ? [
+            {
+              label: 'Wortbeiträge',
+              value: num(
+                Object.values(this.speechCounts).reduce((a, n) => a + n, 0),
+              ),
+            },
+          ]
+        : []),
     ];
   }
 
   get visible() {
-    return this.grouped.items.filter(MATCH[this.local.filter]!);
+    return this.grouped.items.filter(MATCH[this.local.filter] ?? MATCH[0]!);
   }
 
   get allOpen() {
@@ -233,7 +280,8 @@ export default class MeetingModal extends Component<Signature> {
 
   setFilter = (filter: number) => this.update({ filter, cursor: -1 });
 
-  cycleFilter = () => this.setFilter((this.local.filter + 1) % FILTERS.length);
+  cycleFilter = () =>
+    this.setFilter((this.local.filter + 1) % this.filters.length);
 
   setCursor = (cursor: number) => {
     if (cursor !== this.local.cursor) this.update({ cursor });
@@ -263,6 +311,7 @@ export default class MeetingModal extends Component<Signature> {
   gotoNext = () => this.goto(this.next);
 
   openDoc = (doc: Doc) => this.nav.open({ doc: doc.id });
+  openPerson = (id: string) => this.nav.open({ person: id });
 
   refresh = async () => {
     const id = this.args.id;
@@ -393,7 +442,7 @@ export default class MeetingModal extends Component<Signature> {
             <div class="dis-meeting-controls">
               <CanonSegmented
                 class="dis-meeting-filter"
-                @items={{FILTERS}}
+                @items={{this.filters}}
                 @selected={{this.local.filter}}
                 @onChange={{this.setFilter}}
                 aria-keyshortcuts="f"
@@ -438,6 +487,9 @@ export default class MeetingModal extends Component<Signature> {
             <h4 class="canon-heading">Tagesordnung ({{num
                 this.visible.length
               }})</h4>
+            {{#if this.hasSpeeches}}
+              <p class="dis-meeting-note">{{SPEECH_NOTE}}</p>
+            {{/if}}
             <ol class="dis-meeting-timeline">
               {{#each this.visible key="key" as |a i|}}
                 <MeetingTop
@@ -447,6 +499,9 @@ export default class MeetingModal extends Component<Signature> {
                   @onToggle={{fn this.toggle a.key}}
                   @onFocus={{fn this.setCursor i}}
                   @onOpenDoc={{this.openDoc}}
+                  @speechLoad={{this.speechLoad}}
+                  @personIds={{this.personIds.value}}
+                  @onOpenPerson={{this.openPerson}}
                 />
               {{else}}
                 <li class="dis-meeting-note">{{if
@@ -457,6 +512,17 @@ export default class MeetingModal extends Component<Signature> {
               {{/each}}
             </ol>
           </section>
+
+          {{#if this.grouped.speeches.length}}
+            <section class="dis-meeting-more">
+              <h4 class="canon-heading">Weitere Wortbeiträge</h4>
+              <SpeechList
+                @speeches={{this.grouped.speeches}}
+                @personIds={{this.personIds.value}}
+                @onOpenPerson={{this.openPerson}}
+              />
+            </section>
+          {{/if}}
 
           {{#if this.grouped.extra.length}}
             <CanonRows @framed={{true}}>

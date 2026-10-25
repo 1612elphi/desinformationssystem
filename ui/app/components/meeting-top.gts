@@ -4,9 +4,13 @@ import { on } from '@ember/modifier';
 import type { Doc, Vote } from 'ui/api';
 import DocRow from 'ui/components/doc-row';
 import Icon from 'ui/components/icon';
+import { LoadState } from 'ui/components/loading';
+import SpeechList from 'ui/components/speech-list';
 import Tag from 'ui/components/tag';
 import VoteBar from 'ui/components/vote-bar';
 import VoteBlock, { type Outcome } from 'ui/components/vote-block';
+import type { Speech } from 'ui/utils/api-reden';
+import type Load from 'ui/utils/load';
 import { num } from 'ui/utils/meta';
 import './meeting-top.css';
 
@@ -19,6 +23,8 @@ export interface TopItem {
   docs: Doc[];
   vote?: Vote;
   outcome?: Outcome;
+  speeches: Speech[];
+  speechCount: number;
   nonPublic: string;
   expandable: boolean;
   kind: 'contested' | 'vote' | 'docs' | 'none';
@@ -36,6 +42,9 @@ const MeetingTop: TOC<{
     onToggle: () => void;
     onFocus: () => void;
     onOpenDoc: (doc: Doc) => void;
+    speechLoad?: Load<Speech[]>;
+    personIds?: Map<string, string>;
+    onOpenPerson: (id: string) => void;
   };
 }> = <template>
   <li
@@ -73,6 +82,12 @@ const MeetingTop: TOC<{
                 {{if @item.outcome.contested 'dis-mtop-outcome--contested'}}"
             >{{@item.outcome.label}}</span>
           {{/if}}
+          {{#if @item.speechCount}}
+            <span class="dis-mtop-docs" title="Wortbeiträge"><Icon
+                @name="mic"
+                @size={{12}}
+              />{{num @item.speechCount}}</span>
+          {{/if}}
           {{#if @item.docs.length}}
             <span class="dis-mtop-docs"><Icon
                 @name="document"
@@ -108,6 +123,16 @@ const MeetingTop: TOC<{
           </div>
         {{/if}}
         {{#if @item.vote}}<VoteBlock @vote={{@item.vote}} />{{/if}}
+        {{#if @item.speechCount}}
+          <LoadState @load={{@speechLoad}}>
+            <SpeechList
+              @speeches={{@item.speeches}}
+              @heading={{true}}
+              @personIds={{@personIds}}
+              @onOpenPerson={{@onOpenPerson}}
+            />
+          </LoadState>
+        {{/if}}
       </div>
     {{/if}}
   </li>

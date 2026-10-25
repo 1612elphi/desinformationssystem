@@ -8,7 +8,7 @@ import { formatStack, parseStack, type Overlay } from 'ui/services/nav';
 
 // Links from the React UI select the tab with ?tab=<slug> and one overlay
 // with ?doc= and the like; both become the current URL shape.
-const LEGACY_TABS = ['sitzungen', 'gremien', 'statistik', 'karte'];
+const LEGACY_TABS = ['sitzungen', 'gremien', 'statistik', 'reden', 'karte'];
 
 export default class ApplicationRoute extends Route {
   @service declare router: RouterService;
