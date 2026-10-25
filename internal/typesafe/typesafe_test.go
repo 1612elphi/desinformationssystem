@@ -33,7 +33,7 @@ func TestSystemOneRetriesAndAuth(t *testing.T) {
 	t.Setenv("TYPESAFE_API_KEY", "k")
 
 	ans, err := SystemOne("s", map[string]Question{"q": Choice("i", Criteria{{Key: "a"}})}, 5)
-	if err != nil || calls != 3 || ans["q"] != (Answer{"a", 0.75}) {
+	if err != nil || calls != 3 || ans["q"].Choice != "a" || ans["q"].Confidence != 0.75 {
 		t.Fatalf("got %v %v after %d calls", ans, err, calls)
 	}
 }

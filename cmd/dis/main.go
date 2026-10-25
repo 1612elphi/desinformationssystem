@@ -93,6 +93,16 @@ func main() {
 		os.Exit(enrichClaudeCLI(st, os.Args[min(2, len(os.Args)):]))
 	case "vod":
 		os.Exit(vodCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "vod-pipeline":
+		os.Exit(vodPipelineCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "vod-votes":
+		os.Exit(vodVotesCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "vod-speakers":
+		os.Exit(vodSpeakersCLI(os.Args[min(2, len(os.Args)):]))
+	case "vod-cleanup":
+		os.Exit(vodCleanupCLI(st, os.Args[min(2, len(os.Args)):]))
+	case "speech-judge":
+		os.Exit(speechJudgeCLI(st, os.Args[min(2, len(os.Args)):]))
 	case "backup":
 		if len(os.Args) != 3 {
 			log.Fatal("usage: dis backup <dest.db>")
@@ -108,7 +118,7 @@ func main() {
 	case "init":
 		fmt.Println("initialised")
 	default:
-		log.Fatalf("unknown role %q (want web|mcp|scrape|oparl|seed|pdf-backfill|enrich-claude|vod|backup|scraper|ticker|geo-backfill|places-import|data-quality|init)", role)
+		log.Fatalf("unknown role %q (want web|mcp|scrape|oparl|seed|pdf-backfill|enrich-claude|vod|vod-pipeline|vod-votes|vod-speakers|vod-cleanup|speech-judge|backup|scraper|ticker|geo-backfill|places-import|data-quality|init)", role)
 	}
 }
 
@@ -258,8 +268,7 @@ func vodCLI(st *store.Store, args []string) int {
 	fs := flag.NewFlagSet("vod", flag.ExitOnError)
 	linkOnly := fs.Bool("link-only", false, "skip transcription, relink only")
 	fs.Parse(args)
-	dir := env("VOD_DIR", filepath.Join(filepath.Dir(dbPath), "vod"))
-	if err := ingest.ProcessVODs(st, dir, *linkOnly); err != nil {
+	if err := ingest.ProcessVODs(st, vodDir(), *linkOnly); err != nil {
 		log.Print(err)
 		return 1
 	}

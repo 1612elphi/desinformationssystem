@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -24,6 +25,28 @@ func TestTopOffsets(t *testing.T) {
 	}
 	if got := TopOffsets(segs, map[string]bool{"top7": true}); len(got) != 0 {
 		t.Errorf("got %v", got)
+	}
+}
+
+func TestHotwords(t *testing.T) {
+	st := testStore(t)
+	mustExec(t, st, `INSERT INTO bodies(id, name) VALUES('gr','Gemeinderat')`)
+	mustExec(t, st, `INSERT INTO meetings(id, body_id, body_name, title, date) VALUES('termin-1','gr','Gemeinderat','GR','2026-09-29')`)
+	mustExec(t, st, `INSERT INTO members(body_id, person_id, name) VALUES('gr','1','Dr. Stefan Noé'),('gr','2','Jorinda Fahringer')`)
+	mustExec(t, st, `INSERT INTO files(id, url, meeting_id, district) VALUES('1','u','termin-1','Durlach'),('2','u','termin-1','Oststadt'),('3','u','termin-1','Oststadt')`)
+	mustExec(t, st, `INSERT INTO file_streets(file_id, name) VALUES('1','Kaiserstraße'),('2','Durlacher Allee'),('3','Durlacher Allee')`)
+	got, err := Hotwords(st, "termin-1")
+	if want := "Noé, Fahringer, Oststadt, Durlach, Durlacher Allee, Kaiserstraße"; err != nil || got != want {
+		t.Errorf("got %q, %v", got, err)
+	}
+	if got, _ := Hotwords(st, ""); got != "" {
+		t.Errorf("no meeting: %q", got)
+	}
+	if args := whisperArgs("a.wav", "out", "", true); slices.Contains(args, "--prompt") {
+		t.Error(args)
+	}
+	if args := whisperArgs("a.wav", "out", "Noé", true); slices.Index(args, "--prompt") != slices.Index(args, "Noé")-1 {
+		t.Error(args)
 	}
 }
 

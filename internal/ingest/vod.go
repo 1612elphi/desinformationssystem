@@ -70,9 +70,46 @@ func TopOffsets(segments []Segment, anchors map[string]bool) map[string]float64 
 	return out
 }
 
-func whisperArgs(wav, outBase string, gpu bool) []string {
+// Hotwords lists the surnames, Stadtteile and streets whisper should spell
+// right, most important first: whisper keeps only the first ~220 prompt
+// tokens, so the tail is allowed to fall off. Members' surnames come first,
+// then the Stadtteile and streets geo tagged in this meeting's documents,
+// most-mentioned first.
+func Hotwords(st *store.Store, meetingID string) (string, error) {
+	if meetingID == "" {
+		return "", nil
+	}
+	var terms []string
+	seen := map[string]bool{}
+	for i, q := range []string{
+		"SELECT m.name FROM members m JOIN meetings t ON t.body_id = m.body_id WHERE t.id = ? ORDER BY m.name",
+		"SELECT district FROM files WHERE meeting_id = ? AND district IS NOT NULL GROUP BY district ORDER BY COUNT(*) DESC",
+		"SELECT fs.name FROM file_streets fs JOIN files f ON f.id = fs.file_id WHERE f.meeting_id = ? GROUP BY fs.name ORDER BY COUNT(*) DESC",
+	} {
+		vals, err := queryStrings(st, q, meetingID)
+		if err != nil {
+			return "", err
+		}
+		for _, v := range vals {
+			if i == 0 {
+				v = lastField(v)
+			}
+			if v != "" && !seen[v] {
+				seen[v] = true
+				terms = append(terms, v)
+			}
+		}
+	}
+	return strings.Join(terms, ", "), nil
+}
+
+func whisperArgs(wav, outBase, prompt string, gpu bool) []string {
 	args := []string{"-m", WhisperModel, "-l", "de", "-t", strconv.Itoa(WhisperThreads),
 		"-oj", "-of", outBase, "-np", "-f", wav}
+	// whisper.cpp's initial prompt is what faster-whisper's hotwords become
+	if prompt != "" {
+		args = append(args, "--prompt", prompt)
+	}
 	if WhisperVADModel != "" {
 		args = append(args, "--vad", "-vm", WhisperVADModel)
 	}
@@ -83,8 +120,9 @@ func whisperArgs(wav, outBase string, gpu bool) []string {
 }
 
 // Transcribe decodes media to 16 kHz mono WAV, which whisper-cli requires,
-// and runs whisper-cli on it, retrying on the CPU if the GPU run fails.
-func Transcribe(media string) ([]Segment, error) {
+// and runs whisper-cli on it with prompt as hotwords, retrying on the CPU if
+// the GPU run fails.
+func Transcribe(media, prompt string) ([]Segment, error) {
 	tmp, err := os.MkdirTemp("", "dis-vod-")
 	if err != nil {
 		return nil, err
@@ -98,7 +136,7 @@ func Transcribe(media string) ([]Segment, error) {
 	}
 	outBase := filepath.Join(tmp, "out")
 	run := func(gpu bool) error {
-		cmd := exec.Command(WhisperBin, whisperArgs(wav, outBase, gpu)...)
+		cmd := exec.Command(WhisperBin, whisperArgs(wav, outBase, prompt, gpu)...)
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
 	}
@@ -201,7 +239,7 @@ func readJSON(path string, v any) error {
 	return json.Unmarshal(b, v)
 }
 
-func writeJSONAtomic(path string, v any) error {
+func WriteJSONAtomic(path string, v any) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -230,22 +268,6 @@ func processVOD(st *store.Store, infoPath string, info vodInfo, linkOnly bool) e
 		return nil
 	}
 
-	tpath := base + ".transcript.json"
-	segments := []Segment{}
-	if exists(tpath) {
-		if err := readJSON(tpath, &segments); err != nil {
-			return err
-		}
-	} else if !linkOnly {
-		log.Printf("vod:   transcribing %s (%s)", filepath.Base(media), filepath.Base(WhisperModel))
-		if segments, err = Transcribe(media); err != nil {
-			return err
-		}
-		if err := writeJSONAtomic(tpath, segments); err != nil {
-			return err
-		}
-	}
-
 	var ts int64
 	if info.ReleaseTimestamp != nil {
 		ts = *info.ReleaseTimestamp
@@ -256,6 +278,26 @@ func processVOD(st *store.Store, infoPath string, info vodInfo, linkOnly bool) e
 	if err != nil {
 		return err
 	}
+	tpath := base + ".transcript.json"
+	segments := []Segment{}
+	if exists(tpath) {
+		if err := readJSON(tpath, &segments); err != nil {
+			return err
+		}
+	} else if !linkOnly {
+		log.Printf("vod:   transcribing %s (%s)", filepath.Base(media), filepath.Base(WhisperModel))
+		prompt, err := Hotwords(st, meetingID)
+		if err != nil {
+			return err
+		}
+		if segments, err = Transcribe(media, prompt); err != nil {
+			return err
+		}
+		if err := WriteJSONAtomic(tpath, segments); err != nil {
+			return err
+		}
+	}
+
 	anchors, err := agendaAnchors(st, meetingID)
 	if err != nil {
 		return err
@@ -269,7 +311,7 @@ func processVOD(st *store.Store, infoPath string, info vodInfo, linkOnly bool) e
 	if meetingID != "" {
 		rec.MeetingID = &meetingID
 	}
-	if err := writeJSONAtomic(base+".vod.json", rec); err != nil {
+	if err := WriteJSONAtomic(base+".vod.json", rec); err != nil {
 		return err
 	}
 	log.Printf("vod:   %s -> %s, %d/%d TOPs located", info.ID, cmp.Or(meetingID, "no meeting"), len(rec.Tops), len(anchors))

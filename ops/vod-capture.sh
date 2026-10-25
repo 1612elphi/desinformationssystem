@@ -14,6 +14,9 @@ set -uo pipefail
 APP=/home/ruby/desinformationssystem
 YTDLP="${YTDLP:-/home/ruby/.local/bin/yt-dlp}"
 CHANNEL=https://www.youtube.com/channel/UCi-k4SVGHlSigCtILwczY-Q/streams
+# Council streams can be unlisted: 2026-09-29's session (WX3lONmWuJA) never appeared on the
+# channel's /streams, /videos or /live tabs, only as an embed on the city's livestream page.
+EMBED_PAGE=https://www.karlsruhe.de/livestream
 OUT="$APP/data/vod"
 
 log() { echo "[vod-capture] $*"; }
@@ -27,15 +30,19 @@ fi
 # YouTube extraction breaks every few weeks; a stale yt-dlp would miss the 24h window.
 "$YTDLP" -U || log "yt-dlp self-update failed, using installed version"
 
+embeds=$(curl -sL -m 30 "$EMBED_PAGE" | grep -oE 'youtube(-nocookie)?\.com/embed/[A-Za-z0-9_-]{11}' \
+  | sed 's|.*/embed/|https://www.youtube.com/watch?v=|' | sort -u)
+[ -n "$embeds" ] || log "no YouTube embed found on $EMBED_PAGE"
+
 out=$("$YTDLP" --no-update -i \
   --playlist-end 10 \
   --extractor-args "youtube:lang=de" \
-  --match-filters "live_status=was_live & title~='(?i)gemeinderat|haushalt|sitzung|council|budget'" \
+  --match-filters "live_status=was_live & duration>=600 & title~='(?i)gemeinderat|haushalt|sitzung|council|budget'" \
   --download-archive "$OUT/archive.txt" \
   -f "bv*[height<=720]+ba/b[height<=720]" --merge-output-format mkv \
   --write-info-json --no-write-playlist-metafiles --no-progress \
   -o "$OUT/%(release_timestamp>%Y-%m-%d)s_%(id)s.%(ext)s" \
-  "$CHANNEL" 2>&1)
+  "$CHANNEL" $embeds 2>&1)
 rc=$?
 echo "$out"
 

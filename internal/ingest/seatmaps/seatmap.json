@@ -1,0 +1,837 @@
+{
+ "layouts": [
+  {
+   "valid_from": "2026-07-28",
+   "reference": "2026-07-28.jpg",
+   "size": [
+    1600,
+    900
+   ],
+   "counters": {
+    "ja": [
+     1036,
+     142,
+     1190,
+     296
+    ],
+    "nein": [
+     1210,
+     142,
+     1364,
+     296
+    ],
+    "enthaltung": [
+     1380,
+     142,
+     1534,
+     296
+    ]
+   },
+   "top_label": [
+    602,
+    98,
+    1003,
+    131
+   ],
+   "seats": [
+    {
+     "id": "ob",
+     "box": [
+      738,
+      244,
+      867,
+      297
+     ],
+     "party": "OB"
+    },
+    {
+     "id": "c0r0",
+     "box": [
+      42,
+      366,
+      169,
+      419
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c0r1",
+     "box": [
+      42,
+      436,
+      169,
+      489
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c0r2",
+     "box": [
+      42,
+      506,
+      169,
+      559
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c0r3",
+     "box": [
+      42,
+      576,
+      169,
+      629
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c0r4",
+     "box": [
+      42,
+      646,
+      169,
+      699
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c0r5",
+     "box": [
+      42,
+      716,
+      169,
+      769
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c1r0",
+     "box": [
+      188,
+      366,
+      317,
+      419
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c1r1",
+     "box": [
+      188,
+      436,
+      317,
+      489
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c1r2",
+     "box": [
+      188,
+      506,
+      317,
+      559
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c1r3",
+     "box": [
+      188,
+      576,
+      317,
+      629
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c1r4",
+     "box": [
+      188,
+      646,
+      317,
+      699
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c1r5",
+     "box": [
+      188,
+      716,
+      317,
+      769
+     ],
+     "party": "GRÜNE"
+    },
+    {
+     "id": "c2r0",
+     "box": [
+      346,
+      366,
+      473,
+      419
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c2r1",
+     "box": [
+      346,
+      436,
+      473,
+      489
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c2r2",
+     "box": [
+      346,
+      506,
+      473,
+      559
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c2r3",
+     "box": [
+      346,
+      576,
+      473,
+      629
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c2r4",
+     "box": [
+      346,
+      646,
+      473,
+      699
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c3r0",
+     "box": [
+      492,
+      366,
+      621,
+      419
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c3r1",
+     "box": [
+      492,
+      436,
+      621,
+      489
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c3r2",
+     "box": [
+      492,
+      506,
+      621,
+      559
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c3r3",
+     "box": [
+      492,
+      576,
+      621,
+      629
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c3r4",
+     "box": [
+      492,
+      646,
+      621,
+      699
+     ],
+     "party": "CDU"
+    },
+    {
+     "id": "c4r0",
+     "box": [
+      650,
+      366,
+      777,
+      419
+     ],
+     "party": "SPD"
+    },
+    {
+     "id": "c4r1",
+     "box": [
+      650,
+      436,
+      777,
+      489
+     ],
+     "party": "SPD"
+    },
+    {
+     "id": "c4r2",
+     "box": [
+      650,
+      506,
+      777,
+      559
+     ],
+     "party": "SPD"
+    },
+    {
+     "id": "c4r3",
+     "box": [
+      650,
+      576,
+      777,
+      629
+     ],
+     "party": "SPD"
+    },
+    {
+     "id": "c4r4",
+     "box": [
+      650,
+      646,
+      777,
+      699
+     ],
+     "party": "SPD"
+    },
+    {
+     "id": "c4r5",
+     "box": [
+      650,
+      716,
+      777,
+      769
+     ],
+     "party": "SPD"
+    },
+    {
+     "id": "c5r0",
+     "box": [
+      807,
+      366,
+      934,
+      419
+     ],
+     "party": "AfD"
+    },
+    {
+     "id": "c5r1",
+     "box": [
+      807,
+      436,
+      934,
+      489
+     ],
+     "party": "AfD"
+    },
+    {
+     "id": "c5r2",
+     "box": [
+      807,
+      506,
+      934,
+      559
+     ],
+     "party": "AfD"
+    },
+    {
+     "id": "c5r3",
+     "box": [
+      807,
+      576,
+      934,
+      629
+     ],
+     "party": "AfD"
+    },
+    {
+     "id": "c5r4",
+     "box": [
+      807,
+      646,
+      934,
+      699
+     ],
+     "party": "AfD"
+    },
+    {
+     "id": "c6r0",
+     "box": [
+      964,
+      366,
+      1091,
+      419
+     ],
+     "party": "FDP/FW"
+    },
+    {
+     "id": "c6r1",
+     "box": [
+      964,
+      436,
+      1091,
+      489
+     ],
+     "party": "FDP/FW"
+    },
+    {
+     "id": "c6r2",
+     "box": [
+      964,
+      506,
+      1091,
+      559
+     ],
+     "party": "FDP/FW"
+    },
+    {
+     "id": "c6r3",
+     "box": [
+      964,
+      576,
+      1091,
+      629
+     ],
+     "party": "FDP/FW"
+    },
+    {
+     "id": "c7r0",
+     "box": [
+      1120,
+      366,
+      1249,
+      419
+     ],
+     "party": "VOLT"
+    },
+    {
+     "id": "c7r1",
+     "box": [
+      1120,
+      436,
+      1249,
+      489
+     ],
+     "party": "VOLT"
+    },
+    {
+     "id": "c7r2",
+     "box": [
+      1120,
+      506,
+      1249,
+      559
+     ],
+     "party": "VOLT"
+    },
+    {
+     "id": "c8r0",
+     "box": [
+      1278,
+      366,
+      1405,
+      419
+     ],
+     "party": "Die LINKE"
+    },
+    {
+     "id": "c8r1",
+     "box": [
+      1278,
+      436,
+      1405,
+      489
+     ],
+     "party": "Die LINKE"
+    },
+    {
+     "id": "c8r2",
+     "box": [
+      1278,
+      506,
+      1405,
+      559
+     ],
+     "party": "Die LINKE"
+    },
+    {
+     "id": "c9r0",
+     "box": [
+      1434,
+      366,
+      1563,
+      419
+     ],
+     "party": "KAL"
+    },
+    {
+     "id": "c9r1",
+     "box": [
+      1434,
+      436,
+      1563,
+      489
+     ],
+     "party": "KAL"
+    },
+    {
+     "id": "c9r2",
+     "box": [
+      1434,
+      506,
+      1563,
+      559
+     ],
+     "party": "KAL"
+    },
+    {
+     "id": "c7r5",
+     "box": [
+      1120,
+      716,
+      1249,
+      769
+     ],
+     "party": "Die PARTEI"
+    },
+    {
+     "id": "c8r5",
+     "box": [
+      1278,
+      716,
+      1405,
+      769
+     ],
+     "party": "FÜR"
+    }
+   ],
+   "blank": [
+    60,
+    150,
+    700,
+    200
+   ]
+  }
+ ],
+ "assignments": [
+  {
+   "seat": "ob",
+   "name": "Dr. Mentrup",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c0r0",
+   "name": "Fahringer",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c0r1",
+   "name": "Löffler",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c0r2",
+   "name": "Akbaba",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c0r3",
+   "name": "Anlauf",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c0r4",
+   "name": "Belschner",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c0r5",
+   "name": "Dr. Cremer",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c1r0",
+   "name": "Dujmovic",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c1r1",
+   "name": "Dr. Heynen",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c1r2",
+   "name": "Dr. Klingert",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c1r3",
+   "name": "Klinkhardt",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c1r4",
+   "name": "Dr. Sardarabady",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c1r5",
+   "name": "Wolf",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c2r0",
+   "name": "Hofmann",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c2r1",
+   "name": "Bunk-Merkel",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c2r2",
+   "name": "Dr. Dogan",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c2r3",
+   "name": "Kehrle",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c2r4",
+   "name": "Meier-Augenstein",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c3r0",
+   "name": "Müller",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c3r1",
+   "name": "Dr. Müller",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c3r2",
+   "name": "Pfannkuch",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c3r3",
+   "name": "Schütz, K.",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c3r4",
+   "name": "Schütz, N.",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c4r0",
+   "name": "Dr. Huber",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c4r1",
+   "name": "Ernemann",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c4r2",
+   "name": "Dr. Fechler",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c4r3",
+   "name": "Schmid",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c4r4",
+   "name": "Tröndle",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c4r5",
+   "name": "Uysal",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c5r0",
+   "name": "Dr. Schmidt",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c5r1",
+   "name": "Schnell",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c5r2",
+   "name": "Seidler",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c5r3",
+   "name": "Stolz",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c5r4",
+   "name": "Winkler",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c6r0",
+   "name": "Dr. Noé",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c6r1",
+   "name": "Böringer",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c6r2",
+   "name": "Hock",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c6r3",
+   "name": "Lorenz",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c7r0",
+   "name": "Gaukel",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c7r1",
+   "name": "Geißinger",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c7r2",
+   "name": "Nguyen",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c8r0",
+   "name": "Berghoff",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c8r1",
+   "name": "Duran",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c8r2",
+   "name": "Kaufmann",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c9r0",
+   "name": "Cramer",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c9r1",
+   "name": "Döring",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c9r2",
+   "name": "Haug",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c7r5",
+   "name": "Braun",
+   "from": "2026-07-28",
+   "to": null
+  },
+  {
+   "seat": "c8r5",
+   "name": "Kalmbach",
+   "from": "2026-07-28",
+   "to": null
+  }
+ ],
+ "stream": {
+  "x": 0.49765258215962443,
+  "y": 0.225,
+  "w": 0.5
+ }
+}
