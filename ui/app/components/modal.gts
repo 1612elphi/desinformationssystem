@@ -7,7 +7,11 @@ import Icon from 'ui/components/icon';
 import './modal.css';
 
 export interface PaneContext {
+  // below the visible panes: drawn as a spine
   collapsed: boolean;
+  // the newest pane: it holds focus and the keyboard shortcuts
+  active: boolean;
+  index: number;
   kind: string;
   onSelect: () => void;
 }
@@ -20,9 +24,9 @@ const KIND_LABEL: Record<string, string> = {
 };
 const kindLabel = (kind?: string) => (kind ? (KIND_LABEL[kind] ?? kind) : '');
 
-// a pane that comes to the top takes focus, so the keyboard follows the stack
-const focusOnInsert = modifier((el: HTMLElement) => {
-  el.focus({ preventScroll: true });
+// the newest pane takes focus, so the keyboard follows the stack
+const focusWhen = modifier((el: HTMLElement, [active]: [boolean?]) => {
+  if (active) el.focus({ preventScroll: true });
 });
 
 // One pane in the stack: the full view on top, a spine with its title below.
@@ -46,10 +50,19 @@ const Modal: TOC<{
     </button>
   {{else}}
     {{#let (uniqueId) as |hid|}}
-      <section class="dis-pane" aria-labelledby={{hid}}>
+      <section
+        class="dis-pane {{if @pane.active 'dis-pane--active' 'dis-pane--side'}}"
+        data-pane-index={{@pane.index}}
+        aria-labelledby={{hid}}
+      >
         <header class="dis-pane-head">
           <span class="dis-pane-kind">{{kindLabel @pane.kind}}</span>
-          <h2 id={{hid}} class="dis-pane-title" tabindex="-1" {{focusOnInsert}}>
+          <h2
+            id={{hid}}
+            class="dis-pane-title"
+            tabindex="-1"
+            {{focusWhen @pane.active}}
+          >
             {{@heading}}
           </h2>
           <CanonButton

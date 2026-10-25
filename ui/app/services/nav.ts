@@ -39,6 +39,9 @@ export default class NavService extends Service {
   // panes pushed in this tab, so closing can step back through history
   private pushed = 0;
 
+  // index of the pane the last click or focus was in; set by the pane stack
+  origin?: number;
+
   get stack(): Pane[] {
     const app = getOwner(this)?.lookup('controller:application') as
       ApplicationController | undefined;
@@ -50,10 +53,17 @@ export default class NavService extends Service {
     const kind = KINDS.find((k) => modals[k]);
     if (!kind) return;
     const pane = { kind, id: modals[kind]! };
-    const stack = this.stack;
+    let stack = this.stack;
     const at = stack.findIndex((p) => p.kind === pane.kind && p.id === pane.id);
     if (at >= 0) return this.popTo(at);
-    this.pushed++;
+    // opened from an earlier visible pane: it replaces the panes to that pane's right
+    if (this.origin !== undefined && this.origin < stack.length - 1) {
+      stack = stack.slice(0, this.origin + 1);
+      // history no longer mirrors the stack depth, so pops replace from here on
+      this.pushed = 0;
+    } else {
+      this.pushed++;
+    }
     this.router.transitionTo({
       queryParams: { stack: formatStack([...stack, pane]) },
     });

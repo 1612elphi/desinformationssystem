@@ -1,6 +1,7 @@
 .dis-pane {
   display: flex;
   flex: 1 1 0;
+  border-inline-start: var(--canon-hairline) solid var(--canon-border);
   flex-direction: column;
   min-inline-size: 0;
   block-size: 100%;
@@ -19,6 +20,15 @@
   .dis-pane {
     animation: none;
   }
+}
+
+/* an earlier pane still in view, beside the newest one */
+.dis-pane--side {
+  flex: 0 0 520px;
+}
+
+.dis-pane--side .dis-pane-head {
+  background: var(--canon-card);
 }
 
 .dis-pane-head {

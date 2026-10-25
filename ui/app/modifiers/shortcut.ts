@@ -31,6 +31,9 @@ export default modifier(
       const top = topDialog();
       const own = el.closest('dialog');
       if (top ? own !== top : own !== null) return;
+      // in the pane stack only the newest pane takes keys
+      const pane = el.closest('.dis-pane');
+      if (pane && !pane.classList.contains('dis-pane--active')) return;
       e.preventDefault();
       fn(e);
     };

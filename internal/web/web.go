@@ -359,8 +359,13 @@ func (s *Server) spa() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := filepath.Join(s.Dist, filepath.FromSlash(filepath.Clean("/"+r.URL.Path)))
 		if st, err := os.Stat(p); (err != nil && filepath.Ext(p) == "") || (err == nil && st.IsDir()) {
+			// the page names the current hashed bundle; a cached copy would load an old one
+			w.Header().Set("Cache-Control", "no-cache")
 			http.ServeFile(w, r, filepath.Join(s.Dist, "index.html"))
 			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/assets/") {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		}
 		fs.ServeHTTP(w, r)
 	})

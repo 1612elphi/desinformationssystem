@@ -1,11 +1,17 @@
 import Component from '@glimmer/component';
+import { tracked } from '@glimmer/tracking';
+import { service } from '@ember/service';
+import { registerDestructor } from '@ember/destroyable';
+import type Owner from '@ember/owner';
 import { fn, hash } from '@ember/helper';
+import { on } from '@ember/modifier';
 import { htmlSafe } from '@ember/template';
 import { modifier } from 'ember-modifier';
 import DocModal from 'ui/components/doc-modal';
 import MeetingModal from 'ui/components/meeting-modal';
 import PersonModal from 'ui/components/person-modal';
 import VorlageModal from 'ui/components/vorlage-modal';
+import type NavService from 'ui/services/nav';
 import type { Pane } from 'ui/services/nav';
 import './pane-stack.css';
 
@@ -17,6 +23,11 @@ interface Signature {
 }
 
 const eq = (a: unknown, b: unknown) => a === b;
+
+// pane widths in px: the newest at its own width, earlier ones beside it narrower
+const SPINE = 40;
+const SIDE = 520;
+const own = (p?: Pane) => (p?.kind === 'meeting' ? 1120 : 720);
 // element that had focus before the stack opened, to return it on close
 const openers = new WeakMap<HTMLDialogElement, Element | null>();
 
@@ -52,6 +63,18 @@ const stackDialog = modifier(
 );
 
 export default class PaneStack extends Component<Signature> {
+  @service declare nav: NavService;
+  @tracked viewport = window.innerWidth;
+
+  constructor(owner: Owner, args: Signature['Args']) {
+    super(owner, args);
+    const onResize = () => (this.viewport = window.innerWidth);
+    window.addEventListener('resize', onResize);
+    registerDestructor(this, () =>
+      window.removeEventListener('resize', onResize),
+    );
+  }
+
   get open() {
     return this.args.stack.length > 0;
   }
@@ -61,19 +84,40 @@ export default class PaneStack extends Component<Signature> {
     return this.args.stack.map((p) => ({ ...p, key: `${p.kind}:${p.id}` }));
   }
 
-  // spines plus the top pane; a dialog sizes to its content otherwise, which squeezes the pane
+  get room() {
+    return this.viewport < 640 ? this.viewport : this.viewport - 24;
+  }
+
+  // index of the first full pane: as many as fit next to the newest, spines before
+  get firstFull() {
+    const n = this.args.stack.length;
+    let first = n - 1;
+    const width = (f: number) =>
+      own(this.args.stack[n - 1]) + (n - 1 - f) * SIDE + f * SPINE;
+    while (first > 0 && width(first - 1) <= this.room) first--;
+    return first;
+  }
+
   get width() {
-    const top = this.args.stack.at(-1);
-    const pane = top?.kind === 'meeting' ? 1120 : 720;
-    return htmlSafe(
-      `--dis-panes-width: ${(this.args.stack.length - 1) * 40 + pane}px`,
-    );
+    const n = this.args.stack.length;
+    const f = this.firstFull;
+    const w = own(this.args.stack[n - 1]) + (n - 1 - f) * SIDE + f * SPINE;
+    return htmlSafe(`--dis-panes-width: ${w}px`);
   }
 
   isTop = (i: number) => i === this.args.stack.length - 1;
+  isCollapsed = (i: number) => i < this.firstFull;
   closeAt = (i: number) => this.args.onPopTo(i - 1);
   popTop = () => this.args.onPopTo(this.args.stack.length - 2);
   closeAll = () => this.args.onPopTo(-1);
+
+  // the pane a click or focus came from; opening from it replaces the panes to its right
+  noteOrigin = (e: Event) => {
+    const el = (e.target as Element | null)?.closest('[data-pane-index]');
+    this.nav.origin = el
+      ? Number(el.getAttribute('data-pane-index'))
+      : undefined;
+  };
 
   <template>
     <dialog
@@ -81,11 +125,15 @@ export default class PaneStack extends Component<Signature> {
       style={{this.width}}
       aria-label="Ansicht"
       {{stackDialog this.open this.popTop this.closeAll}}
+      {{on "click" this.noteOrigin capture=true}}
+      {{on "focusin" this.noteOrigin}}
     >
       {{#each this.items key="key" as |p i|}}
         {{#let
           (hash
-            collapsed=(if (this.isTop i) false true)
+            collapsed=(this.isCollapsed i)
+            active=(this.isTop i)
+            index=i
             kind=p.kind
             onSelect=(fn @onPopTo i)
           )
