@@ -91,6 +91,7 @@
     "edition": "octane"
   },
   "dependencies": {
-    "delphicanon": "0.1.0"
+    "delphicanon": "0.1.0",
+    "rough-notation": "0.5.1"
   }
 }
