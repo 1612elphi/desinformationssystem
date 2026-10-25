@@ -16,6 +16,15 @@ export default class GremienController extends Controller {
   @tracked query = '';
 
   select = (id: string) => (this.selectedId = id);
+
+  // with no gremium in the URL the view opens on the Gemeinderat
+  get currentId() {
+    return (
+      this.selectedId ||
+      this.list.value?.find((c) => c.name === 'Gemeinderat')?.id ||
+      ''
+    );
+  }
   setQuery = (q: string) => (this.query = q);
 
   @cached
@@ -25,8 +34,8 @@ export default class GremienController extends Controller {
 
   @cached
   get selected() {
-    return this.selectedId
-      ? new Load<CommitteeDetail>(getCommittee(this.selectedId))
+    return this.currentId
+      ? new Load<CommitteeDetail>(getCommittee(this.currentId))
       : undefined;
   }
 

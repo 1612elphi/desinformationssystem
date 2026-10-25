@@ -36,7 +36,7 @@ export default class GremienTemplate extends Component<Signature> {
   get selectedName() {
     const c = this.args.controller;
     return (
-      c.list.value?.find((g) => g.id === c.selectedId)?.name ??
+      c.list.value?.find((g) => g.id === c.currentId)?.name ??
       c.selected?.value?.name ??
       ''
     );
@@ -63,7 +63,7 @@ export default class GremienTemplate extends Component<Signature> {
     if (!sel) return [];
     // the committee payload caps meetings at 300; the list has the full count
     const meetings =
-      c.list.value?.find((g) => g.id === c.selectedId)?.meetings ??
+      c.list.value?.find((g) => g.id === c.currentId)?.meetings ??
       sel.meetings.length;
     return [
       { label: 'Mitglieder', value: num(sel.members.length) },
@@ -171,7 +171,7 @@ export default class GremienTemplate extends Component<Signature> {
                     type="button"
                     class="dis-gremien-item
                       {{unless item.members 'dis-gremien-item--empty'}}"
-                    aria-current={{if (eq c.selectedId item.id) "true"}}
+                    aria-current={{if (eq c.currentId item.id) "true"}}
                     {{on "click" (fn this.pick item.id)}}
                   >
                     <span>{{item.name}}</span>
@@ -198,7 +198,7 @@ export default class GremienTemplate extends Component<Signature> {
           </CanonRows>
         </:sidebar>
         <:main>
-          {{#if c.selectedId}}
+          {{#if c.currentId}}
             <CanonRows class="dis-gremien-detail" @framed={{true}}>
               <h2 id={{TITLE_ID}} class="canon-heading" tabindex="-1">{{if
                   this.selectedName

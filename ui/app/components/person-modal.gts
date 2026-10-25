@@ -136,7 +136,7 @@ export default class PersonModal extends Component<Signature> {
     if (this.router.currentRouteName !== 'gremien') return undefined;
     const c = getOwner(this)?.lookup('controller:gremien') as
       GremienController | undefined;
-    const members = c?.selectedId ? c.members : [];
+    const members = c?.currentId ? c.members : [];
     const i = members.findIndex((m) => m.person_id === this.args.id);
     if (i < 0) return undefined;
     return {
