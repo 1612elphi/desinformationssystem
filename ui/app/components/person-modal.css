@@ -1,0 +1,44 @@
+.dis-person {
+  display: grid;
+  gap: var(--canon-panel-padding);
+  font-size: var(--canon-text-subheadline);
+}
+
+.dis-person-facts {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 8px var(--canon-panel-padding);
+  margin: 0;
+}
+
+.dis-person-facts dt {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-person-facts dd {
+  margin: 0;
+}
+
+.dis-person-muted {
+  margin: 0;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-person-vote::before {
+  content: "";
+  display: inline-block;
+  inline-size: 8px;
+  block-size: 8px;
+  margin-inline-end: 6px;
+  background: var(--dis-person-vote, var(--canon-muted-foreground));
+}
+
+.dis-person-vote--ja {
+  --dis-person-vote: var(--canon-primary);
+}
+
+.dis-person-vote--nein {
+  --dis-person-vote: var(--canon-destructive);
+}

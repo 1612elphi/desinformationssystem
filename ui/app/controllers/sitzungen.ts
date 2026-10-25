@@ -6,6 +6,8 @@ import Load from 'ui/utils/load';
 export const MEETINGS_PAGE = 100;
 
 export default class SitzungenController extends Controller {
+  queryParams = ['upcoming', 'committee', 'page'];
+
   @tracked upcoming = true;
   @tracked committee = '';
   @tracked page = 1;

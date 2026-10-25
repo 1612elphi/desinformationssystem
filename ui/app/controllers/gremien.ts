@@ -4,6 +4,8 @@ import { getCommittee, getCommittees } from 'ui/api';
 import Load from 'ui/utils/load';
 
 export default class GremienController extends Controller {
+  queryParams = [{ selectedId: 'gremium' }];
+
   @tracked selectedId = '';
 
   select = (id: string) => (this.selectedId = id);
