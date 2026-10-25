@@ -36,7 +36,7 @@ export const VIEWS = [
   { route: 'karte', label: 'Karte', icon: 'map', key: 'k' },
 ];
 
-type Kind = 'view' | 'doc' | 'meeting' | 'person' | 'committee';
+type Kind = 'view' | 'doc' | 'meeting' | 'person' | 'committee' | 'search';
 
 const ICONS: Record<Kind, ComponentLike> = {
   view: <template><Icon @name="chevron-right" /></template>,
@@ -44,6 +44,7 @@ const ICONS: Record<Kind, ComponentLike> = {
   meeting: <template><Icon @name="calendar" /></template>,
   person: <template><Icon @name="user" /></template>,
   committee: <template><Icon @name="landmark" /></template>,
+  search: <template><Icon @name="search" /></template>,
 };
 
 const iconFor = (name: string): ComponentLike => <template>
@@ -191,7 +192,12 @@ export default class PaletteDialog extends Component<Signature> {
         detail: this.docDetail(doc),
       }),
     );
+    const open = item({ id: `search:${q}`, title: 'Suche öffnen' }, 'Suche', {
+      answer: true,
+      detail: q,
+    });
     return [
+      open,
       ...views,
       ...docs,
       ...top(meetings, q),
@@ -237,8 +243,12 @@ export default class PaletteDialog extends Component<Signature> {
   go(picked: CanonCommandItem) {
     const target = targetOf(picked.id);
     const kind = kindOf(picked.id);
-    if (kind !== 'view') this.remember(picked);
+    if (kind !== 'view' && kind !== 'search') this.remember(picked);
     if (kind === 'view') this.router.transitionTo(target);
+    else if (kind === 'search')
+      this.router.transitionTo('suche', {
+        queryParams: { q: target, scope: 'alles' },
+      });
     else if (kind === 'committee')
       this.router.transitionTo('gremien', {
         queryParams: { gremium: target },

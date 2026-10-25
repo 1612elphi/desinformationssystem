@@ -111,7 +111,7 @@ export default class NavService extends Service {
   filter(queryParams: Filters) {
     this.pushed = 0;
     this.router.transitionTo('suche', {
-      queryParams: { ...NO_PANES, page: 1, ...queryParams },
+      queryParams: { ...NO_PANES, page: 1, scope: 'dokumente', ...queryParams },
     });
   }
 }

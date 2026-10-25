@@ -1,0 +1,217 @@
+.dis-hits {
+  container-type: inline-size;
+  margin: 0;
+  padding: 0;
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+  list-style: none;
+}
+
+.dis-hit {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, max-content);
+  gap: 4px 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+}
+
+.dis-hit:focus-within {
+  background: var(--canon-accent-bg);
+}
+
+.dis-hit:focus-within::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 4px;
+  background: var(--dis-highlight);
+}
+
+@media (hover: hover) {
+  .dis-hit:hover {
+    background: var(--canon-accent-bg);
+  }
+}
+
+.dis-hit-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.dis-hit-open {
+  display: -webkit-box;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-callout);
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: start;
+  cursor: pointer;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dis-hit-open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.dis-hit-open:focus-visible {
+  outline: none;
+}
+
+.dis-hit:has(.dis-hit-open:focus-visible) {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: calc(-1 * var(--canon-frame));
+}
+
+.dis-hit-sub {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 4px;
+  align-items: center;
+  overflow-wrap: anywhere;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-hit-main > .dis-snippet {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--canon-text-footnote);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.dis-hit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-hit-stat,
+.dis-hit-when {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--canon-muted-foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dis-hit-date {
+  color: var(--canon-foreground);
+  font-weight: 600;
+}
+
+.dis-hit-tile {
+  display: grid;
+  place-items: center;
+  inline-size: 3rem;
+  padding-block: 2px;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-background);
+  line-height: 1.1;
+}
+
+.dis-hit-tile-day {
+  font-size: var(--canon-text-title3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-hit-tile-month,
+.dis-hit-tile-year {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-caption);
+}
+
+.dis-hit-tile-month {
+  color: var(--canon-primary);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dis-hit-avatar {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  background: var(--canon-muted);
+  font-size: var(--canon-text-caption);
+  font-weight: 600;
+}
+
+.dis-hit-person {
+  position: relative;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.dis-hit-person:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+}
+
+.dis-hit-glyph {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  background: var(--canon-muted);
+  color: var(--canon-muted-foreground);
+}
+
+.dis-hit-glyph--angenommen,
+.dis-hit-glyph--einstimmig {
+  color: var(--dis-yes);
+}
+
+.dis-hit-glyph--abgelehnt {
+  color: var(--dis-no);
+}
+
+.dis-hit-votes {
+  inline-size: 12rem;
+}
+
+.dis-hit-outcome {
+  display: inline-block;
+}
+
+@container (inline-size < 40rem) {
+  .dis-hit {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .dis-hit-meta {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .dis-hit-votes {
+    inline-size: 100%;
+  }
+}
+
+.dis-hit-open > .dis-snippet {
+  display: inline;
+  color: inherit;
+  font-size: inherit;
+}
