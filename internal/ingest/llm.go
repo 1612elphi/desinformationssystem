@@ -198,13 +198,13 @@ func parseModelJSON(content string) (map[string]any, error) {
 
 var noRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 
-// chatCompletion posts one request and returns choices[0].message.content.
-func chatCompletion(payload any, headers map[string]string, timeout time.Duration) (string, error) {
+// chatCompletion posts one request to base and returns choices[0].message.content.
+func chatCompletion(base string, payload any, headers map[string]string, timeout time.Duration) (string, error) {
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
 	}
-	req, err := http.NewRequest(http.MethodPost, OpenRouterBase+"/chat/completions", bytes.NewReader(body))
+	req, err := http.NewRequest(http.MethodPost, base+"/chat/completions", bytes.NewReader(body))
 	if err != nil {
 		return "", err
 	}
@@ -258,7 +258,7 @@ func callOpenRouter(prompt string) (map[string]any, error) {
 	var last error
 	for attempt := range LLMRetries {
 		llmThrottle()
-		content, err := chatCompletion(payload, headers, LLMTimeout)
+		content, err := chatCompletion(OpenRouterBase, payload, headers, LLMTimeout)
 		if err == nil {
 			var m map[string]any
 			if m, err = parseModelJSON(content); err == nil {
@@ -468,7 +468,7 @@ func ParseVoteImage(image []byte, mime string) *VoteTally {
 	}
 	var last error
 	for attempt := range VisionRetries {
-		content, err := chatCompletion(payload, headers, VisionTimeout)
+		content, err := chatCompletion(OpenRouterBase, payload, headers, VisionTimeout)
 		if err == nil {
 			var raw map[string]any
 			if raw, err = parseModelJSON(content); err == nil {
