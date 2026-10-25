@@ -80,6 +80,8 @@ type Question struct {
 type Answer struct {
 	Choice     string  `json:"choice"`
 	Confidence float64 `json:"confidence"`
+	// choice -> probability, verbatim from the response
+	Probabilities json.RawMessage `json:"probabilities"`
 }
 
 func Choice(instructions string, criteria Criteria) Question {

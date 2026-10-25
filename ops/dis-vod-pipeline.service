@@ -1,0 +1,18 @@
+[Unit]
+Description=Desinformationssystem VOD pipeline: votes, speakers, speeches (Sonnet), Jev judgements
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+User=ruby
+Group=ruby
+Nice=10
+WorkingDirectory=/home/ruby/desinformationssystem
+Environment=DB_PATH=/home/ruby/desinformationssystem/data/desinformationssystem.db
+Environment=SWITCHBOARD_BASE=http://127.0.0.1:3990/v1
+Environment=TYPESAFE_BASE_URL=http://127.0.0.1:3990/typesafe
+ExecStart=/home/ruby/desinformationssystem/bin/dis vod-pipeline
+# a full session is ~35 min of Sonnet plus ~10 min of frame reading
+TimeoutStartSec=4h
+StandardOutput=journal
+StandardError=journal
