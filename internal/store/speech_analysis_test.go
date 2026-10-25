@@ -136,3 +136,18 @@ func TestSnippet(t *testing.T) {
 		t.Fatalf("got %q", got)
 	}
 }
+
+func TestSQLLike(t *testing.T) {
+	for _, c := range []struct {
+		s, p string
+		want bool
+	}{
+		{"14.1", "14.%", true}, {"14", "14.%", false}, {"14.1", "14", false}, {"top14.1", "TOP14.%", true},
+		{"14x1", "14_1", true}, {"Ä.1", "ä.%", false}, {"a.b.c", "%.c", true}, {"abc", "a%c%", true},
+		{"", "%", true}, {"", "_", false}, {"ü", "_", true},
+	} {
+		if got := sqlLike(c.s, c.p); got != c.want {
+			t.Errorf("%q LIKE %q = %v", c.s, c.p, got)
+		}
+	}
+}
