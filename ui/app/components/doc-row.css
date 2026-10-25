@@ -22,6 +22,12 @@
   overflow-wrap: anywhere;
 }
 
+.dis-docrow-go {
+  align-self: center;
+  margin-inline-start: auto;
+  color: var(--canon-muted-foreground);
+}
+
 @media (hover: hover) {
   .dis-docrow:hover {
     background: var(--canon-muted);

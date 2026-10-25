@@ -14,6 +14,7 @@ import { search, type SearchResult } from 'ui/api';
 import Icon from 'ui/components/icon';
 import { InlineLoading, LoadError, LoadState } from 'ui/components/loading';
 import Tag from 'ui/components/tag';
+import rough from 'ui/modifiers/rough';
 import shortcut from 'ui/modifiers/shortcut';
 import Load from 'ui/utils/load';
 import type { ApplicationModel } from 'ui/routes/application';
@@ -118,6 +119,7 @@ const STEPS = 4;
 const LATEST = 5;
 const dateDe = (iso?: string) =>
   iso ? iso.split('-').reverse().join('.') : '';
+const first = (i: number) => i === 0;
 const rowId = (name: string) => `dis-district-${name.replace(/\W+/g, '-')}`;
 
 // ∑CG: error row when the district document counts did not load
@@ -279,7 +281,10 @@ export default class KarteTemplate extends Component<Signature> {
               {{/each}}
             </svg>
             <div class="dis-legend" aria-hidden="true">
-              <span class="dis-legend-title">Dokumente</span>
+              <span class="dis-legend-title"><Icon
+                  @name="docs-files"
+                  @size={{14}}
+                />Dokumente</span>
               {{#each this.legend as |l|}}
                 <span class="dis-legend-item">
                   <span class="dis-swatch dis-step-{{l.step}}"></span>
@@ -296,7 +301,16 @@ export default class KarteTemplate extends Component<Signature> {
               >
                 <CanonRows @framed={{true}}>
                   <div class="dis-district-head">
-                    <h2 class="dis-district-title">{{this.selected}}</h2>
+                    <Icon @name="docs-district" @size={{20}} />
+                    <h2
+                      class="dis-district-title"
+                      {{rough
+                        "underline"
+                        color="--dis-highlight"
+                        padding=2
+                        strokeWidth=2
+                      }}
+                    >{{this.selected}}</h2>
                     <span class="dis-district-count">{{num
                         (this.count this.selected)
                       }}
@@ -337,7 +351,7 @@ export default class KarteTemplate extends Component<Signature> {
           </div>
 
           <ul class="dis-districts" aria-label="Stadtteile">
-            {{#each this.rows key="name" as |row|}}
+            {{#each this.rows key="name" as |row i|}}
               <li>
                 <button
                   type="button"
@@ -356,7 +370,15 @@ export default class KarteTemplate extends Component<Signature> {
                       class="dis-district-bar dis-step-{{this.step row.name}}"
                       style={{row.bar}}
                     ></span></span>
-                  <span class="dis-district-n">{{num row.count}}</span>
+                  <span class="dis-district-n"><span
+                      {{rough
+                        "circle"
+                        color="--dis-yes"
+                        padding=4
+                        show=(first i)
+                        delay=600
+                      }}
+                    >{{num row.count}}</span></span>
                 </button>
               </li>
             {{/each}}

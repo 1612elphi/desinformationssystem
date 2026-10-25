@@ -1,6 +1,7 @@
 import type { TOC } from '@ember/component/template-only';
 import { on } from '@ember/modifier';
 import type { Doc } from 'ui/api';
+import Icon from 'ui/components/icon';
 import { SubmitterChips } from 'ui/components/party-chip';
 import Tag from 'ui/components/tag';
 import './doc-row.css';
@@ -15,6 +16,7 @@ const DocRow: TOC<{
     {{#if @submitters}}
       <SubmitterChips @codes={{@doc.submitters}} />
     {{/if}}
+    <Icon class="dis-docrow-go" @name="chevron-right" />
   </button>
 </template>;
 

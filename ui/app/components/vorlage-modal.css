@@ -4,6 +4,9 @@
 }
 
 .dis-vorlage-heading {
+  display: flex;
+  gap: 6px;
+  align-items: center;
   margin: 0 0 8px;
   font-size: var(--canon-text-callout);
   font-weight: var(--canon-weight-semibold);
@@ -35,6 +38,10 @@
   flex-wrap: wrap;
   gap: 4px;
   font-variant-numeric: tabular-nums;
+}
+
+.dis-vorlage-note .dis-icon {
+  margin-inline-end: 6px;
 }
 
 .dis-vorlage-note {

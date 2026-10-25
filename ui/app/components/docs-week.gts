@@ -7,8 +7,10 @@ import CanonEmptyRow from 'delphicanon/components/canon-empty-row';
 import type { Meeting, Stats } from 'ui/api';
 import DocsGlyph from 'ui/components/docs-glyph';
 import { LoadState } from 'ui/components/loading';
+import Icon from 'ui/components/icon';
 import Tag from 'ui/components/tag';
 import VoteBar from 'ui/components/vote-bar';
+import rough from 'ui/modifiers/rough';
 import type NavService from 'ui/services/nav';
 import {
   getContested,
@@ -66,6 +68,8 @@ const docTitle = (d: { agenda_title?: string; label: string }) =>
 const passed = (v: ContestedVote) => (v.ja ?? 0) > (v.nein ?? 0);
 const close = (v: ContestedVote) => Math.abs((v.ja ?? 0) - (v.nein ?? 0)) <= 3;
 const shortDate = (iso?: string) => (iso ? dayMonth.format(parse(iso)) : '');
+const first = (i: number) => i === 0;
+const stagger = (i: number) => 1200 + i * 200;
 
 interface Day {
   iso: string;
@@ -137,14 +141,23 @@ export default class DocsWeek extends Component<Signature> {
   <template>
     <section class="dis-week" aria-labelledby="dis-week-title">
       <header class="dis-week-head">
-        <h2 id="dis-week-title">Diese Woche</h2>
+        <h2 id="dis-week-title"><Icon @name="docs-day" @size={{20}} />Diese
+          Woche</h2>
         <span class="dis-week-kw">{{this.kw}}</span>
         {{#if this.stats.length}}
           <dl class="dis-week-stats">
-            {{#each this.stats as |s|}}
+            {{#each this.stats as |s i|}}
               <div>
                 <dt>{{s.label}}</dt>
-                <dd>{{s.value}}</dd>
+                <dd
+                  {{rough
+                    "underline"
+                    color="--dis-highlight"
+                    padding=1
+                    show=(first i)
+                    delay=300
+                  }}
+                >{{s.value}}</dd>
               </div>
             {{/each}}
           </dl>
@@ -164,7 +177,10 @@ export default class DocsWeek extends Component<Signature> {
               <span class="dis-day-head" title={{d.label}}>
                 <span class="dis-day-wd">{{d.weekday}}</span>
                 <span class="dis-day-date">{{d.date}}</span>
-                {{#if d.today}}<span class="dis-day-today">Heute</span>{{/if}}
+                {{#if d.today}}<span
+                    class="dis-day-today"
+                    {{rough "circle" padding=3 delay=600}}
+                  >Heute</span>{{/if}}
               </span>
               {{#each d.meetings key="id" as |m|}}
                 <button
@@ -175,9 +191,21 @@ export default class DocsWeek extends Component<Signature> {
                   {{#if m.live}}
                     <span class="dis-day-live" aria-label="Live"></span>
                   {{/if}}
-                  <span class="dis-day-body">{{m.body_name}}</span>
+                  <span
+                    class="dis-day-body"
+                    {{rough
+                      "circle"
+                      color="--canon-destructive"
+                      padding=3
+                      show=m.live
+                      delay=900
+                    }}
+                  >{{m.body_name}}</span>
                   {{#if m.time}}
-                    <span class="dis-day-time">{{startTime m.time}}</span>
+                    <span class="dis-day-time"><Icon
+                        @name="time"
+                        @size={{12}}
+                      />{{startTime m.time}}</span>
                   {{/if}}
                 </button>
               {{/each}}
@@ -187,7 +215,7 @@ export default class DocsWeek extends Component<Signature> {
       </LoadState>
 
       <div class="dis-week-section">
-        <h3>Neue Dokumente</h3>
+        <h3><Icon @name="docs-new" @size={{14}} />Neue Dokumente</h3>
         <LoadState @load={{this.recent}}>
           {{#if this.recent.value.length}}
             <ul class="dis-week-strip">
@@ -224,13 +252,14 @@ export default class DocsWeek extends Component<Signature> {
 
       <div class="dis-week-section">
         <h3>
+          <Icon @name="docs-vote" @size={{14}} />
           Strittig
           <span class="dis-week-sub">{{this.votesMeeting}}</span>
         </h3>
         <LoadState @load={{this.votes}}>
           {{#if this.votes.value.votes.length}}
             <ul class="dis-week-votes">
-              {{#each this.votes.value.votes key="id" as |v|}}
+              {{#each this.votes.value.votes key="id" as |v i|}}
                 <li>
                   <button
                     type="button"
@@ -241,11 +270,20 @@ export default class DocsWeek extends Component<Signature> {
                       <span class="dis-wvote-top">{{v.top_label}}</span>
                       {{#if (close v)}}<span
                           class="dis-wvote-close"
+                          {{rough
+                            "box"
+                            color="--dis-highlight"
+                            padding=3
+                            delay=(stagger i)
+                          }}
                         >Knapp</span>{{/if}}
                       <span
                         class="dis-wvote-result
                           {{if (passed v) 'is-passed' 'is-failed'}}"
-                      >{{if (passed v) "Angenommen" "Abgelehnt"}}</span>
+                      ><Icon
+                          @name={{if (passed v) "docs-passed" "docs-failed"}}
+                          @size={{14}}
+                        />{{if (passed v) "Angenommen" "Abgelehnt"}}</span>
                     </span>
                     <span class="dis-wvote-title">{{if
                         v.title

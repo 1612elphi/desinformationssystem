@@ -93,6 +93,9 @@
 }
 
 .dis-legend-title {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
   color: var(--canon-muted-foreground);
   font-weight: var(--canon-weight-semibold);
 }
