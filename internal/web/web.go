@@ -142,6 +142,8 @@ func (s *Server) Handler() http.Handler {
 	})
 	h("GET /api/committees", func(w http.ResponseWriter, r *http.Request) (any, error) { return s.Store.ListCommittees() })
 	h("GET /api/meetings", s.meetings)
+	h("GET /api/votes", s.votes)
+	h("GET /api/speeches/search", s.speechSearch)
 	h("GET /api/meetings.ics", s.ics)
 	h("GET /api/meeting/{id}", func(w http.ResponseWriter, r *http.Request) (any, error) {
 		return found(s.Store.GetMeeting(r.PathValue("id")))
@@ -238,7 +240,7 @@ func (s *Server) meetings(w http.ResponseWriter, r *http.Request) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	f := store.MeetingFilter{Committee: q.Get("committee"), DateFrom: q.Get("from"), DateTo: q.Get("to")}
+	f := store.MeetingFilter{Committee: q.Get("committee"), DateFrom: q.Get("from"), DateTo: q.Get("to"), Query: q.Get("q")}
 	order := q.Get("order")
 	if truthy(q.Get("upcoming")) {
 		if f.DateFrom == "" {
@@ -254,6 +256,44 @@ func (s *Server) meetings(w http.ResponseWriter, r *http.Request) (any, error) {
 	}
 	w.Header().Set("X-Total-Count", strconv.FormatInt(n, 10))
 	return s.Store.ListMeetings(f, strings.EqualFold(order, "asc"), limit, offset)
+}
+
+// page reads limit and offset; an over-cap limit is clamped as the MCP tools
+// clamp it, a non-integer or a limit below 1 is a 422.
+func page(r *http.Request, def, most int) (limit, offset int, err error) {
+	if limit, err = intParam(r, "limit", def, 1, 1<<31-1); err != nil {
+		return 0, 0, err
+	}
+	offset, err = intParam(r, "offset", 0, 0, 1<<31-1)
+	return min(limit, most), offset, err
+}
+
+// votes is the MCP search_votes tool over HTTP.
+func (s *Server) votes(w http.ResponseWriter, r *http.Request) (any, error) {
+	limit, offset, err := page(r, 50, 200)
+	if err != nil {
+		return nil, err
+	}
+	q := r.URL.Query()
+	return s.Store.SearchVotes(store.VoteSearch{
+		Query: q.Get("q"), Committee: q.Get("committee"), DateFrom: q.Get("from"),
+		DateTo: q.Get("to"), Member: q.Get("member"), IncludeMembers: truthy(q.Get("include_members")),
+		Limit: limit, Offset: offset,
+	})
+}
+
+// speechSearch is the MCP search_speeches tool over HTTP.
+func (s *Server) speechSearch(w http.ResponseWriter, r *http.Request) (any, error) {
+	limit, offset, err := page(r, 20, 100)
+	if err != nil {
+		return nil, err
+	}
+	q := r.URL.Query()
+	return s.Store.SearchSpeeches(store.SpeechSearch{
+		Query: q.Get("q"), Speaker: q.Get("speaker"), Party: q.Get("party"),
+		Meeting: q.Get("meeting"), DateFrom: q.Get("from"), DateTo: q.Get("to"),
+		Limit: limit, Offset: offset,
+	})
 }
 
 func (s *Server) refresh(w http.ResponseWriter, r *http.Request) (any, error) {

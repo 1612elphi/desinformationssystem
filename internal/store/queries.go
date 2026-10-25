@@ -170,6 +170,14 @@ func (s *Store) ListCommittees() ([]Row, error) {
 
 type MeetingFilter struct {
 	Committee, DateFrom, DateTo string
+	// Query is a substring of title or body_name, compared folded.
+	Query string
+}
+
+// foldSQL is fold for a column; SQLite's lower() only folds ASCII.
+func foldSQL(col string) string {
+	return "replace(replace(replace(replace(lower(COALESCE(" + col +
+		",'')),'Ä','ä'),'Ö','ö'),'Ü','ü'),'ß','ss')"
 }
 
 func (f MeetingFilter) where() *where {
@@ -182,6 +190,10 @@ func (f MeetingFilter) where() *where {
 	}
 	if f.DateTo != "" {
 		w.add("date <= ?", f.DateTo)
+	}
+	if f.Query != "" {
+		q := fold(f.Query)
+		w.add("(instr("+foldSQL("title")+", ?) > 0 OR instr("+foldSQL("body_name")+", ?) > 0)", q, q)
 	}
 	return w
 }

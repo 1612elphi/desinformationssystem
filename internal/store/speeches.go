@@ -164,8 +164,8 @@ func (s *Store) SpeechCounts(meetingID string) (map[string]int, error) {
 }
 
 type SpeechSearch struct {
-	Query, Speaker, Party, DateFrom, DateTo string
-	Limit, Offset                           int
+	Query, Speaker, Party, DateFrom, DateTo, Meeting string
+	Limit, Offset                                    int
 }
 
 // SearchSpeeches matches Query as a case-insensitive substring of the
@@ -188,6 +188,9 @@ func (s *Store) SearchSpeeches(p SpeechSearch) (Row, error) {
 	}
 	if p.DateTo != "" {
 		w.add("m.date <= ?", p.DateTo)
+	}
+	if p.Meeting != "" {
+		w.add("s.meeting_id = ?", p.Meeting)
 	}
 	total, err := s.count("SELECT COUNT(*) FROM speeches s JOIN meetings m ON m.id = s.meeting_id"+w.sql(), w.args...)
 	if err != nil {
