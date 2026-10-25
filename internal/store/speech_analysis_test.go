@@ -1,9 +1,46 @@
 package store
 
 import (
+	"path/filepath"
 	"reflect"
 	"testing"
 )
+
+func TestSpeechCounts(t *testing.T) {
+	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	if err := s.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.DB.Exec("INSERT INTO meetings(id) VALUES('termin-1')"); err != nil {
+		t.Fatal(err)
+	}
+	for i, r := range [][2]any{{nil, "A"}, {nil, "A"}, {"top1", "A"}, {"top1", "A"}, {"top1", "B"}, {"top1", ""},
+		{"top1", ""}, {"top1", nil}, {"top1", nil}, {"top2", "B"}, {"top1", "B"}, {nil, "A"}} {
+		if _, err := s.DB.Exec(`INSERT INTO speeches(id, meeting_id, agenda_anchor, speaker, start_s, text)
+			VALUES(?, 'termin-1', ?, ?, ?, 'x')`, i, r[0], r[1], i); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, err := s.SpeechCounts("termin-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	sp, err := s.MeetingSpeeches("termin-1", "", "", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]int{}
+	for _, r := range sp {
+		want[str(r["agenda_anchor"])]++
+	}
+	if !reflect.DeepEqual(got, want) || got["top1"] != 7 {
+		t.Fatalf("got %v, want %v", got, want)
+	}
+}
 
 func TestMentions(t *testing.T) {
 	members := []Row{

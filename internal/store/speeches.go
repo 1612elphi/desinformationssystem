@@ -149,16 +149,21 @@ func (s *Store) MeetingSpeeches(meetingID, anchor, speaker string, raw bool) ([]
 	return out, nil
 }
 
-// SpeechCounts is the number of (merged) speeches per agenda anchor; "" holds
-// the opening and closing remarks.
+// SpeechCounts is the number of speeches per agenda anchor, merged as
+// MeetingSpeeches merges them; "" holds the opening and closing remarks.
 func (s *Store) SpeechCounts(meetingID string) (map[string]int, error) {
-	sp, err := s.MeetingSpeeches(meetingID, "", "", false)
+	rows, err := s.rows("SELECT agenda_anchor, speaker FROM speeches WHERE meeting_id = ? ORDER BY start_s", meetingID)
 	if err != nil {
 		return nil, err
 	}
 	out := map[string]int{}
-	for _, r := range sp {
-		out[str(r["agenda_anchor"])]++
+	var prev Row
+	for _, d := range rows {
+		if prev != nil && str(d["speaker"]) != "" && prev["speaker"] == d["speaker"] && prev["agenda_anchor"] == d["agenda_anchor"] {
+			continue
+		}
+		prev = d
+		out[str(d["agenda_anchor"])]++
 	}
 	return out, nil
 }
