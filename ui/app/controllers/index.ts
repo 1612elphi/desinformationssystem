@@ -1,21 +1,21 @@
 import Controller from '@ember/controller';
 import { tracked, cached } from '@glimmer/tracking';
 import { search, type SearchResult } from 'ui/api';
-import type { Column } from 'ui/components/column-picker';
+import type { Column } from 'ui/components/data-table';
 import Load from 'ui/utils/load';
 import { PUBLIC_OPTS, SUBMITTERS } from 'ui/utils/meta';
 
 export const PAGE_SIZE = 25;
 
 export const ALL_COLUMNS: Column[] = [
-  { key: 'date', label: 'Datum', cls: 'dis-c-date' },
-  { key: 'gremium', label: 'Gremium', cls: 'dis-c-gremium' },
-  { key: 'top', label: 'TOP', cls: 'dis-c-top' },
-  { key: 'sub', label: 'Einbringer', cls: 'dis-c-sub' },
-  { key: 'typ', label: 'Typ', cls: 'dis-c-typ' },
-  { key: 'doc', label: 'Dokument', cls: 'dis-c-doc' },
-  { key: 'cat', label: 'Kategorie', cls: 'dis-c-cat' },
-  { key: 'stadtteil', label: 'Stadtteil', cls: 'dis-c-stadtteil' },
+  { key: 'date', label: 'Datum', width: '6.5rem' },
+  { key: 'gremium', label: 'Gremium', width: '10%' },
+  { key: 'top', label: 'TOP', width: '14%' },
+  { key: 'sub', label: 'Einbringer', width: '6.5rem' },
+  { key: 'typ', label: 'Typ', width: '10%' },
+  { key: 'doc', label: 'Dokument' },
+  { key: 'cat', label: 'Kategorie', width: '9%' },
+  { key: 'stadtteil', label: 'Stadtteil', width: '8%' },
 ];
 const COL_KEYS = ALL_COLUMNS.map((c) => c.key);
 const COLS_STORAGE = 'dis-cols';
@@ -56,6 +56,7 @@ export default class IndexController extends Controller {
     'topic',
     'district',
     'street',
+    'page',
   ];
 
   @tracked q = '';
@@ -98,6 +99,7 @@ export default class IndexController extends Controller {
     this.#qTimer = setTimeout(() => {
       this.q = v;
       this.qDraft = null;
+      this.page = 1;
     }, 350);
   };
 
@@ -105,10 +107,12 @@ export default class IndexController extends Controller {
     clearTimeout(this.#qTimer);
     this.qDraft = null;
     this.q = '';
+    this.page = 1;
   };
 
   setFilter = (key: FilterKey, value: string) => {
     this[key] = value;
+    this.page = 1;
   };
 
   resetAll = () => {
@@ -143,15 +147,17 @@ export default class IndexController extends Controller {
     return JSON.stringify(this.params);
   }
 
-  // Changing any filter starts again at page 1.
-  @tracked pageOf = { key: '', page: 1 };
+  @tracked page = 1;
+  // filters the URL page belongs to; nav.filter() changes filters without resetting the page
+  @tracked pageKey = '';
 
-  get page() {
-    return this.pageOf.key === this.filterKey ? this.pageOf.page : 1;
+  get currentPage() {
+    return this.pageKey === this.filterKey ? this.page : 1;
   }
 
   setPage = (page: number) => {
-    this.pageOf = { key: this.filterKey, page };
+    this.page = page;
+    this.pageKey = this.filterKey;
   };
 
   #lastSearch?: Load<SearchResult>;
@@ -161,7 +167,7 @@ export default class IndexController extends Controller {
     const req = search({
       ...this.params,
       limit: PAGE_SIZE,
-      offset: (this.page - 1) * PAGE_SIZE,
+      offset: (this.currentPage - 1) * PAGE_SIZE,
     });
     // untracked handle on the previous request, read by the new Load only
     // eslint-disable-next-line ember/no-side-effects
