@@ -122,6 +122,10 @@ func ParseMembers(page string) ([]Member, error) {
 			party, role := "", info
 			if p, r, ok := strings.Cut(info, ","); ok {
 				party, role = pyStrip(p), pyStrip(r)
+			} else if f := strings.FieldsFunc(info, isPySpace); len(f) > 0 && len(scanFractions(f[0])) > 0 {
+				// "FDP/FW Stadträtin Ordentliches Mitglied": the RIS omits the comma for some
+				rest := strings.TrimLeftFunc(info, isPySpace)[len(f[0]):]
+				party, role = f[0], strings.TrimLeftFunc(rest, isPySpace)
 			}
 			since := ""
 			for _, c := range cells[min(2, len(cells)):] {

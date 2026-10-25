@@ -270,6 +270,9 @@ func (s *Store) GetMeeting(id string) (Row, error) {
 		return nil, err
 	}
 	m["votes"] = votes
+	if m["speech_counts"], err = s.SpeechCounts(id); err != nil {
+		return nil, err
+	}
 	return m, nil
 }
 
@@ -306,10 +309,17 @@ func (s *Store) MeetingVotes(meetingID string) ([]Row, error) {
 			members, members_ok, source, image_url FROM votes
 		WHERE meeting_id = ?
 		ORDER BY `+topOrder("top_label")+`, top_label`, meetingID)
-	for _, r := range rows {
-		decodeJSON(r, "members")
+	if err != nil {
+		return nil, err
 	}
-	return rows, err
+	roster, err := s.rosterFor(meetingID)
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range rows {
+		decodeRollCall(r, roster)
+	}
+	return rows, nil
 }
 
 type VoteSearch struct {

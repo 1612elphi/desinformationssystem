@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"runtime/debug"
@@ -256,7 +257,8 @@ meeting_id is the RIS slug, e.g. 'termin-10526'.`,
 	}
 	add(s, "search_votes", `Search parsed vote tallies (Abstimmungsergebnisse) across all meetings,
 newest first. Tallies come from the live ticker and the official result PDFs
-('source': 'live' | 'pdf'; pdf is authoritative).
+('source': 'live' | 'vod' | 'pdf'; pdf is authoritative, vod is read off the
+council's YouTube recording).
 
 Args:
     committee: committee name or id (Gremium) to filter by.
@@ -291,6 +293,87 @@ the full per-member roll-call. meeting_id is the RIS slug, e.g. 'termin-10526'.`
 		func(ctx context.Context, a meetingArgs) (*mcp.CallToolResult, any, error) {
 			v, err := st.MeetingVotes(a.MeetingID)
 			return text(store.Row{"meeting_id": a.MeetingID, "votes": v}, err)
+		})
+
+	type speechesArgs struct {
+		MeetingID    string `json:"meeting_id"`
+		AgendaAnchor string `json:"agenda_anchor"`
+		Speaker      string `json:"speaker"`
+		IncludeRaw   bool   `json:"include_raw"`
+	}
+	add(s, "get_speeches", `Debate transcript of one meeting, transcribed from the council's YouTube recording
+and cleaned for reading (punctuation, fillers removed, names corrected; wording kept).
+Pure chairing by the Oberbürgermeister is left out; his substantive answers are kept.
+
+Args:
+    meeting_id: RIS slug, e.g. 'termin-10574'.
+    agenda_anchor: only this agenda item, e.g. 'top6' or 'top14.1'.
+    speaker: substring of the speaker's name as shown on the council display
+        (surname, e.g. 'Noé', 'Schütz, K.').
+    include_raw: also return 'text_raw', the unedited whisper transcript.
+Returns: {"speeches": [...]} in speaking order, each with speaker, party, agenda_anchor,
+start_s/end_s (seconds into the video) and 'url' pointing at that moment on YouTube.
+Empty if the meeting was not streamed or not yet transcribed.`,
+		schema("get_speeches", required("meeting_id", "string"), opt("agenda_anchor", "string"),
+			opt("speaker", "string"), def("include_raw", "boolean", false)),
+		func(ctx context.Context, a speechesArgs) (*mcp.CallToolResult, any, error) {
+			rows, err := st.MeetingSpeeches(a.MeetingID, a.AgendaAnchor, a.Speaker, a.IncludeRaw)
+			for _, r := range rows {
+				if v, _ := r["video_id"].(string); v != "" {
+					start, _ := r["start_s"].(float64)
+					r["url"] = fmt.Sprintf("https://www.youtube.com/watch?v=%s&t=%ds", v, int64(start))
+				}
+			}
+			return text(store.Row{"meeting_id": a.MeetingID, "speeches": rows}, err)
+		})
+
+	type speechSearchArgs struct {
+		Query    string `json:"query"`
+		Speaker  string `json:"speaker"`
+		Party    string `json:"party"`
+		DateFrom string `json:"date_from"`
+		DateTo   string `json:"date_to"`
+		Limit    int    `json:"limit"`
+		Offset   int    `json:"offset"`
+	}
+	add(s, "search_speeches", `Search what was said in council debates (transcribed Gemeinderat recordings).
+
+Args:
+    query: case-insensitive substring of the speech text (German), e.g. 'Radweg'.
+    speaker: substring of the speaker's name.
+    party: party as on the roster ('GRÜNE', 'CDU', 'SPD', ...) or its 3-letter code
+        (B90, CDU, SPD, AFD, FDP, FWV, VOL, LIN, KAL, PAR, HEI).
+    date_from / date_to: ISO dates bounding the meeting date.
+    limit / offset: pagination (limit <= 100).
+Returns: {"total": int, "results": [...]} with meeting, TOP, speaker, party, a text
+snippet around the match and the word count. Use get_speeches for the full text.`,
+		schema("search_speeches", opt("query", "string"), opt("speaker", "string"),
+			opt("party", "string"), opt("date_from", "string"), opt("date_to", "string"),
+			def("limit", "integer", 20), def("offset", "integer", 0)),
+		func(ctx context.Context, a speechSearchArgs) (*mcp.CallToolResult, any, error) {
+			return text(st.SearchSpeeches(store.SpeechSearch{
+				Query: a.Query, Speaker: a.Speaker, Party: a.Party,
+				DateFrom: a.DateFrom, DateTo: a.DateTo,
+				Limit: clamp(a.Limit, 100), Offset: max(0, a.Offset),
+			}))
+		})
+
+	type speechAnalyticsArgs struct {
+		MeetingID string `json:"meeting_id"`
+	}
+	add(s, "speech_analytics", `Aggregate analysis of transcribed council debates, over all transcribed meetings or one.
+
+Returns: totals; per party (code, OB for the chair) seat share vs speaking-time share,
+words, speeches, mean sentiment (-1..1), tone mix (kooperativ/sachlich/kritisch/polemisch),
+German Flesch readability and mean sentence length; top speakers by time; 'said_voted':
+each speaker's stance on a TOP (dafuer/dagegen/gemischt/keine) against their roll-call
+vote, with a match flag; 'matrix': which party mentions which, and the mean attitude
+(-1 rejecting .. +1 agreeing); distinctive words per party (log-odds, Monroe et al. 2008)
+and overall frequencies; debate length per TOP next to its vote.
+Stance, tone, sentiment and attitude are estimates by the TypeSafe Jev model, not facts.`,
+		schema("speech_analytics", opt("meeting_id", "string")),
+		func(ctx context.Context, a speechAnalyticsArgs) (*mcp.CallToolResult, any, error) {
+			return text(st.SpeechAnalytics(a.MeetingID))
 		})
 
 	type recentArgs struct {

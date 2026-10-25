@@ -174,6 +174,8 @@ func TestDeriveSubmitters(t *testing.T) {
 		{"Beschlussvorlage", "", "Beschlussvorlage", []string{"SVK"}},
 		{"Anlage Volt", "", "Anlage", []string{"VOL"}},
 		{"Anlage", "", "Sonstiges", []string{}},
+		{"FÜR Ka Investitionsliste", "", "Anlage", []string{"FÜR"}},
+		{"Anlage für Karlsruhe", "", "Anlage", []string{}},
 	}
 	for _, c := range cases {
 		if got := DeriveSubmitters(c.label, c.text, c.docType); !reflect.DeepEqual(got, c.want) {
@@ -185,5 +187,18 @@ func TestDeriveSubmitters(t *testing.T) {
 func TestPyre(t *testing.T) {
 	if !pyre(`a\sb`).MatchString("a b") || !pyre(`a[:\s]b`).MatchString("a b") || pyre(`a[^\s]b`).MatchString("a b") {
 		t.Error("pyre does not widen \\s to Unicode whitespace")
+	}
+}
+
+func TestParseMembersWithoutComma(t *testing.T) {
+	page := `<table class="contenttable"><tr><td><a href="people-1">Anna Beispiel</a></td>
+		<td>FDP/FW Stadträtin Ordentliches Mitglied</td></tr></table>`
+	got, err := ParseMembers(page)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []Member{{"1", "Anna Beispiel", "FDP/FW", "FDP", "Stadträtin Ordentliches Mitglied", ""}}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %+v, want %+v", got, want)
 	}
 }

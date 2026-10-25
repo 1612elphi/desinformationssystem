@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS files (
     topics        TEXT,                    -- JSON array
     entities      TEXT,                    -- JSON object {people,orgs,locations}
     submitters    TEXT,                    -- JSON array of submitter codes (SVK/CDU/B90/…)
-    geo_status    TEXT DEFAULT 'pending',  -- pending | ok | error  (geo street/district tagging)
-    district      TEXT,                    -- primary Karlsruhe Stadtteil (geo), NULL = city-wide
+    geo_status    TEXT DEFAULT 'pending',  -- pending | ok | error  (geo.py street/district tagging)
+    district      TEXT,                    -- primary Karlsruhe Stadtteil (geo.py), NULL = city-wide
     district_conf REAL,                    -- confidence of the district classification
     downloaded_at TEXT,
     enriched_at   TEXT,
@@ -108,6 +108,33 @@ CREATE TABLE IF NOT EXISTS votes (
     parsed_at     TEXT DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_votes_meeting ON votes(meeting_id);
+
+-- Debate transcripts from council VODs (vod_cleanup.py): one row per speech, whisper text
+-- plus the Sonnet readability pass. Speaker comes from the XPanel's green tile border.
+CREATE TABLE IF NOT EXISTS speeches (
+    id            TEXT PRIMARY KEY,        -- meeting_id:video_id:start second
+    meeting_id    TEXT REFERENCES meetings(id),
+    agenda_anchor TEXT,                     -- topN; NULL for opening/closing remarks
+    top_label     TEXT,                     -- label as shown on the panel
+    speaker       TEXT,                     -- name as on the seat map; NULL if unknown
+    party         TEXT,
+    video_id      TEXT,
+    start_s       REAL,                     -- offset into the VOD
+    end_s         REAL,
+    text_raw      TEXT,                     -- whisper output
+    text          TEXT,                     -- cleaned for reading
+    created_at    TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_speeches_meeting ON speeches(meeting_id, start_s);
+
+-- Jev's reading of each speech (speech_analysis.judge): {question: {choice: probability}}
+-- for stance, tone, sentiment and to_<party> attitude. Keyed by speeches.id.
+CREATE TABLE IF NOT EXISTS speech_judgements (
+    speech_id  TEXT PRIMARY KEY,
+    text_sha   TEXT,                        -- sha1 of the judged text; a re-cleaned speech is judged again
+    answers    TEXT,
+    judged_at  TEXT DEFAULT (datetime('now'))
+);
 
 -- Vote-PDF parse attempts, so permanently unreadable scans stop re-billing the
 -- vision model on every run (see scraper.parse_pending_votes).
@@ -145,7 +172,7 @@ CREATE TABLE IF NOT EXISTS file_vorlagen (
 CREATE INDEX IF NOT EXISTS idx_vorlagen_nr ON file_vorlagen(vorlage);
 
 -- Street/place mentions matched in a file's text and confirmed by the geo filter
--- (geo). name is the gazetteer street name; matching only, no geometry stored.
+-- (geo.py). name is the gazetteer street name; matching only, no geometry stored.
 CREATE TABLE IF NOT EXISTS file_streets (
     file_id  TEXT NOT NULL,
     name     TEXT NOT NULL,

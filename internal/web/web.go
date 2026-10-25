@@ -34,6 +34,14 @@ type Server struct {
 	analyticsMu   sync.Mutex
 	analytics     store.Row
 	analyticsTime time.Time
+
+	speechMu    sync.Mutex
+	speechCache map[string]cached
+}
+
+type cached struct {
+	at   time.Time
+	data store.Row
 }
 
 // httpError carries a status code and FastAPI-style detail.
@@ -138,6 +146,9 @@ func (s *Server) Handler() http.Handler {
 	h("GET /api/meeting/{id}", func(w http.ResponseWriter, r *http.Request) (any, error) {
 		return found(s.Store.GetMeeting(r.PathValue("id")))
 	})
+	h("GET /api/meeting/{id}/speeches", func(w http.ResponseWriter, r *http.Request) (any, error) {
+		return s.Store.MeetingSpeeches(r.PathValue("id"), "", "", truthy(r.URL.Query().Get("raw")))
+	})
 	h("POST /api/meeting/{id}/refresh", s.refresh)
 	h("GET /api/committee/{id}", func(w http.ResponseWriter, r *http.Request) (any, error) {
 		return found(s.Store.GetCommittee(r.PathValue("id")))
@@ -176,6 +187,7 @@ func (s *Server) Handler() http.Handler {
 		return found(s.Store.VorlageChain(y + "/" + q))
 	})
 	h("GET /api/analytics", s.analyticsHandler)
+	h("GET /api/speeches/analytics", s.speechAnalytics)
 	h("GET /api/feed.xml", s.feed)
 	h("GET /api/file/{id}", s.file)
 	h("GET /api/file/{id}/version/{vid}", s.fileVersion)
@@ -286,6 +298,25 @@ func (s *Server) analyticsHandler(w http.ResponseWriter, r *http.Request) (any, 
 		s.analytics, s.analyticsTime = a, time.Now()
 	}
 	return s.analytics, nil
+}
+
+// speechAnalytics is the "Reden" tab, cached 10 min per meeting filter.
+func (s *Server) speechAnalytics(w http.ResponseWriter, r *http.Request) (any, error) {
+	key := r.URL.Query().Get("meeting")
+	s.speechMu.Lock()
+	defer s.speechMu.Unlock()
+	if hit, ok := s.speechCache[key]; ok && time.Since(hit.at) <= 10*time.Minute {
+		return hit.data, nil
+	}
+	a, err := s.Store.SpeechAnalytics(key)
+	if err != nil {
+		return nil, err
+	}
+	if s.speechCache == nil {
+		s.speechCache = map[string]cached{}
+	}
+	s.speechCache[key] = cached{time.Now(), a}
+	return a, nil
 }
 
 func (s *Server) file(w http.ResponseWriter, r *http.Request) (any, error) {
