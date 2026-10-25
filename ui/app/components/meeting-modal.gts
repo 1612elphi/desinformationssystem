@@ -29,9 +29,9 @@ import shortcut from 'ui/modifiers/shortcut';
 import type NavService from 'ui/services/nav';
 import { getPersonIds, getSpeeches, type Speech } from 'ui/utils/api-reden';
 import { getNeighbours } from 'ui/utils/api-sitzung';
-import { isLive } from 'ui/utils/calendar';
+import { isLive, parseIso } from 'ui/utils/calendar';
 import Load from 'ui/utils/load';
-import { RIS_BASE, num, publicLabel } from 'ui/utils/meta';
+import { RIS_BASE, eq, num, publicLabel } from 'ui/utils/meta';
 import './meeting-modal.css';
 
 const FILTERS = ['Alle', 'Abstimmungen', 'Strittig', 'Dokumente', 'Reden'];
@@ -59,10 +59,8 @@ const byNumber = (a?: string, b?: string) => {
   return 0;
 };
 
-const asDate = (d: string) => new Date(`${d}T12:00:00`);
 const shortDate = (d?: string) =>
-  d ? asDate(d).toLocaleDateString('de-DE', { dateStyle: 'medium' }) : '';
-const eq = (a: unknown, b: unknown) => a === b;
+  d ? parseIso(d).toLocaleDateString('de-DE', { dateStyle: 'medium' }) : '';
 
 interface Signature {
   Args: { id: string; onClose: () => void; pane?: PaneContext };
@@ -152,7 +150,7 @@ export default class MeetingModal extends Component<Signature> {
   get date() {
     const d = this.meeting?.date;
     if (!d) return undefined;
-    const t = asDate(d);
+    const t = parseIso(d);
     return {
       iso: d,
       weekday: t.toLocaleDateString('de-DE', { weekday: 'long' }),

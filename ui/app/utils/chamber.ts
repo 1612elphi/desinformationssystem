@@ -18,7 +18,6 @@ export interface DaisSeat {
   photo: boolean;
 }
 
-export const CHAMBER_ROWS = 6;
 export const CHAMBER_COLS = 10;
 
 export const CHAMBER: ChamberSeat[] = [

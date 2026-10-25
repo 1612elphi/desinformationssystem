@@ -6,7 +6,6 @@ import layers from 'lucide-static/icons/layers.svg?raw';
 import mic from 'lucide-static/icons/mic.svg?raw';
 import searchX from 'lucide-static/icons/search-x.svg?raw';
 import sliders from 'lucide-static/icons/sliders-horizontal.svg?raw';
-import textSearch from 'lucide-static/icons/text-search.svg?raw';
 import userRound from 'lucide-static/icons/user-round.svg?raw';
 import vote from 'lucide-static/icons/vote.svg?raw';
 
@@ -21,7 +20,6 @@ const suche: Record<string, string> = {
   'suche-more': arrowRight,
   'suche-none': searchX,
   'suche-filters': sliders,
-  'suche-open': textSearch,
 };
 
 export default suche;

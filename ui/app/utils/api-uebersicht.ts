@@ -1,6 +1,14 @@
-import { getAnalytics, getMeeting, getMeetings, type Meeting } from 'ui/api';
-import { contested, isoDay, type ContestedVote } from 'ui/utils/api-dokumente';
 import {
+  getAnalytics,
+  getJSON,
+  getMeeting,
+  getMeetings,
+  type Meeting,
+} from 'ui/api';
+import { contested, type ContestedVote } from 'ui/utils/api-dokumente';
+import { addDays, iso } from 'ui/utils/calendar';
+import {
+  getLastCouncil,
   getPersonIds,
   getSpeechAnalytics,
   type SpeechAnalytics,
@@ -24,20 +32,10 @@ export interface LastSession {
   speakers: Speaker[];
 }
 
-const tomorrow = (today: Date) =>
-  isoDay(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1));
-
 // wrapped so "no session" is a value; Load treats undefined as still loading
-export async function getLastSession(
-  today: Date,
-): Promise<{ last?: LastSession }> {
-  const { meetings } = await getMeetings({
-    committee: COUNCIL,
-    to: isoDay(today),
-    limit: 1,
-  });
-  if (!meetings[0]) return {};
-  const id = meetings[0].id;
+export async function getLastSession(): Promise<{ last?: LastSession }> {
+  const id = (await getLastCouncil())?.id;
+  if (!id) return {};
   const [meeting, talk, ids] = await Promise.all([
     getMeeting(id) as Promise<SpeechMeeting>,
     getSpeechAnalytics(id).catch(() => undefined),
@@ -72,7 +70,7 @@ export async function getNextSessions(today: Date): Promise<NextSessions> {
   const { meetings } = await getMeetings({
     committee: COUNCIL,
     upcoming: true,
-    from: tomorrow(today),
+    from: iso(addDays(today, 1)),
     limit: 4,
   });
   const [first, ...later] = meetings;
@@ -89,16 +87,12 @@ export interface Pulse {
 
 export const RECENT_CAP = 200;
 
-async function countRecent(since: string) {
-  const r = await fetch(`/api/recent?since=${since}&limit=${RECENT_CAP}`);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  return ((await r.json()) as unknown[]).length;
-}
+const countRecent = async (since: string) =>
+  (await getJSON<unknown[]>(`/api/recent?since=${since}&limit=${RECENT_CAP}`))
+    .length;
 
 export async function getPulse(today: Date): Promise<Pulse> {
-  const week = isoDay(
-    new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7),
-  );
+  const week = iso(addDays(today, -7));
   const [a, talk, newDocs] = await Promise.all([
     getAnalytics(),
     getSpeechAnalytics().catch(() => undefined),

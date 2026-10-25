@@ -1,4 +1,5 @@
-import type { Meeting, Vote } from 'ui/api';
+import { getJSON, getMeetings, type Meeting, type Vote } from 'ui/api';
+import { iso } from 'ui/utils/calendar';
 import type { PersonListItem } from 'ui/utils/api-shell';
 
 export interface SpeechHit {
@@ -49,11 +50,8 @@ const query = (p: Record<string, string | number>) =>
       .map(([k, v]) => [k, String(v)]),
   ).toString();
 
-async function hits<T>(path: string, p: Page): Promise<Hits<T>> {
-  const r = await fetch(`${path}?${query({ ...p })}`);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  return r.json() as Promise<Hits<T>>;
-}
+const hits = <T>(path: string, p: Page) =>
+  getJSON<Hits<T>>(`${path}?${query({ ...p })}`);
 
 export const searchSpeeches = (p: Page) =>
   hits<SpeechHit>('/api/speeches/search', p);
@@ -62,12 +60,11 @@ export const searchVotes = (p: Page) => hits<VoteHit>('/api/votes', p);
 
 // with no query, the newest past meetings rather than placeholder dates years ahead
 export async function searchMeetings(p: Page): Promise<Hits<Meeting>> {
-  const to = p.q ? '' : new Date().toISOString().slice(0, 10);
-  const r = await fetch(`/api/meetings?${query({ ...p, to })}`);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  const results = (await r.json()) as Meeting[];
-  const total = Number(r.headers.get('X-Total-Count') || results.length);
-  return { total, results };
+  const { meetings, total } = await getMeetings({
+    ...p,
+    to: p.q ? undefined : iso(new Date()),
+  });
+  return { total, results: meetings };
 }
 
 export const fold = (s: string) =>

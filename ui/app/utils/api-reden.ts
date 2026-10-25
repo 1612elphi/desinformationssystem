@@ -1,11 +1,6 @@
-import { getMeetings, type Meeting } from 'ui/api';
+import { getJSON, getMeetings, once, type Meeting } from 'ui/api';
 import { getPeople } from 'ui/utils/api-shell';
-
-async function getJSON<T>(url: string): Promise<T> {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  return r.json() as Promise<T>;
-}
+import { iso } from 'ui/utils/calendar';
 
 export interface Speech {
   id: string;
@@ -93,21 +88,25 @@ export interface SpeechAnalytics {
   tops: SpeechTop[];
 }
 
+const getAllSpeechAnalytics = once(() =>
+  getJSON<SpeechAnalytics>('/api/speeches/analytics'),
+);
+
 export const getSpeechAnalytics = (meeting?: string) =>
-  getJSON<SpeechAnalytics>(
-    `/api/speeches/analytics${meeting ? `?meeting=${encodeURIComponent(meeting)}` : ''}`,
-  );
+  meeting
+    ? getJSON<SpeechAnalytics>(
+        `/api/speeches/analytics?meeting=${encodeURIComponent(meeting)}`,
+      )
+    : getAllSpeechAnalytics();
 
-const today = () => new Date().toISOString().slice(0, 10);
-
-export async function getLastCouncil(): Promise<Meeting | undefined> {
+export const getLastCouncil = once(async (): Promise<Meeting | undefined> => {
   const r = await getMeetings({
     committee: 'Gemeinderat',
-    to: today(),
+    to: iso(new Date()),
     limit: 1,
   });
   return r.meetings[0];
-}
+});
 
 // speeches and analytics carry the speaker's name only; it matches /api/people exactly
 export async function getPersonIds(): Promise<Map<string, string>> {

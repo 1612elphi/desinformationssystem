@@ -6,14 +6,18 @@ import type { Member } from 'ui/api';
 import Avatar from 'ui/components/avatar';
 import Icon from 'ui/components/icon';
 import rough from 'ui/modifiers/rough';
-import { isChair, partyMark, roleTitle } from 'ui/utils/api-menschen';
-import { SUBMITTERS } from 'ui/utils/meta';
+import {
+  isChair,
+  partyMark,
+  partyName,
+  roleTitle,
+} from 'ui/utils/api-menschen';
 import './gremium-members.css';
 
 const markStyle = (m: Member) =>
   htmlSafe(`--dis-member-mark: ${partyMark(m.party_code)}`);
 const partyLabel = (m: Member) =>
-  m.party_code ? (SUBMITTERS[m.party_code]?.name ?? m.party_code) : m.party;
+  m.party_code ? partyName(m.party_code) : m.party;
 
 // Members as a dense grid of cards; each card opens the person sheet.
 const GremiumMembers: TOC<{

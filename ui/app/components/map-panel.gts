@@ -17,12 +17,10 @@ import {
   type Place,
   type PlaceDetail,
 } from 'ui/utils/api-karte';
+import { dateDe } from 'ui/utils/calendar';
 import Load from 'ui/utils/load';
 import { num } from 'ui/utils/meta';
 import './map-panel.css';
-
-const dateDe = (iso?: string) =>
-  iso ? iso.split('-').reverse().join('.') : '';
 
 interface Signature {
   Args: { place: Place; onClose: () => void };

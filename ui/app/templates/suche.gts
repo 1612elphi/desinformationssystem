@@ -43,15 +43,9 @@ import {
 import Tag from 'ui/components/tag';
 import rough from 'ui/modifiers/rough';
 import shortcut, { topDialog } from 'ui/modifiers/shortcut';
+import { partyName } from 'ui/utils/api-menschen';
 import type Load from 'ui/utils/load';
-import {
-  PUBLIC_OPTS,
-  SUBMITTERS,
-  SUBMITTER_ORDER,
-  eq,
-  num,
-  or,
-} from 'ui/utils/meta';
+import { PUBLIC_OPTS, SUBMITTER_ORDER, eq, num, or } from 'ui/utils/meta';
 import './suche.css';
 
 const topNum = (n?: string) => (n ? `TOP ${n}` : '');
@@ -177,7 +171,7 @@ export default class SucheTemplate extends Component<Signature> {
     );
     return [
       { id: '', label: 'Alle Einbringer' },
-      ...present.map((c) => ({ id: c, label: SUBMITTERS[c]?.name || c })),
+      ...present.map((c) => ({ id: c, label: partyName(c) })),
     ];
   }
 

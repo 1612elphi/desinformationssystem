@@ -11,6 +11,7 @@ import Tag from 'ui/components/tag';
 import VoteBar from 'ui/components/vote-bar';
 import rough from 'ui/modifiers/rough';
 import type NavService from 'ui/services/nav';
+import { partyName } from 'ui/utils/api-menschen';
 import {
   SEAT_ORDER,
   SUBMITTERS,
@@ -87,7 +88,7 @@ export function parties(seats: Seat[]): Party[] {
       return {
         code,
         mark: SUBMITTERS[code]?.mark,
-        name: SUBMITTERS[code]?.name ?? code,
+        name: partyName(code),
         n,
         line,
         dissent,

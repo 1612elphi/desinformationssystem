@@ -33,6 +33,7 @@ import {
   type SpeechTop,
 } from 'ui/utils/api-reden';
 import { partyMark } from 'ui/utils/api-menschen';
+import { dateDe } from 'ui/utils/calendar';
 import Load from 'ui/utils/load';
 import { eq, num, pct } from 'ui/utils/meta';
 import './reden.css';
@@ -81,7 +82,6 @@ const signed = (x?: number | null) =>
   x == null
     ? '—'
     : `${x > 0 ? '+' : x < 0 ? '−' : '±'}${Math.abs(x).toFixed(2)}`;
-const dateDe = (iso: string) => iso.split('-').reverse().join('.');
 const css = (s: string) => htmlSafe(s);
 const fill = (share: number, code: string) =>
   css(`inline-size: ${share * 100}%; background: ${partyMark(code)}`);

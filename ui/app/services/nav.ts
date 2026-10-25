@@ -30,7 +30,7 @@ export function parseStack(s: string): Pane[] {
 export const formatStack = (panes: Pane[]) =>
   panes.map((p) => `${p.kind}:${p.id}`).join(',');
 
-const NO_PANES = { stack: '', doc: '', meeting: '', person: '', vorlage: '' };
+const NO_PANES = { stack: '' };
 
 // Open panes and filters live in the query string, so every link is shareable.
 export default class NavService extends Service {

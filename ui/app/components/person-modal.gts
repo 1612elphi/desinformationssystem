@@ -33,12 +33,11 @@ import {
   type PersonDetail,
 } from 'ui/utils/api-menschen';
 import Load from 'ui/utils/load';
-import { SUBMITTERS, VOTE_LABEL, num, pct } from 'ui/utils/meta';
+import { SUBMITTERS, VOTE_LABEL, eq, num, pct } from 'ui/utils/meta';
 import './person-modal.css';
 
 const voteLabel = (v: string) => VOTE_LABEL[v] || v;
 const orDash = (s?: string) => s || '—';
-const eq = (a: string, b: string) => a === b;
 const voteClass = (v?: string) => (v ?? '').replace(/[^a-z]/g, '');
 const markStyle = (code?: string) =>
   htmlSafe(`--dis-person-mark: ${partyMark(code)}`);

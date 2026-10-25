@@ -1,4 +1,5 @@
 import {
+  getJSON,
   getLive,
   getMeetings,
   search,
@@ -8,6 +9,7 @@ import {
   type SearchResult,
   type Vote,
 } from 'ui/api';
+import { addDays, iso, weekStart } from 'ui/utils/calendar';
 
 export interface FacetCount {
   value: string;
@@ -34,10 +36,9 @@ export interface RecentDoc extends Doc {
 
 // The newest documents, one per agenda item: attachments arrive in batches.
 export async function getRecent(limit: number): Promise<RecentDoc[]> {
-  const r = await fetch(`/api/recent?limit=${limit * 4}`);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  const docs = await getJSON<RecentDoc[]>(`/api/recent?limit=${limit * 4}`);
   const seen = new Set<string>();
-  return ((await r.json()) as RecentDoc[])
+  return docs
     .filter((d) => {
       const k = `${d.body_name}|${d.agenda_title || d.label}`;
       return !seen.has(k) && !!seen.add(k);
@@ -45,24 +46,18 @@ export async function getRecent(limit: number): Promise<RecentDoc[]> {
     .slice(0, limit);
 }
 
-// Local calendar date as YYYY-MM-DD (sv-SE formats dates in ISO order).
-export const isoDay = (d: Date) => d.toLocaleDateString('sv-SE');
-
-const addDays = (d: Date, n: number) =>
-  new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-
 // Monday to Sunday of the week that holds `today`.
 export function weekDays(today: Date): string[] {
-  const monday = addDays(today, -((today.getDay() + 6) % 7));
-  return Array.from({ length: 7 }, (_, i) => isoDay(addDays(monday, i)));
+  const monday = weekStart(today);
+  return Array.from({ length: 7 }, (_, i) => iso(addDays(monday, i)));
 }
 
 const rtf = new Intl.RelativeTimeFormat('de-DE', { numeric: 'auto' });
 
 // "heute", "vor 3 Tagen", "in 2 Wochen" for a YYYY-MM-DD date.
-export function relDate(iso?: string, today = new Date()): string {
-  if (!iso) return '';
-  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+export function relDate(s?: string, today = new Date()): string {
+  if (!s) return '';
+  const [y, m, d] = s.slice(0, 10).split('-').map(Number);
   if (!y || !m || !d) return '';
   const start = new Date(
     today.getFullYear(),

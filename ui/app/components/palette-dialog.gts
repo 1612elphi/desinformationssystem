@@ -23,6 +23,7 @@ import Icon from 'ui/components/icon';
 import { LoadError } from 'ui/components/loading';
 import type NavService from 'ui/services/nav';
 import { getCommitteeList, getPeople } from 'ui/utils/api-shell';
+import { dateDe, iso } from 'ui/utils/calendar';
 import Load from 'ui/utils/load';
 import './palette-dialog.css';
 
@@ -74,8 +75,6 @@ const item = (s: Stored, group: string, more?: Partial<CanonCommandItem>) => ({
   icon: ICONS[kindOf(s.id)],
   ...more,
 });
-const dateDe = (iso?: string) =>
-  iso ? iso.split('-').reverse().join('.') : '';
 
 function readRecent(): Stored[] {
   try {
@@ -134,7 +133,7 @@ export default class PaletteDialog extends Component<Signature> {
   }
 
   load() {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = iso(new Date());
     return {
       people: new Load(getPeople()),
       committees: new Load(getCommitteeList()),
