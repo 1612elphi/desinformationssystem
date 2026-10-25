@@ -1,0 +1,32 @@
+.dis-glyph {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font-size: var(--canon-text-caption);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.dis-glyph--decision {
+  border-color: var(--canon-primary);
+  background: var(--canon-primary);
+  color: var(--canon-primary-foreground);
+}
+
+.dis-glyph--motion {
+  border: var(--canon-frame) solid var(--dis-yes);
+}
+
+.dis-glyph--record {
+  background: var(--canon-muted);
+}
+
+.dis-glyph--file {
+  color: var(--canon-muted-foreground);
+}

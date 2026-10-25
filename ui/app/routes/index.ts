@@ -8,6 +8,7 @@ export default class IndexRoute extends Route {
     q: replace,
     committee: replace,
     type: replace,
+    cat: replace,
     sub: replace,
     pub: replace,
     from: replace,

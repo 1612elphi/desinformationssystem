@@ -1,6 +1,6 @@
 import Controller from '@ember/controller';
 import { tracked, cached } from '@glimmer/tracking';
-import { search, type SearchResult } from 'ui/api';
+import { searchFaceted, type FacetedResult } from 'ui/utils/api-dokumente';
 import type { Column } from 'ui/components/data-table';
 import Load from 'ui/utils/load';
 import { PUBLIC_OPTS, SUBMITTERS } from 'ui/utils/meta';
@@ -19,10 +19,28 @@ export const ALL_COLUMNS: Column[] = [
 ];
 const COL_KEYS = ALL_COLUMNS.map((c) => c.key);
 const COLS_STORAGE = 'dis-cols';
+const VIEW_STORAGE = 'dis-docs-view';
+export const VIEWS = ['Liste', 'Tabelle'];
+
+function stored(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function store(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // storage blocked: the choice lasts for this page view only
+  }
+}
 
 function storedCols(): string[] {
   try {
-    const s: unknown = JSON.parse(localStorage.getItem(COLS_STORAGE) || 'null');
+    const s: unknown = JSON.parse(stored(COLS_STORAGE) || 'null');
     const valid = Array.isArray(s)
       ? s.filter((k): k is string => COL_KEYS.includes(k as string))
       : [];
@@ -36,6 +54,7 @@ function storedCols(): string[] {
 type FilterKey =
   | 'committee'
   | 'type'
+  | 'cat'
   | 'sub'
   | 'pub'
   | 'from'
@@ -49,6 +68,7 @@ export default class IndexController extends Controller {
     'q',
     'committee',
     'type',
+    'cat',
     'sub',
     'pub',
     'from',
@@ -62,6 +82,7 @@ export default class IndexController extends Controller {
   @tracked q = '';
   @tracked committee = '';
   @tracked type = '';
+  @tracked cat = '';
   @tracked sub = '';
   @tracked pub = 'all';
   @tracked from = '';
@@ -74,11 +95,21 @@ export default class IndexController extends Controller {
 
   setCols = (keys: string[]) => {
     this.cols = keys;
-    try {
-      localStorage.setItem(COLS_STORAGE, JSON.stringify(keys));
-    } catch {
-      // storage blocked: the choice lasts for this page view only
-    }
+    store(COLS_STORAGE, JSON.stringify(keys));
+  };
+
+  @tracked view = Math.max(0, VIEWS.indexOf(stored(VIEW_STORAGE)));
+
+  setView = (i: number) => {
+    this.view = i;
+    store(VIEW_STORAGE, VIEWS[i] ?? '');
+  };
+
+  // highlighted result row for j/k; -1 for none
+  @tracked cursor = -1;
+
+  setCursor = (i: number) => {
+    this.cursor = i;
   };
 
   get visibleColumns() {
@@ -100,6 +131,7 @@ export default class IndexController extends Controller {
       this.q = v;
       this.qDraft = null;
       this.page = 1;
+      this.cursor = -1;
     }, 350);
   };
 
@@ -108,17 +140,20 @@ export default class IndexController extends Controller {
     this.qDraft = null;
     this.q = '';
     this.page = 1;
+    this.cursor = -1;
   };
 
   setFilter = (key: FilterKey, value: string) => {
     this[key] = value;
     this.page = 1;
+    this.cursor = -1;
   };
 
   resetAll = () => {
     this.clearQ();
     this.committee = '';
     this.type = '';
+    this.cat = '';
     this.sub = '';
     this.pub = 'all';
     this.from = '';
@@ -133,6 +168,7 @@ export default class IndexController extends Controller {
       q: this.q,
       committee: this.committee,
       type: this.type,
+      category: this.cat,
       public: this.pub,
       from: this.from,
       to: this.to,
@@ -147,20 +183,26 @@ export default class IndexController extends Controller {
 
   setPage = (page: number) => {
     this.page = page;
+    this.cursor = -1;
   };
 
-  #lastSearch?: Load<SearchResult>;
+  #lastSearch?: Load<FacetedResult>;
 
   @cached
   get search() {
-    const req = search({
+    const req = searchFaceted({
       ...this.params,
+      facets: true,
       limit: PAGE_SIZE,
       offset: (this.page - 1) * PAGE_SIZE,
     });
     // untracked handle on the previous request, read by the new Load only
     // eslint-disable-next-line ember/no-side-effects
     return (this.#lastSearch = new Load(req, this.#lastSearch));
+  }
+
+  get facetCounts() {
+    return this.search.value?.facet_counts;
   }
 
   get results() {
@@ -187,6 +229,7 @@ export default class IndexController extends Controller {
       f.push({ k, label, clear });
     if (this.committee) add('committee', `Gremium: ${this.committee}`);
     if (this.type) add('type', `Typ: ${this.type}`);
+    if (this.cat) add('cat', `Kategorie: ${this.cat}`);
     if (this.sub)
       add('sub', `Einbringer: ${SUBMITTERS[this.sub]?.name || this.sub}`);
     if (this.pub !== 'all')
