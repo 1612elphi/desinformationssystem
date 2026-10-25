@@ -1,0 +1,215 @@
+.dis-map-view {
+  position: relative;
+  block-size: 100%;
+  min-block-size: 0;
+  background: var(--canon-background);
+}
+
+.dis-map-view > .dis-map-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.dis-map-canvas canvas:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: -2px;
+}
+
+/* Enter picks the place under this mark */
+.dis-map-cross {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  display: none;
+  inline-size: 24px;
+  block-size: 24px;
+  margin: -12px 0 0 -12px;
+  border: var(--canon-frame) solid var(--canon-foreground);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.dis-map-view:has(canvas:focus-visible) .dis-map-cross {
+  display: block;
+}
+
+.dis-map-zoom {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+  display: flex;
+  flex-direction: column;
+  border: var(--canon-frame) solid var(--canon-foreground);
+  background: var(--canon-card);
+}
+
+.dis-map-zoom > * + * {
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-map-error {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline: 8px;
+  max-inline-size: 32rem;
+  background: var(--canon-card);
+}
+
+.dis-map-view .maplibregl-ctrl-attrib {
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font-family: var(--canon-font);
+  font-size: var(--canon-text-caption);
+}
+
+.dis-map-view .maplibregl-ctrl-attrib a {
+  color: inherit;
+}
+
+.dis-map-probe {
+  display: none;
+}
+
+.dis-map-probe [data-k="bg"],
+.dis-map-probe [data-k="earth"] {
+  color: var(--canon-background);
+}
+
+.dis-map-probe [data-k="water"] {
+  color: color-mix(
+    in srgb,
+    var(--canon-muted-foreground) 30%,
+    var(--canon-background)
+  );
+}
+
+.dis-map-probe [data-k="park"] {
+  color: color-mix(in srgb, var(--canon-muted) 70%, var(--canon-background));
+}
+
+.dis-map-probe [data-k="building"] {
+  color: var(--canon-muted);
+}
+
+.dis-map-probe [data-k="road"] {
+  color: var(--canon-card);
+}
+
+.dis-map-probe [data-k="major"] {
+  color: color-mix(in srgb, var(--dis-yes) 15%, var(--canon-card));
+}
+
+.dis-map-probe [data-k="highway"] {
+  color: color-mix(in srgb, var(--dis-yes) 35%, var(--canon-card));
+}
+
+.dis-map-probe [data-k="rail"] {
+  color: color-mix(in srgb, var(--canon-primary) 30%, var(--canon-border));
+}
+
+.dis-map-probe [data-k="casing"] {
+  color: var(--canon-border);
+}
+
+.dis-map-probe [data-k="label"] {
+  color: var(--canon-muted-foreground);
+}
+
+.dis-map-probe [data-k="fg"],
+.dis-map-probe [data-k="ring"] {
+  color: var(--canon-foreground);
+}
+
+.dis-map-probe [data-k="heat-0"] {
+  color: color-mix(in srgb, var(--dis-yes) 0%, transparent);
+}
+
+.dis-map-probe [data-k="heat-1"] {
+  color: color-mix(in srgb, var(--dis-yes) 45%, transparent);
+}
+
+.dis-map-probe [data-k="heat-2"] {
+  color: var(--dis-yes);
+}
+
+.dis-map-probe [data-k="heat-3"] {
+  color: var(--canon-primary);
+}
+
+.dis-map-probe [data-k^="step-"],
+.dis-map-probe [data-k^="kind-"] {
+  color: var(--dis-fill);
+}
+
+.dis-place-swatch {
+  flex: none;
+  inline-size: 12px;
+  block-size: 12px;
+  border: var(--canon-hairline) solid var(--canon-foreground);
+  background: var(--dis-fill);
+}
+
+/* Stadtteil steps; a foreground boundary keeps 3:1 against the lightest */
+.dis-step-0 {
+  --dis-fill: var(--canon-muted);
+}
+
+.dis-step-1 {
+  --dis-fill: color-mix(in srgb, var(--canon-primary) 25%, var(--canon-card));
+}
+
+.dis-step-2 {
+  --dis-fill: color-mix(in srgb, var(--canon-primary) 50%, var(--canon-card));
+}
+
+.dis-step-3 {
+  --dis-fill: color-mix(in srgb, var(--canon-primary) 75%, var(--canon-card));
+}
+
+.dis-step-4 {
+  --dis-fill: var(--canon-primary);
+}
+
+.dis-kind-street {
+  --dis-fill: var(--canon-primary);
+}
+
+.dis-kind-square {
+  --dis-fill: color-mix(in srgb, var(--canon-primary) 50%, var(--canon-card));
+}
+
+.dis-kind-park {
+  --dis-fill: color-mix(in srgb, var(--dis-yes) 55%, var(--canon-primary));
+}
+
+.dis-kind-building {
+  --dis-fill: var(--dis-yes);
+}
+
+.dis-kind-school {
+  --dis-fill: color-mix(in srgb, var(--dis-yes) 50%, var(--canon-card));
+}
+
+.dis-kind-district {
+  --dis-fill: var(--canon-foreground);
+}
+
+.dis-kind-area {
+  --dis-fill: var(--canon-muted-foreground);
+}
+
+.dis-kind-water {
+  --dis-fill: color-mix(
+    in srgb,
+    var(--canon-muted-foreground) 45%,
+    var(--canon-card)
+  );
+}
+
+.dis-kind-transit {
+  --dis-fill: color-mix(
+    in srgb,
+    var(--canon-primary) 55%,
+    var(--canon-foreground)
+  );
+}
