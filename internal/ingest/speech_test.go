@@ -25,32 +25,6 @@ func speechStore(t *testing.T) *store.Store {
 	return st
 }
 
-func roster(names ...string) []RosterMember {
-	out := make([]RosterMember, len(names))
-	for i, n := range names {
-		out[i] = RosterMember{Name: n}
-	}
-	return out
-}
-
-func TestMemberFor(t *testing.T) {
-	ms := roster("Dirk Müller", "Dr. Thomas Müller", "Katrin Schütz", "Nicolas Schütz", "Dr. Anton Huber", "Sonja Klingert")
-	for in, want := range map[string]string{
-		"Müller": "Dirk Müller", "Dr. Müller": "Dr. Thomas Müller", "Dr. Thomas Müller": "Dr. Thomas Müller",
-		"Schütz, K.": "Katrin Schütz", "Schütz, N.": "Nicolas Schütz", "Dr. Huber": "Dr. Anton Huber",
-		"Dr.Huber": "Dr. Anton Huber", "Dr. Klingert": "Sonja Klingert",
-		"Bürgermeister Flur": "", "Unbekannt": "", "Schütz": "",
-	} {
-		got := ""
-		if m := memberFor(in, ms); m != nil {
-			got = m.Name
-		}
-		if got != want {
-			t.Errorf("%q: %q, want %q", in, got, want)
-		}
-	}
-}
-
 func TestJoinSpeakers(t *testing.T) {
 	segs := []Segment{{0, 4, "a"}, {4, 8, "b"}, {8, 12, "c"}, {12, 16, "d"}}
 	x, top1, top2 := "X", "TOP 1", "TOP 2"
@@ -107,30 +81,6 @@ func TestFillGaps(t *testing.T) {
 	got = fillGaps([]Speech{part("M", "Herr Bürgermeister."), part("", strings.Repeat("Vielen Dank. ", 30)), part("M", "Danke.")})
 	if !reflect.DeepEqual(speakers(got), []string{"M", "", "M"}) {
 		t.Errorf("got %q", speakers(got))
-	}
-}
-
-func TestMentions(t *testing.T) {
-	ms := []RosterMember{{Name: "Katrin Schütz", PartyCode: "CDU", Role: "Stadträtin"},
-		{Name: "Dr. Stefan Noé", PartyCode: "FDP"},
-		{Name: "Dr. Frank Mentrup", PartyCode: "SPD", Role: "Oberbürgermeister Vorsitz"}}
-	got := mentions("Wie die CDU und Frau Stadträtin Schütz sagen, Herr Oberbürgermeister Mentrup, "+
-		"die Grünen sehen das anders. Eine grüne Wiese für Karlsruhe. Herr Noé, bitte.", ms, "SPD")
-	if len(got) != 3 || len(got["CDU"]) != 2 || len(got["B90"]) != 1 || len(got["FDP"]) != 1 {
-		t.Errorf("got %v", got)
-	}
-	if got := mentions("die Grünen", ms, "B90"); len(got) != 0 {
-		t.Errorf("own party: %v", got)
-	}
-	for text, n := range map[string]int{"Die Linke.": 1, "Die Linke will": 0, "die linke Spur": 0, "Linken": 1, "Die Grüne Jugend": 1,
-		"die Grüne wiese": 0, "Partei Die PARTEI": 2, "Partei der": 0, "CDUler": 0} {
-		total := 0
-		for _, v := range mentions(text, nil, "") {
-			total += len(v)
-		}
-		if total != n {
-			t.Errorf("%q: %d mentions, want %d", text, total, n)
-		}
 	}
 }
 

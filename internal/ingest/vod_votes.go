@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"net/http"
 	"os/exec"
 	"regexp"
 	"slices"
@@ -375,10 +374,6 @@ type Panel struct {
 	Ja, Nein, Enthaltung int
 }
 
-// PanelReader reads the TOP label and the three counters from the panel
-// crop; a variable so tests and replays run without the vision model.
-var PanelReader = readPanelVision
-
 const panelPrompt = "Abstimmungspanel eines Gemeinderats. Lies die TOP-Beschriftung oben in der Mitte " +
 	"und die drei Zähler JA, NEIN, ENTHALTUNG. Nur JSON: " +
 	`{"top": str, "ja": int, "nein": int, "enthaltung": int}`
@@ -397,53 +392,26 @@ func pngScaled(f Frame, scale int) ([]byte, error) {
 }
 
 // switchboardChat posts one chat completion to the switchboard proxy, which
-// holds the provider keys, and returns choices[0].message.content.
+// holds the provider keys.
 func switchboardChat(payload any, title string, timeout time.Duration) (string, error) {
-	body, err := json.Marshal(payload)
-	if err != nil {
-		return "", err
-	}
-	req, err := http.NewRequest(http.MethodPost, SwitchboardBase+"/chat/completions", bytes.NewReader(body))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Title", title)
-	resp, err := (&http.Client{Timeout: timeout}).Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		return "", fmt.Errorf("switchboard: HTTP %d", resp.StatusCode)
-	}
-	var out struct {
-		Choices []struct {
-			Message struct {
-				Content string `json:"content"`
-			} `json:"message"`
-		} `json:"choices"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
-		return "", err
-	}
-	if len(out.Choices) == 0 {
-		return "", errors.New("switchboard: no choices")
-	}
-	return out.Choices[0].Message.Content, nil
+	return chatCompletion(SwitchboardBase, payload, map[string]string{"Content-Type": "application/json", "X-Title": title}, timeout)
 }
 
-// parsePanel takes the outermost {...} of a model reply.
 func parsePanel(text string) (Panel, error) {
-	i, j := strings.Index(text, "{"), strings.LastIndex(text, "}")
-	if i < 0 || j < i {
-		return Panel{}, fmt.Errorf("panel reply has no JSON: %q", text)
+	m, err := parseModelJSON(text)
+	if err != nil {
+		return Panel{}, err
+	}
+	// Unmarshal matches "Top" or "TOP" too
+	b, err := json.Marshal(m)
+	if err != nil {
+		return Panel{}, err
 	}
 	var p struct {
 		Top                  *string
 		Ja, Nein, Enthaltung *int
 	}
-	if err := json.Unmarshal([]byte(text[i:j+1]), &p); err != nil {
+	if err := json.Unmarshal(b, &p); err != nil {
 		return Panel{}, err
 	}
 	if p.Top == nil || p.Ja == nil || p.Nein == nil || p.Enthaltung == nil {
@@ -541,7 +509,7 @@ func ProcessVODVotes(st *store.Store, video, meetingID, date string, apply bool)
 		if err != nil {
 			return nil, err
 		}
-		p, err := PanelReader(&f, lay, r)
+		p, err := readPanelVision(&f, lay, r)
 		if err != nil {
 			return nil, err
 		}

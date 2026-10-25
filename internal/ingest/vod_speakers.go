@@ -96,7 +96,7 @@ func SpeakerTimeline(video, date string) ([]SpeakerSpan, error) {
 			k.seat = speakerSeat(f, lay, r)
 			m := labelMask(f, lay, r)
 			if mask == nil || maskDiff(m, mask) > labelChange || t-labelAt >= labelReread {
-				p, err := PanelReader(f, lay, r)
+				p, err := readPanelVision(f, lay, r)
 				if err != nil {
 					return err
 				}

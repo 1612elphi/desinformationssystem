@@ -33,12 +33,8 @@ type Server struct {
 	refreshing  sync.Map
 	refreshSema chan struct{}
 
-	analyticsMu   sync.Mutex
-	analytics     store.Row
-	analyticsTime time.Time
-
-	speechMu    sync.Mutex
-	speechCache map[string]cached
+	cacheMu sync.Mutex
+	cache   map[string]cached
 }
 
 type cached struct {
@@ -361,37 +357,34 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request) (any, error) {
 	return m, nil
 }
 
-func (s *Server) analyticsHandler(w http.ResponseWriter, r *http.Request) (any, error) {
-	s.analyticsMu.Lock()
-	defer s.analyticsMu.Unlock()
-	// cached 10 min; the aggregation walks every roll-call
-	if s.analytics == nil || time.Since(s.analyticsTime) > 10*time.Minute {
-		a, err := s.Store.VoteAnalytics()
-		if err != nil {
-			return nil, err
-		}
-		s.analytics, s.analyticsTime = a, time.Now()
-	}
-	return s.analytics, nil
-}
-
-// speechAnalytics is the "Reden" tab, cached 10 min per meeting filter.
-func (s *Server) speechAnalytics(w http.ResponseWriter, r *http.Request) (any, error) {
-	key := r.URL.Query().Get("meeting")
-	s.speechMu.Lock()
-	defer s.speechMu.Unlock()
-	if hit, ok := s.speechCache[key]; ok && time.Since(hit.at) <= 10*time.Minute {
+// cachedRow returns load's result, kept 10 min per key.
+// ponytail: one lock for all keys, a slow load blocks the others; per-key locks if that shows
+func (s *Server) cachedRow(key string, load func() (store.Row, error)) (store.Row, error) {
+	s.cacheMu.Lock()
+	defer s.cacheMu.Unlock()
+	if hit, ok := s.cache[key]; ok && time.Since(hit.at) <= 10*time.Minute {
 		return hit.data, nil
 	}
-	a, err := s.Store.SpeechAnalytics(key)
+	a, err := load()
 	if err != nil {
 		return nil, err
 	}
-	if s.speechCache == nil {
-		s.speechCache = map[string]cached{}
+	if s.cache == nil {
+		s.cache = map[string]cached{}
 	}
-	s.speechCache[key] = cached{time.Now(), a}
+	s.cache[key] = cached{time.Now(), a}
 	return a, nil
+}
+
+// analyticsHandler is cached since the aggregation walks every roll-call.
+func (s *Server) analyticsHandler(w http.ResponseWriter, r *http.Request) (any, error) {
+	return s.cachedRow("votes", s.Store.VoteAnalytics)
+}
+
+// speechAnalytics is the "Reden" tab, cached per meeting filter.
+func (s *Server) speechAnalytics(w http.ResponseWriter, r *http.Request) (any, error) {
+	key := r.URL.Query().Get("meeting")
+	return s.cachedRow("speeches:"+key, func() (store.Row, error) { return s.Store.SpeechAnalytics(key) })
 }
 
 func (s *Server) file(w http.ResponseWriter, r *http.Request) (any, error) {

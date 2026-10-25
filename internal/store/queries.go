@@ -324,7 +324,7 @@ func (s *Store) MeetingVotes(meetingID string) ([]Row, error) {
 	if err != nil {
 		return nil, err
 	}
-	roster, err := s.rosterFor(meetingID)
+	roster, err := s.Roster(meetingID)
 	if err != nil {
 		return nil, err
 	}

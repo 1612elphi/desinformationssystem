@@ -176,9 +176,9 @@ func (o *ordered[V]) sum() V {
 	return t
 }
 
-// mentions maps a party code to the words that named it (fraction names and
+// Mentions maps a party code to the words that named it (fraction names and
 // addressed members), the speaker's own party left out; codes in Python's order.
-func mentions(text string, members []Row, own string) ([]string, map[string][]string) {
+func Mentions(text string, members []Row, own string) ([]string, map[string][]string) {
 	var keys []string
 	found := map[string][]string{}
 	touch := func(c string, hits []string) {
@@ -196,9 +196,13 @@ func mentions(text string, members []Row, own string) ([]string, map[string][]st
 	}
 	for _, m := range members {
 		code := str(m["party_code"])
-		sn := lastField(str(m["name"]))
+		sn := LastField(str(m["name"]))
 		if code != "" && utf8.RuneCountInString(sn) > 2 && !isChair(m) {
-			touch(code, addressRx(sn).findAll(text))
+			var hits []string
+			if strings.Contains(text, sn) {
+				hits = addressRx(sn).findAll(text)
+			}
+			touch(code, hits)
 		}
 	}
 	var out []string
@@ -210,7 +214,7 @@ func mentions(text string, members []Row, own string) ([]string, map[string][]st
 	return out, found
 }
 
-func partyOf(name string, members []Row) string {
+func PartyOf(name string, members []Row) string {
 	m := MemberFor(name, members)
 	if m == nil {
 		return ""
@@ -472,7 +476,7 @@ const stanceMin = 0.6
 
 const defaultBody = "organisation-gr-32130"
 
-func (s *Store) speechRoster(meetingID any) ([]Row, error) {
+func (s *Store) SpeechRoster(meetingID any) ([]Row, error) {
 	return s.rows(`SELECT DISTINCT m.name, m.party, m.party_code, m.role FROM members m
 		WHERE m.body_id = COALESCE((SELECT body_id FROM meetings WHERE id = ?), '`+defaultBody+`')`, meetingID)
 }
@@ -570,12 +574,13 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		lastID = meetings[len(meetings)-1]
 		last = lastID
 	}
-	members, err := s.speechRoster(last)
+	members, err := s.SpeechRoster(last)
 	if err != nil {
 		return nil, err
 	}
 	rows := make([]speechRow, len(raw))
 	var named []*speechRow
+	partyBy := map[string]string{}
 	for i, r := range raw {
 		t := str(r["text"])
 		rows[i] = speechRow{
@@ -586,7 +591,12 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		if a := str(r["answers"]); a != "" {
 			rows[i].answers = parseAnswer(a)
 		}
-		rows[i].party = partyOf(rows[i].speaker, members)
+		party, ok := partyBy[rows[i].speaker]
+		if !ok {
+			party = PartyOf(rows[i].speaker, members)
+			partyBy[rows[i].speaker] = party
+		}
+		rows[i].party = party
 		if rows[i].party != "" {
 			named = append(named, &rows[i])
 		}
@@ -612,7 +622,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 	}
 
 	parties := []Row{}
-	for _, code := range append([]string{"OB"}, partyOrder...) {
+	for _, code := range groupOrder {
 		var rs, judged []*speechRow
 		for _, r := range named {
 			if r.party == code {
@@ -715,7 +725,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 
 	// said vs voted: each (meeting, TOP, speaker)'s word-weighted stance against their vote
 	vrows, err := s.rows(`SELECT meeting_id, agenda_anchor, members, ja, nein, enthaltung
-		FROM votes WHERE members IS NOT NULL`)
+		FROM votes WHERE members IS NOT NULL AND (? = '' OR meeting_id = ?)`, meetingID, meetingID)
 	if err != nil {
 		return nil, err
 	}
@@ -769,6 +779,16 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 			}
 		}
 	}
+	agendaAnchors := map[string][]any{}
+	arows, err := s.rows(`SELECT meeting_id, anchor FROM agenda_items
+		WHERE meeting_id IN (SELECT DISTINCT meeting_id FROM speeches WHERE ? = '' OR meeting_id = ?)`, meetingID, meetingID)
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range arows {
+		agendaAnchors[str(a["meeting_id"])] = append(agendaAnchors[str(a["meeting_id"])], a["anchor"])
+	}
+	memberBy := map[string]Row{}
 	saidVoted := []Row{}
 	decided, matched := 0, 0
 	for _, k := range stanceKeys {
@@ -780,7 +800,13 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		// roster, since the other direction cannot tell Katrin from Nicolas Schütz
 		var vote any
 		for _, x := range rec.roll {
-			if m := MemberFor(str(x["name"]), members); m != nil && str(m["name"]) == k.speaker {
+			name := str(x["name"])
+			m, ok := memberBy[name]
+			if !ok {
+				m = MemberFor(name, members)
+				memberBy[name] = m
+			}
+			if m != nil && str(m["name"]) == k.speaker {
 				vote = x["vote"]
 				break
 			}
@@ -803,12 +829,15 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		if k.anchor != nil {
 			anchor = str(k.anchor)
 		}
-		n, err := s.count(`SELECT COUNT(*) FROM agenda_items WHERE meeting_id = ?
-			AND (anchor LIKE ? OR ? LIKE anchor || '.%')`, k.mid, anchor+".%", k.anchor)
-		if err != nil {
-			return nil, err
+		// SQL was: anchor LIKE '<anchor>.%' OR '<k.anchor>' LIKE anchor || '.%'
+		joint := false
+		for _, a := range agendaAnchors[k.mid] {
+			as, ok := a.(string)
+			if ok && (sqlLike(as, anchor+".%") || k.anchor != nil && sqlLike(str(k.anchor), as+".%")) {
+				joint = true
+				break
+			}
 		}
-		joint := n > 0
 		// below stanceMin the model is guessing; a jointly debated TOP leaves open which
 		// item a sentence argues, so those rows are shown but not counted either
 		var match any
@@ -844,7 +873,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		if r.party == "OB" {
 			continue
 		}
-		codes, _ := mentions(r.text, members, r.party)
+		codes, _ := Mentions(r.text, members, r.party)
 		for _, c := range codes {
 			e := edges[[2]string{r.party, c}]
 			if e == nil {
@@ -976,4 +1005,39 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 			"distinctive": distinctive(groups, counts, 12, 3)},
 		"tops": topList,
 	}, nil
+}
+
+func asciiLower(s string) string {
+	return strings.Map(func(r rune) rune {
+		if 'A' <= r && r <= 'Z' {
+			return r + 'a' - 'A'
+		}
+		return r
+	}, s)
+}
+
+// sqlLike is SQLite's default LIKE: % and _ wildcards, ASCII-only case
+// folding, no escape character.
+func sqlLike(s, pattern string) bool {
+	t, p := []rune(asciiLower(s)), []rune(asciiLower(pattern))
+	i, j, star, mark := 0, 0, -1, 0
+	for i < len(t) {
+		switch {
+		case j < len(p) && p[j] == '%':
+			star, mark = j, i
+			j++
+		case j < len(p) && (p[j] == '_' || p[j] == t[i]):
+			i++
+			j++
+		case star >= 0:
+			mark++
+			i, j = mark, star+1
+		default:
+			return false
+		}
+	}
+	for j < len(p) && p[j] == '%' {
+		j++
+	}
+	return j == len(p)
 }

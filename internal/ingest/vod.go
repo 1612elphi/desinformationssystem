@@ -92,7 +92,7 @@ func Hotwords(st *store.Store, meetingID string) (string, error) {
 		}
 		for _, v := range vals {
 			if i == 0 {
-				v = lastField(v)
+				v = store.LastField(v)
 			}
 			if v != "" && !seen[v] {
 				seen[v] = true

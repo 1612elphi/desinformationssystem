@@ -1,29 +1,77 @@
 package store
 
 import (
+	"path/filepath"
 	"reflect"
 	"testing"
 )
+
+func TestSpeechCounts(t *testing.T) {
+	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	if err := s.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.DB.Exec("INSERT INTO meetings(id) VALUES('termin-1')"); err != nil {
+		t.Fatal(err)
+	}
+	for i, r := range [][2]any{{nil, "A"}, {nil, "A"}, {"top1", "A"}, {"top1", "A"}, {"top1", "B"}, {"top1", ""},
+		{"top1", ""}, {"top1", nil}, {"top1", nil}, {"top2", "B"}, {"top1", "B"}, {nil, "A"}} {
+		if _, err := s.DB.Exec(`INSERT INTO speeches(id, meeting_id, agenda_anchor, speaker, start_s, text)
+			VALUES(?, 'termin-1', ?, ?, ?, 'x')`, i, r[0], r[1], i); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, err := s.SpeechCounts("termin-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	sp, err := s.MeetingSpeeches("termin-1", "", "", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]int{}
+	for _, r := range sp {
+		want[str(r["agenda_anchor"])]++
+	}
+	if !reflect.DeepEqual(got, want) || got["top1"] != 7 {
+		t.Fatalf("got %v, want %v", got, want)
+	}
+}
 
 func TestMentions(t *testing.T) {
 	members := []Row{
 		{"name": "Katrin Schütz", "party": "CDU", "party_code": "CDU", "role": "Stadträtin"},
 		{"name": "Dr. Frank Mentrup", "party": "SPD", "party_code": "SPD", "role": "Oberbürgermeister Vorsitz"},
 	}
-	codes, found := mentions("Wie die CDU und Frau Stadträtin Schütz sagen, Herr Oberbürgermeister Mentrup, "+
+	codes, found := Mentions("Wie die CDU und Frau Stadträtin Schütz sagen, Herr Oberbürgermeister Mentrup, "+
 		"die Grünen sehen das anders. Eine grüne Wiese für Karlsruhe.", members, "SPD")
 	if !reflect.DeepEqual(codes, []string{"B90", "CDU"}) || len(found["CDU"]) != 2 {
 		t.Fatalf("got %v %v", codes, found)
 	}
-	if codes, _ := mentions("die Grünen", members, "B90"); len(codes) != 0 {
+	if codes, _ := Mentions("die Grünen", members, "B90"); len(codes) != 0 {
 		t.Fatalf("own party counted: %v", codes)
 	}
-	if codes, _ := mentions("die Grüne Fraktion, die Grüne wiese", nil, ""); !reflect.DeepEqual(codes, []string{"B90"}) {
+	if codes, _ := Mentions("die Grüne Fraktion, die Grüne wiese", nil, ""); !reflect.DeepEqual(codes, []string{"B90"}) {
 		t.Fatalf("got %v", codes)
 	}
 	noe := []Row{{"name": "Lüppo Noé", "party_code": "B90"}}
-	if codes, _ := mentions("Herr Stadtrat Noé hat recht", noe, ""); !reflect.DeepEqual(codes, []string{"B90"}) {
+	if codes, _ := Mentions("Herr Stadtrat Noé hat recht", noe, ""); !reflect.DeepEqual(codes, []string{"B90"}) {
 		t.Fatalf("non-ASCII surname end: %v", codes)
+	}
+	for text, n := range map[string]int{"Die Linke.": 1, "Die Linke will": 0, "die linke Spur": 0, "Linken": 1, "Die Grüne Jugend": 1,
+		"die Grüne wiese": 0, "Partei Die PARTEI": 2, "Partei der": 0, "CDUler": 0} {
+		total := 0
+		_, found := Mentions(text, nil, "")
+		for _, v := range found {
+			total += len(v)
+		}
+		if total != n {
+			t.Errorf("%q: %d mentions, want %d", text, total, n)
+		}
 	}
 }
 
@@ -69,6 +117,27 @@ func TestMemberFor(t *testing.T) {
 	}
 }
 
+func TestMemberForShortNames(t *testing.T) {
+	var members []Row
+	for _, n := range []string{"Dirk Müller", "Dr. Thomas Müller", "Katrin Schütz", "Nicolas Schütz", "Dr. Anton Huber", "Sonja Klingert"} {
+		members = append(members, Row{"name": n})
+	}
+	for in, want := range map[string]string{
+		"Müller": "Dirk Müller", "Dr. Müller": "Dr. Thomas Müller", "Dr. Thomas Müller": "Dr. Thomas Müller",
+		"Schütz, K.": "Katrin Schütz", "Schütz, N.": "Nicolas Schütz", "Dr. Huber": "Dr. Anton Huber",
+		"Dr.Huber": "Dr. Anton Huber", "Dr. Klingert": "Sonja Klingert",
+		"Bürgermeister Flur": "", "Unbekannt": "", "Schütz": "",
+	} {
+		got := ""
+		if m := MemberFor(in, members); m != nil {
+			got = str(m["name"])
+		}
+		if got != want {
+			t.Errorf("%q: %q, want %q", in, got, want)
+		}
+	}
+}
+
 func TestWithGroups(t *testing.T) {
 	roster := []Row{
 		{"name": "Dr. Frank Mentrup", "party_code": "SPD", "role": "Oberbürgermeister"},
@@ -102,5 +171,20 @@ func TestPySum(t *testing.T) {
 func TestSnippet(t *testing.T) {
 	if got := snippet("Die Straße ist da", "IST"); got != "Die Straße ist da…" {
 		t.Fatalf("got %q", got)
+	}
+}
+
+func TestSQLLike(t *testing.T) {
+	for _, c := range []struct {
+		s, p string
+		want bool
+	}{
+		{"14.1", "14.%", true}, {"14", "14.%", false}, {"14.1", "14", false}, {"top14.1", "TOP14.%", true},
+		{"14x1", "14_1", true}, {"Ä.1", "ä.%", false}, {"a.b.c", "%.c", true}, {"abc", "a%c%", true},
+		{"", "%", true}, {"", "_", false}, {"ü", "_", true},
+	} {
+		if got := sqlLike(c.s, c.p); got != c.want {
+			t.Errorf("%q LIKE %q = %v", c.s, c.p, got)
+		}
 	}
 }

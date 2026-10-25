@@ -12,7 +12,7 @@ func isPySpace(r rune) bool { return unicode.IsSpace(r) || (r >= 0x1c && r <= 0x
 // pyFields is Python's str.split() with no separator.
 func pyFields(s string) []string { return strings.FieldsFunc(s, isPySpace) }
 
-func lastField(s string) string {
+func LastField(s string) string {
 	f := pyFields(s)
 	if len(f) == 0 {
 		return ""
@@ -33,10 +33,10 @@ func MemberFor(name string, members []Row) Row {
 	}
 	base, initial, _ := strings.Cut(name, ",")
 	dr := strings.HasPrefix(strings.TrimFunc(base, isPySpace), "Dr.")
-	sn := lastField(strings.ReplaceAll(base, "Dr.", ""))
+	sn := LastField(strings.ReplaceAll(base, "Dr.", ""))
 	var hits []Row
 	for _, m := range members {
-		if lastField(str(m["name"])) == sn {
+		if LastField(str(m["name"])) == sn {
 			hits = append(hits, m)
 		}
 	}
@@ -68,7 +68,7 @@ func MemberFor(name string, members []Row) Row {
 
 // groupOrder is the roll-call order on the council's display: OB first, then
 // the fractions.
-var groupOrder = []string{"OB", "B90", "CDU", "SPD", "AFD", "FDP", "VOL", "LIN", "KAL", "PAR", "FÜR"}
+var groupOrder = append([]string{"OB"}, partyOrder...)
 
 func isChair(m Row) bool { return strings.Contains(str(m["role"]), "Oberbürgermeister") }
 
@@ -149,16 +149,21 @@ func (s *Store) MeetingSpeeches(meetingID, anchor, speaker string, raw bool) ([]
 	return out, nil
 }
 
-// SpeechCounts is the number of (merged) speeches per agenda anchor; "" holds
-// the opening and closing remarks.
+// SpeechCounts is the number of speeches per agenda anchor, merged as
+// MeetingSpeeches merges them; "" holds the opening and closing remarks.
 func (s *Store) SpeechCounts(meetingID string) (map[string]int, error) {
-	sp, err := s.MeetingSpeeches(meetingID, "", "", false)
+	rows, err := s.rows("SELECT agenda_anchor, speaker FROM speeches WHERE meeting_id = ? ORDER BY start_s", meetingID)
 	if err != nil {
 		return nil, err
 	}
 	out := map[string]int{}
-	for _, r := range sp {
-		out[str(r["agenda_anchor"])]++
+	var prev Row
+	for _, d := range rows {
+		if prev != nil && str(d["speaker"]) != "" && prev["speaker"] == d["speaker"] && prev["agenda_anchor"] == d["agenda_anchor"] {
+			continue
+		}
+		prev = d
+		out[str(d["agenda_anchor"])]++
 	}
 	return out, nil
 }
@@ -241,9 +246,9 @@ func runeIndex(s, sub string) int {
 	return len([]rune(s[:b]))
 }
 
-// rosterFor is the members of the meeting's committee, as the roll-call
+// Roster is the members of the meeting's committee, as the roll-call
 // grouping reads them.
-func (s *Store) rosterFor(meetingID string) ([]Row, error) {
+func (s *Store) Roster(meetingID string) ([]Row, error) {
 	return s.rows(`SELECT mb.name, mb.party, mb.party_code, mb.role FROM members mb
 		JOIN meetings t ON t.body_id = mb.body_id WHERE t.id = ?`, meetingID)
 }
