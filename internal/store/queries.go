@@ -155,7 +155,8 @@ func (s *Store) ListMeetings(f MeetingFilter, asc bool, limit, offset int) ([]Ro
 	}
 	return s.rows(`SELECT m.*,
 			(SELECT COUNT(*) FROM files f WHERE f.meeting_id=m.id) AS documents,
-			(SELECT COUNT(*) FROM agenda_items a WHERE a.meeting_id=m.id) AS agenda_count
+			(SELECT COUNT(*) FROM agenda_items a WHERE a.meeting_id=m.id) AS agenda_count,
+			(SELECT COUNT(*) FROM votes v WHERE v.meeting_id=m.id) AS vote_count
 		FROM meetings m`+w.sql()+" ORDER BY date "+dir+" LIMIT ? OFFSET ?",
 		append(w.args, limit, offset)...)
 }

@@ -1,0 +1,97 @@
+.dis-cal-week {
+  --dis-cal-hour: 3rem;
+
+  display: grid;
+  grid-template-rows: auto auto calc(var(--dis-cal-hours) * var(--dis-cal-hour));
+  grid-template-columns: 2.5rem repeat(7, minmax(0, 1fr));
+  gap: 0 var(--canon-hairline);
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-border);
+}
+
+.dis-cal-week-row {
+  display: contents;
+}
+
+.dis-cal-week-gutter,
+.dis-cal-week-day {
+  display: grid;
+  grid-row: 1 / span 3;
+  grid-template-rows: subgrid;
+  background: var(--canon-card);
+}
+
+.dis-cal-week-day[data-weekend] {
+  background: var(--canon-background);
+}
+
+.dis-cal-week-day[aria-selected="true"] {
+  background: var(--canon-accent-bg);
+}
+
+.dis-cal-week-day:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: -2px;
+}
+
+.dis-cal-week-head {
+  padding: 4px 6px;
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+  font-size: var(--canon-text-footnote);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-cal-week-day[data-today] .dis-cal-week-head {
+  background: var(--canon-primary);
+  color: var(--canon-primary-foreground);
+}
+
+.dis-cal-week-untimed {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 2px;
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-cal-week-track,
+.dis-cal-week-ticks {
+  background-image: linear-gradient(
+    to bottom,
+    var(--canon-border) var(--canon-hairline),
+    transparent var(--canon-hairline)
+  );
+  background-size: 100% var(--dis-cal-hour);
+}
+
+.dis-cal-week-track {
+  position: relative;
+}
+
+.dis-cal-chip.dis-cal-week-slot {
+  position: absolute;
+  align-content: flex-start;
+  overflow: hidden;
+  padding-block: 2px;
+  border-block-start: var(--canon-hairline) solid var(--canon-card);
+}
+
+.dis-cal-week-slot .dis-cal-chip-name {
+  -webkit-line-clamp: 4;
+}
+
+.dis-cal-week-ticks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dis-cal-week-ticks li {
+  block-size: var(--dis-cal-hour);
+  padding: 2px 4px;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-caption);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}

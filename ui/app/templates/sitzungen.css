@@ -53,3 +53,141 @@
     text-align: end;
   }
 }
+
+.dis-cal {
+  container-type: inline-size;
+  display: grid;
+  gap: var(--canon-panel-padding);
+}
+
+.dis-cal-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px var(--canon-panel-padding);
+  align-items: center;
+}
+
+.dis-cal-nav {
+  display: flex;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+}
+
+.dis-cal-nav > * + * {
+  border-inline-start: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-cal-title {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--canon-text-title3);
+  font-weight: 700;
+}
+
+.dis-cal-title .dis-sitzungen-count {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-border);
+  gap: var(--canon-hairline);
+}
+
+.dis-cal-legend-item {
+  display: inline-flex;
+  flex: 1 1 auto;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 10px;
+  border: 0;
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font: inherit;
+  font-size: var(--canon-text-footnote);
+  cursor: pointer;
+}
+
+.dis-cal-legend-item[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--dis-kind) 22%, var(--canon-card));
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .dis-cal-legend-item:hover {
+    background: color-mix(in srgb, var(--dis-kind) 12%, var(--canon-card));
+  }
+}
+
+.dis-cal-legend-item:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: -2px;
+}
+
+.dis-cal-swatch {
+  inline-size: 10px;
+  block-size: 10px;
+  background: var(--dis-kind);
+}
+
+.dis-cal-legend-n {
+  color: var(--canon-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-cal-body {
+  display: grid;
+  gap: var(--canon-panel-padding);
+  align-items: start;
+}
+
+.dis-cal-main,
+.dis-cal-panel {
+  display: none;
+}
+
+.dis-cal-keys {
+  margin: 6px 0 0;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-caption);
+}
+
+.dis-cal-keys kbd {
+  display: inline-block;
+  min-inline-size: 1.5em;
+  margin-inline-end: 2px;
+  padding: 0 3px;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+  font: inherit;
+  text-align: center;
+}
+
+@container (inline-size >= 640px) {
+  .dis-cal-body .dis-cal-phone {
+    display: none;
+  }
+
+  .dis-cal-main,
+  .dis-cal-panel {
+    display: block;
+  }
+}
+
+@container (inline-size >= 1000px) {
+  .dis-cal-body {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+  }
+
+  .dis-cal-panel {
+    position: sticky;
+    inset-block-start: var(--canon-panel-padding);
+  }
+}
