@@ -8,7 +8,7 @@ export default class IndexRoute extends Route {
     const today = new Date();
     return {
       app: this.modelFor('application') as ApplicationModel,
-      last: new Load(getLastSession(today)),
+      last: new Load(getLastSession()),
       next: new Load(getNextSessions(today)),
     };
   }

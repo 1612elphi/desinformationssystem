@@ -35,6 +35,10 @@ export function parseIso(s?: string): Date {
 
 export const today = () => parseIso(iso(new Date()));
 
+// "2026-10-25" or "2026-10-25T…" -> "25.10.2026"; '' without a date.
+export const dateDe = (s?: string) =>
+  s ? s.slice(0, 10).split('-').reverse().join('.') : '';
+
 export const addDays = (d: Date, n: number) =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 

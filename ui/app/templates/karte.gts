@@ -21,6 +21,7 @@ import {
   type Kind,
   type Places,
 } from 'ui/utils/api-karte';
+import { iso } from 'ui/utils/calendar';
 import Load from 'ui/utils/load';
 import { num } from 'ui/utils/meta';
 import './karte.css';
@@ -29,7 +30,6 @@ const RANGES = ['Dieses Jahr', '12 Monate', 'Alles'];
 const STEPS = 4;
 const NO_COUNTS: Record<string, number> = {};
 
-const iso = (d: Date) => d.toISOString().slice(0, 10);
 function from(range: number) {
   const now = new Date();
   if (range === 0) return `${now.getFullYear()}-01-01`;

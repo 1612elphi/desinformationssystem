@@ -13,6 +13,7 @@ import PersonModal from 'ui/components/person-modal';
 import VorlageModal from 'ui/components/vorlage-modal';
 import type NavService from 'ui/services/nav';
 import type { Pane } from 'ui/services/nav';
+import { eq } from 'ui/utils/meta';
 import './pane-stack.css';
 
 interface Signature {
@@ -21,8 +22,6 @@ interface Signature {
     onPopTo: (index: number) => void;
   };
 }
-
-const eq = (a: unknown, b: unknown) => a === b;
 
 // pane widths in px: the newest at its own width, earlier ones beside it narrower
 const SPINE = 40;

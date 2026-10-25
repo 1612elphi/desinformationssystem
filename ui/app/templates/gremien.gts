@@ -20,7 +20,8 @@ import { LoadState } from 'ui/components/loading';
 import SeatChart from 'ui/components/seat-chart';
 import rough from 'ui/modifiers/rough';
 import shortcut from 'ui/modifiers/shortcut';
-import { daysUntil, deDate, todayISO } from 'ui/utils/api-menschen';
+import { daysUntil, deDate } from 'ui/utils/api-menschen';
+import { iso } from 'ui/utils/calendar';
 import { eq, num } from 'ui/utils/meta';
 import './gremien.css';
 
@@ -53,7 +54,7 @@ export default class GremienTemplate extends Component<Signature> {
   }
 
   get upcoming() {
-    const today = todayISO();
+    const today = iso(new Date());
     return (this.args.controller.selected?.value?.meetings ?? [])
       .filter((m) => (m.date ?? '') >= today)
       .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
@@ -61,7 +62,7 @@ export default class GremienTemplate extends Component<Signature> {
   }
 
   get lastMeeting() {
-    const today = todayISO();
+    const today = iso(new Date());
     return this.args.controller.selected?.value?.meetings.find(
       (m) => (m.date ?? '') < today,
     );

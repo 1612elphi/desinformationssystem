@@ -17,6 +17,7 @@ import {
   type SpeechHit,
   type VoteHit,
 } from 'ui/utils/api-suche';
+import { dateDe } from 'ui/utils/calendar';
 import { num } from 'ui/utils/meta';
 import './suche-hits.css';
 
@@ -25,8 +26,6 @@ const day = (iso?: string) => (iso ? String(Number(iso.slice(8, 10))) : '');
 const month = (iso?: string) =>
   iso ? MONTH.format(new Date(`${iso.slice(0, 10)}T12:00:00`)) : '';
 const year = (iso?: string) => iso?.slice(0, 4) ?? '';
-const dateDe = (iso?: string) =>
-  iso ? iso.slice(0, 10).split('-').reverse().join('.') : '';
 const join = (...xs: (string | null | undefined)[]) =>
   xs.filter(Boolean).join(' · ');
 const top = (n?: string | null) => (n ? `TOP ${n}` : '');

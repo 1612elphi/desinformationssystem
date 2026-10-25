@@ -1,6 +1,5 @@
 import armchair from 'lucide-static/icons/armchair.svg?raw';
 import building2 from 'lucide-static/icons/building-2.svg?raw';
-import calendarClock from 'lucide-static/icons/calendar-clock.svg?raw';
 import camera from 'lucide-static/icons/camera.svg?raw';
 import crown from 'lucide-static/icons/crown.svg?raw';
 import database from 'lucide-static/icons/database.svg?raw';
@@ -25,7 +24,6 @@ import vote from 'lucide-static/icons/vote.svg?raw';
 const menschen: Record<string, string> = {
   armchair,
   'building-2': building2,
-  'calendar-clock': calendarClock,
   camera,
   crown,
   database,

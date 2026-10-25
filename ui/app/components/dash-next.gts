@@ -11,22 +11,13 @@ import rough from 'ui/modifiers/rough';
 import type NavService from 'ui/services/nav';
 import { relDate } from 'ui/utils/api-dokumente';
 import type { NextSessions } from 'ui/utils/api-uebersicht';
+import { DAY_LONG, parseIso } from 'ui/utils/calendar';
 import type Load from 'ui/utils/load';
 import { num } from 'ui/utils/meta';
 import './dash-next.css';
 
 const PREVIEW = 4;
 
-const parse = (iso?: string) => {
-  const [y, m, d] = (iso ?? '').split('-').map(Number);
-  return new Date(y ?? 0, (m ?? 1) - 1, d ?? 1);
-};
-const longDate = new Intl.DateTimeFormat('de-DE', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
 const shortDate = new Intl.DateTimeFormat('de-DE', {
   weekday: 'short',
   day: 'numeric',
@@ -34,8 +25,8 @@ const shortDate = new Intl.DateTimeFormat('de-DE', {
 });
 const rtf = new Intl.RelativeTimeFormat('de-DE', { numeric: 'auto' });
 
-const long = (iso?: string) => (iso ? longDate.format(parse(iso)) : '');
-const short = (iso?: string) => (iso ? shortDate.format(parse(iso)) : '');
+const long = (iso?: string) => (iso ? DAY_LONG.format(parseIso(iso)) : '');
+const short = (iso?: string) => (iso ? shortDate.format(parseIso(iso)) : '');
 const topNum = (n?: string) => (n ? `TOP ${n}` : 'TOP');
 
 export default class DashNext extends Component<{
@@ -57,7 +48,7 @@ export default class DashNext extends Component<{
       this.today.getMonth(),
       this.today.getDate(),
     );
-    return Math.round((parse(d).getTime() - start.getTime()) / 864e5);
+    return Math.round((parseIso(d).getTime() - start.getTime()) / 864e5);
   }
 
   get countdown() {

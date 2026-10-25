@@ -1,3 +1,5 @@
+import { getJSON } from 'ui/api';
+
 export const KINDS = [
   'street',
   'square',
@@ -51,12 +53,6 @@ export interface PlaceDoc {
 
 export interface PlaceDetail extends Omit<Place, 'docs' | 'mentions'> {
   documents: PlaceDoc[];
-}
-
-async function getJSON<T>(url: string): Promise<T> {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  return r.json() as Promise<T>;
 }
 
 export const fetchPlaces = (from: string) =>

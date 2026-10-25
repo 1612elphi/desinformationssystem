@@ -77,11 +77,25 @@ export interface SearchParams {
   offset?: number;
 }
 
-async function getJSON<T>(url: string): Promise<T> {
+async function get(url: string): Promise<Response> {
   const r = await fetch(url);
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  return r.json() as Promise<T>;
+  return r;
 }
+
+export async function getJSON<T>(url: string): Promise<T> {
+  return (await get(url)).json() as Promise<T>;
+}
+
+// one request per session; a failure is retried on the next call
+export const once = <T>(load: () => Promise<T>) => {
+  let p: Promise<T> | undefined;
+  return () =>
+    (p ??= load().catch((e: unknown) => {
+      p = undefined;
+      throw e;
+    }));
+};
 
 export function search(p: SearchParams): Promise<SearchResult> {
   const qs = new URLSearchParams();
@@ -165,18 +179,21 @@ export async function getMeetings(p: {
   upcoming?: boolean;
   from?: string;
   to?: string;
+  order?: 'asc';
+  q?: string;
   limit?: number;
   offset?: number;
 }): Promise<{ meetings: Meeting[]; total: number }> {
   const qs = new URLSearchParams();
+  if (p.q) qs.set('q', p.q);
   if (p.committee) qs.set('committee', p.committee);
   if (p.upcoming) qs.set('upcoming', 'true');
   if (p.from) qs.set('from', p.from);
   if (p.to) qs.set('to', p.to);
   qs.set('limit', String(p.limit ?? 200));
+  if (p.order) qs.set('order', p.order);
   if (p.offset) qs.set('offset', String(p.offset));
-  const r = await fetch(`/api/meetings?${qs.toString()}`);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  const r = await get(`/api/meetings?${qs.toString()}`);
   const meetings = (await r.json()) as Meeting[];
   const total = Number(r.headers.get('X-Total-Count') || meetings.length);
   return { meetings, total };
@@ -274,7 +291,7 @@ export interface Analytics {
 export const getPerson = (id: string) => getJSON<Person>(`/api/person/${id}`);
 export const getVorlage = (nr: string) =>
   getJSON<VorlageChain>(`/api/vorlage/${nr}`);
-export const getAnalytics = () => getJSON<Analytics>('/api/analytics');
+export const getAnalytics = once(() => getJSON<Analytics>('/api/analytics'));
 export const versionUrl = (fileId: string, versionId: number) =>
   `/api/file/${fileId}/version/${versionId}`;
 

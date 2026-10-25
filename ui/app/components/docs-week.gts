@@ -11,7 +11,8 @@ import Icon from 'ui/components/icon';
 import Tag from 'ui/components/tag';
 import rough from 'ui/modifiers/rough';
 import type NavService from 'ui/services/nav';
-import { getRecent, getWeek, isoDay, relDate } from 'ui/utils/api-dokumente';
+import { getRecent, getWeek, relDate } from 'ui/utils/api-dokumente';
+import { iso, isoWeek, parseIso } from 'ui/utils/calendar';
 import Load from 'ui/utils/load';
 import './docs-week.css';
 
@@ -25,25 +26,6 @@ const longDate = new Intl.DateTimeFormat('de-DE', {
   day: 'numeric',
   month: 'long',
 });
-
-const parse = (iso: string) => {
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y ?? 0, (m ?? 1) - 1, d ?? 1);
-};
-
-// ISO 8601 week number: the week with the year's first Thursday is week 1.
-function isoWeek(iso: string) {
-  const d = parse(iso);
-  d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
-  const jan4 = new Date(d.getFullYear(), 0, 4);
-  return (
-    1 +
-    Math.round(
-      ((d.getTime() - jan4.getTime()) / 864e5 - 3 + ((jan4.getDay() + 6) % 7)) /
-        7,
-    )
-  );
-}
 
 // scroll today's card into the strip when the week starts off-screen
 const reveal = modifier((el: HTMLElement, [on]: [boolean]) => {
@@ -76,23 +58,23 @@ export default class DocsWeek extends Component {
 
   get kw() {
     const w = this.week.value;
-    return w ? `KW ${isoWeek(w.days[0]!)}` : '';
+    return w ? `KW ${isoWeek(parseIso(w.days[0]))}` : '';
   }
 
   get days(): Day[] {
     const w = this.week.value;
     if (!w) return [];
-    const todayIso = isoDay(this.today);
-    return w.days.map((iso) => {
-      const d = parse(iso);
+    const todayIso = iso(this.today);
+    return w.days.map((day) => {
+      const d = parseIso(day);
       return {
-        iso,
+        iso: day,
         weekday: weekday.format(d),
         date: dayMonth.format(d),
         label: longDate.format(d),
-        today: iso === todayIso,
+        today: day === todayIso,
         meetings: w.meetings
-          .filter((m) => m.date === iso)
+          .filter((m) => m.date === day)
           .map((m) => ({ ...m, live: w.live.includes(m.id) })),
       };
     });

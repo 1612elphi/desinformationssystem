@@ -15,8 +15,9 @@ import {
 } from 'ui/utils/api-suche';
 import { getCommitteeList, getPeople } from 'ui/utils/api-shell';
 import type { Column } from 'ui/components/data-table';
+import { partyName } from 'ui/utils/api-menschen';
 import Load from 'ui/utils/load';
-import { PUBLIC_OPTS, SUBMITTERS } from 'ui/utils/meta';
+import { PUBLIC_OPTS } from 'ui/utils/meta';
 
 export const PAGE_SIZE = 25;
 
@@ -287,8 +288,7 @@ export default class SucheController extends Controller {
     if (this.committee) add('committee', `Gremium: ${this.committee}`);
     if (this.type) add('type', `Typ: ${this.type}`);
     if (this.cat) add('cat', `Kategorie: ${this.cat}`);
-    if (this.sub)
-      add('sub', `Einbringer: ${SUBMITTERS[this.sub]?.name || this.sub}`);
+    if (this.sub) add('sub', `Einbringer: ${partyName(this.sub)}`);
     if (this.pub !== 'all')
       add(
         'pub',

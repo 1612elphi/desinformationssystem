@@ -14,29 +14,21 @@ import type NavService from 'ui/services/nav';
 import type { ContestedVote } from 'ui/utils/api-dokumente';
 import type { LastSession, Speaker } from 'ui/utils/api-uebersicht';
 import { mins } from 'ui/utils/api-reden';
+import { DAY_LONG, parseIso } from 'ui/utils/calendar';
 import type Load from 'ui/utils/load';
 import { eq, num } from 'ui/utils/meta';
 import './dash-last.css';
 
 const SHOWN_VOTES = 4;
 
-const parse = (iso?: string) => {
-  const [y, m, d] = (iso ?? '').split('-').map(Number);
-  return new Date(y ?? 0, (m ?? 1) - 1, d ?? 1);
-};
-const fmt = (o: Intl.DateTimeFormatOptions) => {
-  const f = new Intl.DateTimeFormat('de-DE', o);
-  return (iso?: string) => (iso ? f.format(parse(iso)) : '');
-};
-const weekday = fmt({ weekday: 'short' });
-const day = fmt({ day: 'numeric' });
-const monthYear = fmt({ month: 'short', year: 'numeric' });
-const longDate = fmt({
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
+const fmt = (f: Intl.DateTimeFormat) => (iso?: string) =>
+  iso ? f.format(parseIso(iso)) : '';
+const de = (o: Intl.DateTimeFormatOptions) =>
+  fmt(new Intl.DateTimeFormat('de-DE', o));
+const weekday = de({ weekday: 'short' });
+const day = de({ day: 'numeric' });
+const monthYear = de({ month: 'short', year: 'numeric' });
+const longDate = fmt(DAY_LONG);
 
 const passed = (v: ContestedVote) => (v.ja ?? 0) > (v.nein ?? 0);
 const close = (v: ContestedVote) => Math.abs((v.ja ?? 0) - (v.nein ?? 0)) <= 3;

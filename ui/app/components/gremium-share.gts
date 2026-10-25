@@ -1,8 +1,8 @@
 import type { TOC } from '@ember/component/template-only';
 import { htmlSafe } from '@ember/template';
 import rough from 'ui/modifiers/rough';
-import { partyMark } from 'ui/utils/api-menschen';
-import { SEAT_ORDER, SUBMITTERS, num } from 'ui/utils/meta';
+import { partyMark, partyName } from 'ui/utils/api-menschen';
+import { SEAT_ORDER, num } from 'ui/utils/meta';
 import './gremium-share.css';
 
 type Part = { code: string; n: number };
@@ -22,7 +22,6 @@ const markStyle = (p: Part) =>
   htmlSafe(`--dis-share-mark: ${partyMark(p.code)}`);
 const pctOf = (n: number, all: number) =>
   all ? `${Math.round((n / all) * 100)} %` : '—';
-const nameOf = (code: string) => SUBMITTERS[code]?.name ?? code;
 const label = (parts?: Part[]) =>
   ordered(parts)
     .map((p) => `${p.code || '–'} ${num(p.n)}`)
@@ -42,7 +41,7 @@ const GremiumShare: TOC<{
       </div>
       <ul class="dis-share-legend">
         {{#each (ordered @parts) as |p|}}
-          <li style={{markStyle p}} title={{nameOf p.code}}>
+          <li style={{markStyle p}} title={{partyName p.code}}>
             <span
               class="dis-share-code"
               {{rough

@@ -6,6 +6,7 @@ import type {
   Person,
   PersonVote,
 } from 'ui/api';
+import { dateDe, parseIso, today } from 'ui/utils/calendar';
 import { SEAT_ORDER, SUBMITTERS } from 'ui/utils/meta';
 
 export interface PartyVote extends PersonVote {
@@ -32,6 +33,8 @@ export const againstParty = (v: PartyVote) =>
 
 export const partyMark = (code?: string | null) =>
   (code && SUBMITTERS[code]?.mark) || 'var(--canon-muted-foreground)';
+
+export const partyName = (code: string) => SUBMITTERS[code]?.name ?? code;
 
 export function initials(name = ''): string {
   const core = name
@@ -88,28 +91,22 @@ export const roleTitle = (role?: string) =>
 
 export const isChair = (role?: string) => /Vorsitz/.test(role ?? '');
 
-export const todayISO = () => {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-};
+const WEEKDAY_DATE = new Intl.DateTimeFormat('de-DE', {
+  weekday: 'short',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
 
-export const deDate = (iso?: string, weekday = false) =>
-  iso
-    ? new Date(`${iso}T12:00:00`).toLocaleDateString('de-DE', {
-        weekday: weekday ? 'short' : undefined,
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
-    : '—';
+export function deDate(s?: string, weekday = false) {
+  if (!s) return '—';
+  return weekday ? WEEKDAY_DATE.format(parseIso(s)) : dateDe(s);
+}
 
 // "heute", "morgen", "in 5 Tagen"
 export function daysUntil(iso?: string): string {
   if (!iso) return '';
-  const ms =
-    new Date(`${iso}T12:00:00`).getTime() -
-    new Date(`${todayISO()}T12:00:00`).getTime();
+  const ms = parseIso(iso).getTime() - today().getTime();
   const d = Math.round(ms / 86400000);
   return d === 0 ? 'heute' : d === 1 ? 'morgen' : `in ${d} Tagen`;
 }
