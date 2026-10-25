@@ -38,6 +38,21 @@ export default class NavService extends Service {
 
   // panes pushed in this tab, so closing can step back through history
   private pushed = 0;
+  // the stack this service last navigated to
+  private expected = '';
+
+  constructor(...args: ConstructorParameters<typeof Service>) {
+    super(...args);
+    // back/forward or a direct transition: history no longer mirrors the count
+    this.router.on('routeDidChange', () => {
+      if (formatStack(this.stack) !== this.expected) this.pushed = 0;
+    });
+  }
+
+  private to(stack: Pane[]) {
+    this.expected = formatStack(stack);
+    return { queryParams: { stack: this.expected } };
+  }
 
   // index of the pane the last click or focus was in; set by the pane stack
   origin?: number;
@@ -64,17 +79,13 @@ export default class NavService extends Service {
     } else {
       this.pushed++;
     }
-    this.router.transitionTo({
-      queryParams: { stack: formatStack([...stack, pane]) },
-    });
+    this.router.transitionTo(this.to([...stack, pane]));
   }
 
   // stepping inside a pane (next document, next meeting) keeps the depth
   replaceTop(kind: Overlay, id: string) {
     const stack = this.stack.slice(0, -1);
-    this.router.replaceWith({
-      queryParams: { stack: formatStack([...stack, { kind, id }]) },
-    });
+    this.router.replaceWith(this.to([...stack, { kind, id }]));
   }
 
   close() {
@@ -91,12 +102,11 @@ export default class NavService extends Service {
     if (drop <= 0) return;
     if (this.pushed >= drop) {
       this.pushed -= drop;
+      this.to(this.stack.slice(0, index + 1));
       history.go(-drop);
     } else {
       this.pushed = 0;
-      this.router.replaceWith({
-        queryParams: { stack: formatStack(this.stack.slice(0, index + 1)) },
-      });
+      this.router.replaceWith(this.to(this.stack.slice(0, index + 1)));
     }
   }
 

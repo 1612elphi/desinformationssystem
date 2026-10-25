@@ -14,7 +14,8 @@ type PlaceLink struct {
 
 // ReplacePlaces swaps every file_places row of source for links and deletes
 // places no file references any more. Links to unknown files are skipped and
-// counted. Two links of one file to the same place add their counts.
+// counted. Two links of one file to the same place add their counts; a
+// link another source already holds is left to that source.
 func (s *Store) ReplacePlaces(source string, links []PlaceLink) (skipped int, err error) {
 	tx, err := s.DB.Begin()
 	if err != nil {
@@ -46,7 +47,8 @@ func (s *Store) ReplacePlaces(source string, links []PlaceLink) (skipped int, er
 			return 0, fmt.Errorf("place %s: %w", l.Name, err)
 		}
 		if _, err := tx.Exec(`INSERT INTO file_places(file_id, place_id, n, quote, source) VALUES (?, ?, ?, ?, ?)
-			ON CONFLICT(file_id, place_id) DO UPDATE SET n = file_places.n + excluded.n`,
+			ON CONFLICT(file_id, place_id) DO UPDATE SET n = file_places.n + excluded.n
+			WHERE file_places.source = excluded.source`,
 			l.FileID, id, max(1, l.N), l.Quote, source); err != nil {
 			return 0, err
 		}
