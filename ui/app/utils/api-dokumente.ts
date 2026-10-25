@@ -1,6 +1,5 @@
 import {
   getLive,
-  getMeeting,
   getMeetings,
   search,
   type Doc,
@@ -123,21 +122,4 @@ export async function getWeek(today: Date): Promise<Week> {
     meetings: meetings.sort((a, b) => key(a).localeCompare(key(b))),
     live: live.meetings.map((x) => x.id),
   };
-}
-
-export interface Contested {
-  meeting?: Meeting;
-  votes: ContestedVote[];
-}
-
-// The latest Gemeinderat session up to today, with its closest votes.
-export async function getContested(today: Date): Promise<Contested> {
-  const { meetings } = await getMeetings({
-    committee: 'Gemeinderat',
-    to: isoDay(today),
-    limit: 1,
-  });
-  if (!meetings[0]) return { votes: [] };
-  const meeting = await getMeeting(meetings[0].id);
-  return { meeting, votes: contested(meeting, 4) };
 }

@@ -4,24 +4,15 @@ import { fn } from '@ember/helper';
 import { on } from '@ember/modifier';
 import { modifier } from 'ember-modifier';
 import CanonEmptyRow from 'delphicanon/components/canon-empty-row';
-import type { Meeting, Stats } from 'ui/api';
+import type { Meeting } from 'ui/api';
 import DocsGlyph from 'ui/components/docs-glyph';
 import { LoadState } from 'ui/components/loading';
 import Icon from 'ui/components/icon';
 import Tag from 'ui/components/tag';
-import VoteBar from 'ui/components/vote-bar';
 import rough from 'ui/modifiers/rough';
 import type NavService from 'ui/services/nav';
-import {
-  getContested,
-  getRecent,
-  getWeek,
-  isoDay,
-  relDate,
-  type ContestedVote,
-} from 'ui/utils/api-dokumente';
+import { getRecent, getWeek, isoDay, relDate } from 'ui/utils/api-dokumente';
 import Load from 'ui/utils/load';
-import { num, scrapeTime } from 'ui/utils/meta';
 import './docs-week.css';
 
 const weekday = new Intl.DateTimeFormat('de-DE', { weekday: 'short' });
@@ -65,11 +56,6 @@ const reveal = modifier((el: HTMLElement, [on]: [boolean]) => {
 const startTime = (t?: string) => (t ? t.split(' bis ')[0] : '');
 const docTitle = (d: { agenda_title?: string; label: string }) =>
   d.agenda_title || d.label;
-const passed = (v: ContestedVote) => (v.ja ?? 0) > (v.nein ?? 0);
-const close = (v: ContestedVote) => Math.abs((v.ja ?? 0) - (v.nein ?? 0)) <= 3;
-const shortDate = (iso?: string) => (iso ? dayMonth.format(parse(iso)) : '');
-const first = (i: number) => i === 0;
-const stagger = (i: number) => 1200 + i * 200;
 
 interface Day {
   iso: string;
@@ -80,18 +66,13 @@ interface Day {
   meetings: (Meeting & { live: boolean })[];
 }
 
-interface Signature {
-  Args: { stats?: Stats };
-}
-
-// The front page band: this week's sessions, the newest documents, the closest votes.
-export default class DocsWeek extends Component<Signature> {
+// The front page band: this week's sessions and the newest documents.
+export default class DocsWeek extends Component {
   @service declare nav: NavService;
 
   today = new Date();
   week = new Load(getWeek(this.today));
   recent = new Load(getRecent(12));
-  votes = new Load(getContested(this.today));
 
   get kw() {
     const w = this.week.value;
@@ -117,24 +98,6 @@ export default class DocsWeek extends Component<Signature> {
     });
   }
 
-  get stats() {
-    const s = this.args.stats;
-    if (!s) return [];
-    return [
-      { label: 'Dokumente', value: num(s.documents) },
-      { label: 'Sitzungen', value: num(s.meetings) },
-      { label: 'Gremien', value: num(s.bodies) },
-      { label: 'Volltext', value: num(s.with_text) },
-      { label: 'Analysiert', value: num(s.enriched) },
-      { label: 'Letzter Abruf', value: scrapeTime(s.last_scrape) },
-    ];
-  }
-
-  get votesMeeting() {
-    const m = this.votes.value?.meeting;
-    return m ? `${m.body_name ?? ''} · ${shortDate(m.date)}` : '';
-  }
-
   openMeeting = (id: string) => this.nav.open({ meeting: id });
   openDoc = (id: string) => this.nav.open({ doc: id });
 
@@ -144,24 +107,6 @@ export default class DocsWeek extends Component<Signature> {
         <h2 id="dis-week-title"><Icon @name="docs-day" @size={{20}} />Diese
           Woche</h2>
         <span class="dis-week-kw">{{this.kw}}</span>
-        {{#if this.stats.length}}
-          <dl class="dis-week-stats">
-            {{#each this.stats as |s i|}}
-              <div>
-                <dt>{{s.label}}</dt>
-                <dd
-                  {{rough
-                    "underline"
-                    color="--dis-highlight"
-                    padding=1
-                    show=(first i)
-                    delay=300
-                  }}
-                >{{s.value}}</dd>
-              </div>
-            {{/each}}
-          </dl>
-        {{/if}}
       </header>
 
       <LoadState @load={{this.week}}>
@@ -250,60 +195,6 @@ export default class DocsWeek extends Component<Signature> {
         </LoadState>
       </div>
 
-      <div class="dis-week-section">
-        <h3>
-          <Icon @name="docs-vote" @size={{14}} />
-          Strittig
-          <span class="dis-week-sub">{{this.votesMeeting}}</span>
-        </h3>
-        <LoadState @load={{this.votes}}>
-          {{#if this.votes.value.votes.length}}
-            <ul class="dis-week-votes">
-              {{#each this.votes.value.votes key="id" as |v i|}}
-                <li>
-                  <button
-                    type="button"
-                    class="dis-wvote {{if (close v) 'is-close'}}"
-                    {{on "click" (fn this.openMeeting v.meeting_id)}}
-                  >
-                    <span class="dis-wvote-head">
-                      <span class="dis-wvote-top">{{v.top_label}}</span>
-                      {{#if (close v)}}<span
-                          class="dis-wvote-close"
-                          {{rough
-                            "box"
-                            color="--dis-highlight"
-                            padding=3
-                            delay=(stagger i)
-                          }}
-                        >Knapp</span>{{/if}}
-                      <span
-                        class="dis-wvote-result
-                          {{if (passed v) 'is-passed' 'is-failed'}}"
-                      ><Icon
-                          @name={{if (passed v) "docs-passed" "docs-failed"}}
-                          @size={{14}}
-                        />{{if (passed v) "Angenommen" "Abgelehnt"}}</span>
-                    </span>
-                    <span class="dis-wvote-title">{{if
-                        v.title
-                        v.title
-                        v.top_label
-                      }}</span>
-                    <VoteBar
-                      @ja={{v.ja}}
-                      @nein={{v.nein}}
-                      @enthaltung={{v.enthaltung}}
-                    />
-                  </button>
-                </li>
-              {{/each}}
-            </ul>
-          {{else}}
-            <CanonEmptyRow @text="Keine Abstimmungen" />
-          {{/if}}
-        </LoadState>
-      </div>
     </section>
   </template>
 }

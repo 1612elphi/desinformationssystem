@@ -18,7 +18,6 @@ import ColumnPicker from 'ui/components/column-picker';
 import DataTable from 'ui/components/data-table';
 import DocsFacets from 'ui/components/docs-facets';
 import DocsList from 'ui/components/docs-list';
-import DocsWeek from 'ui/components/docs-week';
 import { SelectField, DateField } from 'ui/components/fields';
 import Icon from 'ui/components/icon';
 import { LoadError } from 'ui/components/loading';
@@ -144,11 +143,6 @@ export default class DokumenteTemplate extends Component<Signature> {
             täglich aktualisiert, volltextindiziert und kategorisiert.
           </p>
         </header>
-
-        {{#if @model.stats.error}}
-          <LoadError @error={{@model.stats.error}} />
-        {{/if}}
-        <DocsWeek @stats={{@model.stats.value}} />
 
         <div class="dis-docs-controls">
           <div role="search">

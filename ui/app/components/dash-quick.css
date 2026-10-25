@@ -1,0 +1,115 @@
+.dis-dsearch {
+  display: flex;
+  align-items: center;
+  min-inline-size: 0;
+  border: var(--canon-frame) solid var(--canon-foreground);
+  background: var(--canon-card);
+}
+
+.dis-dsearch:focus-within {
+  border-color: var(--canon-primary);
+}
+
+.dis-dsearch-label {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 3.5rem;
+  color: var(--canon-muted-foreground);
+}
+
+.dis-dsearch-input {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  block-size: 3.5rem;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-title3);
+}
+
+.dis-dsearch-input::placeholder {
+  color: var(--canon-muted-foreground);
+}
+
+.dis-dsearch-key {
+  flex: none;
+  margin-inline: 12px;
+  padding: 2px 8px;
+  border: var(--canon-hairline) solid var(--canon-border);
+  color: var(--canon-muted-foreground);
+  font: inherit;
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-dquick {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+.dis-dquick-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--canon-hairline);
+  margin: 0;
+  padding: 0;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-border);
+  list-style: none;
+}
+
+.dis-dquick-tiles > li {
+  flex: 1 1 9rem;
+}
+
+.dis-dquick-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: 5.5rem;
+  padding: 12px;
+  border: 0;
+  background: var(--canon-card);
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-subheadline);
+  font-weight: 600;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dis-dquick-tile .dis-icon {
+  margin-block-end: auto;
+  padding-block-end: 8px;
+  color: var(--canon-primary);
+}
+
+.dis-dquick-tile small {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-weight: 400;
+}
+
+.dis-dquick-tile:disabled {
+  color: var(--canon-muted-foreground);
+  cursor: default;
+}
+
+.dis-dquick-tile:focus-visible {
+  outline-offset: calc(-1 * var(--canon-frame));
+}
+
+@media (hover: hover) {
+  .dis-dquick-tile:is(a, :enabled):hover {
+    background: var(--canon-accent-bg);
+  }
+}

@@ -1,0 +1,35 @@
+.dis-dash {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: calc(2 * var(--canon-panel-padding));
+  padding: var(--canon-panel-padding);
+}
+
+.dis-dash-hero,
+.dis-dash-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: calc(2 * var(--canon-panel-padding));
+  align-items: start;
+}
+
+.dis-dash-pair {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+}
+
+@container (inline-size < 56rem) {
+  .dis-dash-hero,
+  .dis-dash-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dis-dash-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--canon-text-title3);
+  font-weight: 700;
+}
