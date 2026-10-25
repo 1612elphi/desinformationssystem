@@ -1,17 +1,41 @@
 import Component from '@glimmer/component';
 import { service } from '@ember/service';
-import { on } from '@ember/modifier';
-import { fn } from '@ember/helper';
+import { pageTitle } from 'ember-page-title';
+import CanonEmptyRow from 'delphicanon/components/canon-empty-row';
+import CanonRow from 'delphicanon/components/canon-row';
+import CanonRows from 'delphicanon/components/canon-rows';
+import CanonSegmented from 'delphicanon/components/canon-segmented';
+import 'delphicanon/components/canon-heading.css';
+import type { Meeting } from 'ui/api';
 import type SitzungenController from 'ui/controllers/sitzungen';
 import { MEETINGS_PAGE } from 'ui/controllers/sitzungen';
 import type { ApplicationModel } from 'ui/routes/application';
 import type NavService from 'ui/services/nav';
+import DataTable, { type Column } from 'ui/components/data-table';
 import { SelectField } from 'ui/components/fields';
 import Icon from 'ui/components/icon';
-import { TableSkeleton } from 'ui/components/loading';
+import { LoadState } from 'ui/components/loading';
 import Pagination from 'ui/components/pagination';
 import Tag from 'ui/components/tag';
 import { num, publicLabel } from 'ui/utils/meta';
+import './sitzungen.css';
+
+const RANGES = ['Nur kommende', 'Alle Sitzungen'];
+
+const COLUMNS: Column[] = [
+  { key: 'date', label: 'Datum', width: '7rem' },
+  { key: 'time', label: 'Zeit', width: '9rem' },
+  { key: 'body', label: 'Gremium' },
+  { key: 'public', label: 'Öffentlich', width: '9rem' },
+  { key: 'agenda', label: 'TOPs', width: '4rem', cls: 'dis-num' },
+  { key: 'docs', label: 'Dok.', width: '4rem', cls: 'dis-num' },
+];
+
+const eq = (a: string, b: string) => a === b;
+const orDash = (s?: string) => s || '—';
+const publicText = (p?: number | null) => publicLabel(p).text;
+const rowLabel = (m: Meeting) =>
+  [m.date, m.time, m.body_name].filter(Boolean).join(' ');
 
 interface Signature {
   Args: { model: ApplicationModel; controller: SitzungenController };
@@ -42,145 +66,101 @@ export default class SitzungenTemplate extends Component<Signature> {
     return this.total > MEETINGS_PAGE;
   }
 
-  toggleUpcoming = () =>
-    this.args.controller.setUpcoming(!this.args.controller.upcoming);
+  get range() {
+    return this.args.controller.upcoming ? 0 : 1;
+  }
 
-  openMeeting = (id: string) => this.nav.open({ meeting: id });
+  pickRange = (i: number) => this.args.controller.setUpcoming(i === 0);
+
+  openMeeting = (m: Meeting) => this.nav.open({ meeting: m.id });
 
   <template>
+    {{pageTitle "Sitzungen"}}
     {{#let @controller as |c|}}
-      <div class="dis-panel">
-        <div class="dis-filters dis-filters--meetings">
-          <div class="cds--form-item">
-            <div class="cds--toggle">
-              <button
-                id="upcoming"
-                type="button"
-                role="switch"
-                class="cds--toggle__button"
-                aria-checked={{if c.upcoming "true" "false"}}
-                {{on "click" this.toggleUpcoming}}
-              ></button>
-              <label for="upcoming" class="cds--toggle__label">
-                <span class="cds--toggle__label-text">Zeitraum</span>
-                <div
-                  class="cds--toggle__appearance cds--toggle__appearance--sm"
-                >
-                  <div
-                    class="cds--toggle__switch
-                      {{if c.upcoming 'cds--toggle__switch--checked'}}"
-                  >
-                    <svg
-                      class="cds--toggle__check"
-                      width="6"
-                      height="5"
-                      viewBox="0 0 6 5"
-                      aria-hidden="true"
-                    >
-                      <path d="M2.2 2.7L5 0 6 1 2.2 5 0 2.7 1 1.5z" />
-                    </svg>
-                  </div>
-                  <span class="cds--toggle__text" aria-hidden="true">
-                    {{if c.upcoming "Nur kommende" "Alle Sitzungen"}}
-                  </span>
-                </div>
-              </label>
-            </div>
-          </div>
+      <div class="dis-sitzungen">
+        <CanonRows @framed={{true}} class="dis-sitzungen-filters">
+          <CanonRow @title="Zeitraum" @form="stacked" as |titleId|>
+            <CanonSegmented
+              aria-labelledby={{titleId}}
+              @items={{RANGES}}
+              @selected={{this.range}}
+              @onChange={{this.pickRange}}
+            />
+          </CanonRow>
           <SelectField
-            @id="m-committee"
             @label="Gremium"
             @items={{this.committeeItems}}
             @value={{c.committee}}
             @onChange={{c.setCommittee}}
           />
-        </div>
-        <p class="dis-meta-line dis-ics">
-          <a
-            class="dis-feed-link"
-            href={{c.icsUrl}}
-            title="Sitzungen als Kalender abonnieren (ICS)"
-          >
-            <Icon @name="calendar" @size={{14}} />
-            Kalender abonnieren (ICS)
-          </a>
-        </p>
-      </div>
-
-      {{#if c.meetings.pending}}
-        <TableSkeleton @columns={{6}} @rows={{6}} />
-      {{else if this.meetings.length}}
-        <div class="cds--data-table-container">
-          <div class="cds--data-table-header">
-            <h4 class="cds--data-table-header__title">
-              {{if c.upcoming "Kommende Sitzungen" "Alle Sitzungen"}}
-            </h4>
-            <p class="cds--data-table-header__description">{{num this.total}}
-              Sitzung(en)</p>
-          </div>
-          <div class="cds--data-table-content">
-            <table
-              class="cds--data-table cds--data-table--lg cds--data-table--zebra"
+          <div class="dis-sitzungen-ics">
+            <a
+              href={{c.icsUrl}}
+              title="Sitzungen als Kalender abonnieren (ICS)"
             >
-              <thead>
-                <tr>
-                  <th scope="col"><div
-                      class="cds--table-header-label"
-                    >Datum</div></th>
-                  <th scope="col"><div
-                      class="cds--table-header-label"
-                    >Zeit</div></th>
-                  <th scope="col"><div
-                      class="cds--table-header-label"
-                    >Gremium</div></th>
-                  <th scope="col"><div
-                      class="cds--table-header-label"
-                    >Öffentlich</div></th>
-                  <th scope="col"><div
-                      class="cds--table-header-label"
-                    >TOPs</div></th>
-                  <th scope="col"><div
-                      class="cds--table-header-label"
-                    >Dok.</div></th>
-                </tr>
-              </thead>
-              <tbody>
-                {{#each this.meetings key="id" as |m|}}
-                  <tr
-                    class="dis-row-clickable"
-                    {{on "click" (fn this.openMeeting m.id)}}
-                  >
-                    <td>{{if m.date m.date "—"}}</td>
-                    <td>{{if m.time m.time "—"}}</td>
-                    <td>{{if m.body_name m.body_name "—"}}</td>
-                    <td>
-                      {{#let (publicLabel m.public) as |pl|}}
-                        <Tag @type={{pl.type}} @size="sm">{{pl.text}}</Tag>
-                      {{/let}}
-                    </td>
-                    <td>{{if m.agenda_count m.agenda_count 0}}</td>
-                    <td>{{if m.documents m.documents 0}}</td>
-                  </tr>
-                {{/each}}
-              </tbody>
-            </table>
+              <Icon @name="calendar" @size={{14}} />
+              Kalender abonnieren (ICS)
+            </a>
           </div>
-          {{#if this.paged}}
-            <Pagination
-              @page={{c.page}}
-              @pageSize={{MEETINGS_PAGE}}
-              @total={{this.total}}
-              @onChange={{c.setPage}}
-            />
-          {{/if}}
-        </div>
-      {{else}}
-        <div class="dis-empty">{{if
-            c.upcoming
-            "Keine kommenden Sitzungen."
-            "Keine Sitzungen."
-          }}</div>
-      {{/if}}
+        </CanonRows>
+
+        <section
+          class="dis-sitzungen-list"
+          aria-labelledby="dis-sitzungen-title"
+        >
+          <h2
+            id="dis-sitzungen-title"
+            class="canon-heading dis-sitzungen-title"
+          >
+            <span>{{if c.upcoming "Kommende Sitzungen" "Alle Sitzungen"}}</span>
+            {{#if c.meetings.value}}
+              <span class="dis-sitzungen-count">{{num this.total}}
+                Sitzung(en)</span>
+            {{/if}}
+          </h2>
+          <LoadState @load={{c.meetings}}>
+            {{#if this.meetings.length}}
+              <DataTable
+                @columns={{COLUMNS}}
+                @rows={{this.meetings}}
+                @onOpen={{this.openMeeting}}
+                @rowLabel={{rowLabel}}
+                as |m col|
+              >
+                {{#if (eq col.key "date")}}
+                  {{orDash m.date}}
+                {{else if (eq col.key "time")}}
+                  {{orDash m.time}}
+                {{else if (eq col.key "body")}}
+                  {{orDash m.body_name}}
+                {{else if (eq col.key "public")}}
+                  <Tag>{{publicText m.public}}</Tag>
+                {{else if (eq col.key "agenda")}}
+                  {{num m.agenda_count}}
+                {{else}}
+                  {{num m.documents}}
+                {{/if}}
+              </DataTable>
+              {{#if this.paged}}
+                <Pagination
+                  @page={{c.page}}
+                  @pageSize={{MEETINGS_PAGE}}
+                  @total={{this.total}}
+                  @onChange={{c.setPage}}
+                />
+              {{/if}}
+            {{else}}
+              <CanonEmptyRow
+                @text={{if
+                  c.upcoming
+                  "Keine kommenden Sitzungen."
+                  "Keine Sitzungen."
+                }}
+              />
+            {{/if}}
+          </LoadState>
+        </section>
+      </div>
     {{/let}}
   </template>
 }

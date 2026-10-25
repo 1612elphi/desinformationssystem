@@ -1,0 +1,115 @@
+.dis-meeting {
+  display: grid;
+  gap: var(--canon-panel-padding);
+}
+
+.dis-meeting-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px var(--canon-panel-padding);
+  align-items: center;
+  font-size: var(--canon-text-subheadline);
+}
+
+.dis-meeting-meta {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--canon-muted-foreground);
+}
+
+.dis-meeting-head a {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dis-meeting-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px var(--canon-panel-padding);
+  align-items: center;
+}
+
+.canon-button.dis-meeting-refresh {
+  border: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-meeting-msg,
+.dis-meeting-note {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-meeting-note {
+  margin: 0;
+  padding: 10px var(--canon-panel-padding);
+  background: var(--canon-card);
+}
+
+.dis-meeting-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+  min-block-size: var(--canon-control-height);
+  padding: 10px var(--canon-panel-padding);
+  background: var(--canon-card);
+  font-size: var(--canon-text-subheadline);
+}
+
+div.dis-meeting-top {
+  padding-inline-start: calc(var(--canon-panel-padding) + 16px + 8px);
+  color: var(--canon-muted-foreground);
+}
+
+summary.dis-meeting-top {
+  list-style: none;
+  cursor: pointer;
+}
+
+summary.dis-meeting-top::-webkit-details-marker {
+  display: none;
+}
+
+summary.dis-meeting-top:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: calc(-1 * var(--canon-frame));
+}
+
+@media (hover: hover) {
+  summary.dis-meeting-top:hover {
+    background: var(--canon-muted);
+  }
+}
+
+.dis-meeting-arrow {
+  align-self: center;
+  transition: rotate 0.15s;
+}
+
+.dis-meeting-item[open] .dis-meeting-arrow {
+  rotate: 90deg;
+}
+
+.dis-meeting-topnum {
+  color: var(--canon-muted-foreground);
+  white-space: nowrap;
+}
+
+.dis-meeting-toptext {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.dis-meeting-topmeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.dis-meeting-body {
+  display: grid;
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+}

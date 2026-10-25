@@ -1,0 +1,55 @@
+.dis-sitzungen {
+  display: grid;
+  gap: var(--canon-panel-padding);
+  padding: var(--canon-panel-padding);
+}
+
+.canon-rows.dis-sitzungen-filters {
+  flex-flow: row wrap;
+}
+
+.dis-sitzungen-filters > .canon-row {
+  flex: 1 1 20rem;
+  min-inline-size: 0;
+}
+
+.dis-sitzungen-ics {
+  flex: 1 1 100%;
+  padding: 10px var(--canon-panel-padding);
+  background: var(--canon-card);
+  font-size: var(--canon-text-subheadline);
+}
+
+.dis-sitzungen-ics a {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dis-sitzungen-list {
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+}
+
+.dis-sitzungen-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--canon-panel-padding);
+  justify-content: space-between;
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-sitzungen-count {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-sitzungen td .dis-tag {
+  justify-self: start;
+}
+
+@container (inline-size >= 640px) {
+  .dis-sitzungen .dis-num {
+    text-align: end;
+  }
+}

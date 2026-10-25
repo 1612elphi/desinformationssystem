@@ -1,8 +1,10 @@
 import Component from '@glimmer/component';
 import { tracked, cached } from '@glimmer/tracking';
 import { service } from '@ember/service';
-import { on } from '@ember/modifier';
 import { fn } from '@ember/helper';
+import CanonButton from 'delphicanon/components/canon-button';
+import CanonRows from 'delphicanon/components/canon-rows';
+import 'delphicanon/components/canon-heading.css';
 import {
   getMeeting,
   refreshMeeting,
@@ -12,18 +14,19 @@ import {
 } from 'ui/api';
 import DocRow from 'ui/components/doc-row';
 import Icon from 'ui/components/icon';
-import { InlineLoading } from 'ui/components/loading';
+import { InlineLoading, LoadState } from 'ui/components/loading';
 import Modal from 'ui/components/modal';
 import Tag from 'ui/components/tag';
 import VoteBlock from 'ui/components/vote-block';
 import type NavService from 'ui/services/nav';
 import Load from 'ui/utils/load';
-import { RIS_BASE, hasTally, publicLabel, tally } from 'ui/utils/meta';
+import { RIS_BASE, hasTally, num, publicLabel, tally } from 'ui/utils/meta';
+import './meeting-modal.css';
 
 const concatTop = (n: string) => `TOP ${n}`;
 
 interface Signature {
-  Args: { id: string; onClose: () => void };
+  Args: { id: string; open: boolean; onClose: () => void };
 }
 
 // State that belongs to one meeting id and resets when another one opens.
@@ -32,22 +35,21 @@ interface Local {
   fresh?: Meeting;
   busy: boolean;
   msg: string;
-  open: string[];
 }
 
 export default class MeetingModal extends Component<Signature> {
   @service declare nav: NavService;
-  @tracked state: Local = { id: '', busy: false, msg: '', open: [] };
+  @tracked state: Local = { id: '', busy: false, msg: '' };
 
   @cached
   get load() {
-    return new Load(getMeeting(this.args.id));
+    return this.args.id ? new Load(getMeeting(this.args.id)) : undefined;
   }
 
   get local(): Local {
     return this.state.id === this.args.id
       ? this.state
-      : { id: this.args.id, busy: false, msg: '', open: [] };
+      : { id: this.args.id, busy: false, msg: '' };
   }
 
   update(patch: Partial<Local>) {
@@ -55,7 +57,7 @@ export default class MeetingModal extends Component<Signature> {
   }
 
   get meeting() {
-    return this.local.fresh ?? this.load.value;
+    return this.local.fresh ?? this.load?.value;
   }
 
   get heading() {
@@ -67,8 +69,8 @@ export default class MeetingModal extends Component<Signature> {
     return [m?.date, m?.time, m?.location].filter(Boolean).join(' · ') || '—';
   }
 
-  get publicTag() {
-    return publicLabel(this.meeting?.public);
+  get publicText() {
+    return publicLabel(this.meeting?.public).text;
   }
 
   get risUrl() {
@@ -95,10 +97,12 @@ export default class MeetingModal extends Component<Signature> {
       const vote = votes.get(a.anchor);
       return {
         ...a,
+        // a new meeting gets new rows, so no TOP stays open from the last one
+        key: `${m?.id}:${a.anchor}`,
         docs,
         vote,
         tally: vote && hasTally(vote) ? tally(vote) : '',
-        nonPublic: a.public === 0 ? publicLabel(0) : undefined,
+        nonPublic: a.public === 0 ? publicLabel(0).text : '',
         disabled: docs.length === 0 && !vote,
       };
     });
@@ -108,17 +112,6 @@ export default class MeetingModal extends Component<Signature> {
   get noFiles() {
     return (this.meeting?.files ?? []).length === 0;
   }
-
-  isOpen = (anchor: string) => this.local.open.includes(anchor);
-
-  toggle = (anchor: string) => {
-    const open = this.local.open;
-    this.update({
-      open: open.includes(anchor)
-        ? open.filter((a) => a !== anchor)
-        : [...open, anchor],
-    });
-  };
 
   openDoc = (doc: Doc) => this.nav.open({ meeting: '', doc: doc.id });
 
@@ -148,147 +141,125 @@ export default class MeetingModal extends Component<Signature> {
   };
 
   <template>
-    {{#if this.meeting}}
-      <Modal @heading={{this.heading}} @onClose={{@onClose}}>
-        <div class="dis-detail dis-meeting">
-          <div class="dis-meeting__head">
-            <p class="dis-meeting__meta">{{this.meta}}</p>
-            <div class="dis-meeting__headtags">
-              <Tag
-                @type={{this.publicTag.type}}
-                @size="sm"
-              >{{this.publicTag.text}}</Tag>
-              <a
-                class="cds--link"
-                href={{this.risUrl}}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Sitzung im RIS öffnen
-                <Icon @name="launch" @size={{12}} />
-              </a>
-            </div>
+    <Modal @heading={{this.heading}} @open={{@open}} @onClose={{@onClose}}>
+      <LoadState @load={{this.load}}>
+        <div class="dis-meeting">
+          <div class="dis-meeting-head">
+            <p class="dis-meeting-meta">{{this.meta}}</p>
+            <Tag>{{this.publicText}}</Tag>
+            <a href={{this.risUrl}} target="_blank" rel="noopener noreferrer">
+              Sitzung im RIS öffnen
+              <Icon @name="launch" @size={{12}} />
+            </a>
           </div>
 
-          <div class="dis-meeting__actions">
+          <div class="dis-meeting-actions">
             {{#if this.local.busy}}
               <InlineLoading @text="Aktualisiere aus dem RIS…" />
             {{else}}
-              <button
-                type="button"
-                class="cds--btn cds--btn--tertiary cds--btn--sm"
-                {{on "click" this.refresh}}
-              >
-                Aktualisieren
-                <Icon @name="renew" class="cds--btn__icon" />
-              </button>
+              <CanonButton
+                class="dis-meeting-refresh"
+                @kind="cell"
+                @text="Aktualisieren"
+                @icon={{component Icon name="renew"}}
+                @onClick={{this.refresh}}
+              />
             {{/if}}
             {{#if this.local.msg}}
-              <span class="dis-meta-line">{{this.local.msg}}</span>
+              <span
+                class="dis-meeting-msg"
+                role="status"
+              >{{this.local.msg}}</span>
             {{/if}}
           </div>
 
-          <h4>Tagesordnung ({{this.grouped.items.length}})</h4>
-          {{#if this.grouped.items.length}}
-            <div class="dis-meeting__agenda">
-              <ul class="cds--accordion cds--accordion--end cds--accordion--sm">
-                {{#each this.grouped.items key="anchor" as |a|}}
-                  <li
-                    class="cds--accordion__item
-                      {{if
-                        (this.isOpen a.anchor)
-                        'cds--accordion__item--active'
-                      }}
-                      {{if a.disabled 'cds--accordion__item--disabled'}}"
-                  >
-                    <button
-                      type="button"
-                      class="cds--accordion__heading"
-                      aria-expanded={{if (this.isOpen a.anchor) "true" "false"}}
-                      disabled={{a.disabled}}
-                      {{on "click" (fn this.toggle a.anchor)}}
-                    >
-                      <Icon
-                        @name="chevron-right"
-                        class="cds--accordion__arrow"
+          <CanonRows @framed={{true}}>
+            <h4 class="canon-heading">Tagesordnung ({{num
+                this.grouped.items.length
+              }})</h4>
+            {{#each this.grouped.items key="key" as |a|}}
+              {{#if a.disabled}}
+                <div class="dis-meeting-top">
+                  <span class="dis-meeting-topnum">{{if
+                      a.number
+                      (concatTop a.number)
+                      "TOP"
+                    }}</span>
+                  <span class="dis-meeting-toptext">{{if
+                      a.title
+                      a.title
+                      "—"
+                    }}</span>
+                  {{#if a.nonPublic}}
+                    <span class="dis-meeting-topmeta"><Tag
+                      >{{a.nonPublic}}</Tag></span>
+                  {{/if}}
+                </div>
+              {{else}}
+                <details class="dis-meeting-item">
+                  <summary class="dis-meeting-top">
+                    <Icon @name="chevron-right" class="dis-meeting-arrow" />
+                    <span class="dis-meeting-topnum">{{if
+                        a.number
+                        (concatTop a.number)
+                        "TOP"
+                      }}</span>
+                    <span class="dis-meeting-toptext">{{if
+                        a.title
+                        a.title
+                        "—"
+                      }}</span>
+                    <span class="dis-meeting-topmeta">
+                      {{#if a.tally}}
+                        <Tag title="Ja · Nein · Enthaltung">{{a.tally}}</Tag>
+                      {{/if}}
+                      {{#if a.docs.length}}
+                        <Tag>{{num a.docs.length}} Dok.</Tag>
+                      {{/if}}
+                      {{#if a.nonPublic}}
+                        <Tag>{{a.nonPublic}}</Tag>
+                      {{/if}}
+                    </span>
+                  </summary>
+                  <div class="dis-meeting-body">
+                    {{#if a.vote}}<VoteBlock @vote={{a.vote}} />{{/if}}
+                    {{#each a.docs key="id" as |f|}}
+                      <DocRow
+                        @doc={{f}}
+                        @submitters={{true}}
+                        @onOpen={{fn this.openDoc f}}
                       />
-                      <div class="cds--accordion__title">
-                        <span class="dis-meeting__topttl">
-                          <span class="dis-meeting__topnum">{{if
-                              a.number
-                              (concatTop a.number)
-                              "TOP"
-                            }}</span>
-                          <span class="dis-meeting__toptext">{{if
-                              a.title
-                              a.title
-                              "—"
-                            }}</span>
-                          <span class="dis-meeting__topmeta">
-                            {{#if a.tally}}
-                              <Tag
-                                @type="green"
-                                @size="sm"
-                                title="Ja · Nein · Enthaltung"
-                              >{{a.tally}}</Tag>
-                            {{/if}}
-                            {{#if a.docs.length}}
-                              <Tag @type="outline" @size="sm">{{a.docs.length}}
-                                Dok.</Tag>
-                            {{/if}}
-                            {{#if a.nonPublic}}
-                              <Tag
-                                @type={{a.nonPublic.type}}
-                                @size="sm"
-                              >{{a.nonPublic.text}}</Tag>
-                            {{/if}}
-                          </span>
-                        </span>
-                      </div>
-                    </button>
-                    {{#if (this.isOpen a.anchor)}}
-                      <div class="cds--accordion__wrapper">
-                        <div class="cds--accordion__content">
-                          {{#if a.vote}}<VoteBlock @vote={{a.vote}} />{{/if}}
-                          <div class="dis-meeting__docs">
-                            {{#each a.docs key="id" as |f|}}
-                              <DocRow
-                                @doc={{f}}
-                                @submitters={{true}}
-                                @onOpen={{fn this.openDoc f}}
-                              />
-                            {{/each}}
-                          </div>
-                        </div>
-                      </div>
-                    {{/if}}
-                  </li>
-                {{/each}}
-              </ul>
-            </div>
-          {{else}}
-            <p class="dis-meta-line">Keine Tagesordnung erfasst.</p>
-          {{/if}}
+                    {{/each}}
+                  </div>
+                </details>
+              {{/if}}
+            {{else}}
+              <p class="dis-meeting-note">Keine Tagesordnung erfasst.</p>
+            {{/each}}
+          </CanonRows>
 
           {{#if this.grouped.extra.length}}
-            <h4>Weitere Dokumente ({{this.grouped.extra.length}})</h4>
-            <div class="dis-meeting__docs">
-              {{#each this.grouped.extra key="id" as |f|}}
-                <DocRow
-                  @doc={{f}}
-                  @submitters={{true}}
-                  @onOpen={{fn this.openDoc f}}
-                />
-              {{/each}}
-            </div>
+            <CanonRows @framed={{true}}>
+              <h4 class="canon-heading">Weitere Dokumente ({{num
+                  this.grouped.extra.length
+                }})</h4>
+              <div>
+                {{#each this.grouped.extra key="id" as |f|}}
+                  <DocRow
+                    @doc={{f}}
+                    @submitters={{true}}
+                    @onOpen={{fn this.openDoc f}}
+                  />
+                {{/each}}
+              </div>
+            </CanonRows>
           {{/if}}
 
           {{#if this.noFiles}}
-            <p class="dis-meta-line dis-spaced">Keine Dokumente zu dieser
-              Sitzung.</p>
+            <p class="dis-meeting-note">Keine Dokumente zu dieser Sitzung.</p>
           {{/if}}
         </div>
-      </Modal>
-    {{/if}}
+      </LoadState>
+    </Modal>
   </template>
 }
