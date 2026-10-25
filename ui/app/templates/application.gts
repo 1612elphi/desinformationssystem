@@ -18,7 +18,10 @@ import PaneStack from 'ui/components/pane-stack';
 import PaletteDialog, { VIEWS } from 'ui/components/palette-dialog';
 import ShortcutsSheet, { MOD } from 'ui/components/shortcuts-sheet';
 import shortcut from 'ui/modifiers/shortcut';
+import { getLastCouncil } from 'ui/utils/api-reden';
+import Load from 'ui/utils/load';
 import { RIS_START, scrapeTime } from 'ui/utils/meta';
+import './application.css';
 
 // The same path only works behind the path-routing tunnel (dis.delphi.tools);
 // on a direct deployment the MCP server listens on its own port.
@@ -41,6 +44,18 @@ export default class ApplicationTemplate extends Component<Signature> {
   @service declare nav: NavService;
 
   @tracked palette = false;
+
+  lastCouncil = new Load(getLastCouncil());
+
+  openLastCouncil = () => {
+    const id = this.lastCouncil.value?.id;
+    if (id) this.nav.open({ meeting: id });
+  };
+
+  get lastCouncilDate() {
+    const d = this.lastCouncil.value?.date;
+    return d ? d.split('-').reverse().join('.') : '';
+  }
 
   openPalette = () => (this.palette = true);
   closePalette = () => (this.palette = false);
@@ -78,6 +93,17 @@ export default class ApplicationTemplate extends Component<Signature> {
             data-keys={{concat MOD " K"}}
             {{shortcut "mod+k" this.openPalette}}
           />
+          {{#if this.lastCouncil.value}}
+            <CanonButton
+              class="dis-toolbar-council"
+              @kind="cell"
+              @text="Letzter Gemeinderat"
+              @icon={{component Icon name="calendar"}}
+              @onClick={{this.openLastCouncil}}
+              title={{this.lastCouncilDate}}
+              data-date={{this.lastCouncilDate}}
+            />
+          {{/if}}
           <a href={{RIS_START}} target="_blank" rel="noopener noreferrer">
             Original-RIS
             <Icon @name="launch" @size={{14}} />

@@ -28,6 +28,7 @@ export const SUBMITTERS: Record<string, { mark?: string; name: string }> = {
   VOL: { mark: '#502379', name: 'Volt' },
   PAR: { name: 'Die PARTEI' },
   HEI: { name: 'Die Heimat' },
+  FÜR: { mark: '#82cfff', name: 'FÜR Karlsruhe' },
 };
 
 // Seat order in the chamber charts, left to right.

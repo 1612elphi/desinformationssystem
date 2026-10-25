@@ -261,3 +261,8 @@
     flex: none;
   }
 }
+
+.dis-meeting-more {
+  display: grid;
+  gap: 8px;
+}
