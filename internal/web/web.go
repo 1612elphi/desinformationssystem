@@ -25,6 +25,8 @@ type Server struct {
 	Store  *store.Store
 	PDFDir string
 	Dist   string
+	// MapDir holds karlsruhe.pmtiles.
+	MapDir string
 	// Refresh is nil until an ingester is linked in; the endpoint is 501 then.
 	Refresh RefreshFunc
 
@@ -188,6 +190,19 @@ func (s *Server) Handler() http.Handler {
 		}
 		return found(s.Store.VorlageChain(y + "/" + q))
 	})
+	h("GET /api/places", func(w http.ResponseWriter, r *http.Request) (any, error) {
+		q := r.URL.Query()
+		return s.Store.Places(store.PlaceFilter{
+			DateFrom: q.Get("from"), DateTo: q.Get("to"), Committee: q.Get("committee"), Kind: q.Get("kind"),
+		})
+	})
+	h("GET /api/places/{id}", func(w http.ResponseWriter, r *http.Request) (any, error) {
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil {
+			return nil, fail(http.StatusBadRequest, "invalid place id")
+		}
+		return found(s.Store.GetPlace(id))
+	})
 	h("GET /api/analytics", s.analyticsHandler)
 	h("GET /api/speeches/analytics", s.speechAnalytics)
 	h("GET /api/feed.xml", s.feed)
@@ -196,8 +211,28 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("/api/", s.wrap(func(w http.ResponseWriter, r *http.Request) (any, error) {
 		return nil, errNotFound
 	}))
+	mux.HandleFunc("GET /map/karlsruhe.pmtiles", s.mapTiles)
 	mux.Handle("/", s.spa())
 	return mux
+}
+
+// mapTiles serves the PMTiles archive; the map client reads it with Range
+// requests, which ServeContent answers.
+func (s *Server) mapTiles(w http.ResponseWriter, r *http.Request) {
+	f, err := os.Open(filepath.Join(s.MapDir, "karlsruhe.pmtiles"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	defer f.Close()
+	st, err := f.Stat()
+	if err != nil || st.IsDir() {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "application/vnd.pmtiles")
+	w.Header().Set("Cache-Control", "public, max-age=604800")
+	http.ServeContent(w, r, "", st.ModTime(), f)
 }
 
 func (s *Server) search(w http.ResponseWriter, r *http.Request) (any, error) {

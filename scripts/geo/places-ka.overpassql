@@ -1,0 +1,27 @@
+[out:json][timeout:300];
+area["boundary"="administrative"]["admin_level"="6"]["name"="Karlsruhe"]->.ka;
+(
+  way["highway"]["name"](area.ka);
+  nwr["place"~"^(square|neighbourhood|suburb|quarter|locality)$"]["name"](area.ka);
+  nwr["leisure"~"^(park|garden|nature_reserve|stadium|sports_centre)$"]["name"](area.ka);
+  nwr["landuse"~"^(cemetery|forest|industrial|commercial|retail|allotments|recreation_ground)$"]["name"](area.ka);
+  nwr["natural"~"^(wood|water|wetland)$"]["name"](area.ka);
+  nwr["amenity"~"^(school|kindergarten|college|university|townhall|theatre|hospital|place_of_worship|library|community_centre|arts_centre|courthouse|fire_station|police|prison|social_facility|marketplace)$"]["name"](area.ka);
+  nwr["building"]["name"](area.ka);
+  nwr["tourism"~"^(attraction|museum|zoo|gallery)$"]["name"](area.ka);
+  nwr["historic"]["name"](area.ka);
+  nwr["waterway"]["name"](area.ka);
+  nwr["water"]["name"](area.ka);
+  nwr["railway"~"^(station|halt|tram_stop)$"]["name"](area.ka);
+  nwr["public_transport"="station"]["name"](area.ka);
+  rel["boundary"="administrative"]["admin_level"~"^(9|10)$"]["name"](area.ka);
+  nwr["amenity"~"^(music_school|events_venue|exhibition_centre|parking)$"]["name"](area.ka);
+  nwr["amenity"="recycling"]["recycling_type"="centre"]["name"](area.ka);
+  nwr["man_made"~"^(wastewater_plant|works|water_works)$"]["name"](area.ka);
+  nwr["power"="plant"]["name"](area.ka);
+  nwr["shop"="mall"]["name"](area.ka);
+  nwr["leisure"~"^(water_park|sports_hall|pitch|common)$"]["name"](area.ka);
+  nwr["landuse"~"^(residential|brownfield|construction|military|grass|meadow|village_green|landfill)$"]["name"](area.ka);
+  way["railway"="funicular"]["name"](area.ka);
+);
+out geom;

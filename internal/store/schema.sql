@@ -188,3 +188,23 @@ CREATE VIRTUAL TABLE IF NOT EXISTS files_fts USING fts5(
     label, fulltext, summary_de, summary_en, topics, category,
     body_name, meeting_title
 );
+
+-- Named places (gazetteer points from geo/places-ka.json) mentioned in files.
+CREATE TABLE IF NOT EXISTS places (
+    id    INTEGER PRIMARY KEY,
+    name  TEXT NOT NULL,                   -- map label
+    kind  TEXT NOT NULL,                   -- street|square|park|building|school|district|area|water|transit
+    lat   REAL NOT NULL,
+    lon   REAL NOT NULL,
+    osm   TEXT,                            -- "way/123", "node/456", "relation/789"
+    UNIQUE(name, kind)
+);
+CREATE TABLE IF NOT EXISTS file_places (
+    file_id  TEXT NOT NULL REFERENCES files(id),
+    place_id INTEGER NOT NULL REFERENCES places(id),
+    n        INTEGER NOT NULL DEFAULT 1,
+    quote    TEXT,
+    source   TEXT NOT NULL,                -- extraction pass, 'haiku' for the first one
+    PRIMARY KEY (file_id, place_id)
+);
+CREATE INDEX IF NOT EXISTS idx_file_places_place ON file_places(place_id);

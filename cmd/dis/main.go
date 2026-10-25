@@ -50,6 +50,7 @@ func main() {
 			Store:  st,
 			PDFDir: env("PDF_DIR", filepath.Join("data", "pdfs")),
 			Dist:   env("WEB_DIST", filepath.Join("ui", "dist")),
+			MapDir: env("MAP_DIR", filepath.Join("data", "map")),
 		}
 		if strings.ToLower(env("INGEST", "html")) == "oparl" {
 			srv.Refresh = func(id string) (any, error) { return ingest.RefreshOne(st, id, false, false) }
@@ -70,6 +71,10 @@ func main() {
 		log.Fatal(http.ListenAndServe(addr, mux))
 	case "geo-backfill":
 		code := geoBackfill(st, os.Args[min(2, len(os.Args)):])
+		st.Close()
+		os.Exit(code)
+	case "places-import":
+		code := placesImport(st, os.Args[min(2, len(os.Args)):])
 		st.Close()
 		os.Exit(code)
 	case "data-quality":
@@ -103,7 +108,7 @@ func main() {
 	case "init":
 		fmt.Println("initialised")
 	default:
-		log.Fatalf("unknown role %q (want web|mcp|scrape|oparl|seed|pdf-backfill|enrich-claude|vod|backup|scraper|ticker|geo-backfill|data-quality|init)", role)
+		log.Fatalf("unknown role %q (want web|mcp|scrape|oparl|seed|pdf-backfill|enrich-claude|vod|backup|scraper|ticker|geo-backfill|places-import|data-quality|init)", role)
 	}
 }
 
