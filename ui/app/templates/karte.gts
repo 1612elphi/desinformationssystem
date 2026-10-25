@@ -198,7 +198,7 @@ export default class KarteTemplate extends Component<Signature> {
   label = (name: string) => `${name}: ${num(this.count(name))} Dokumente`;
 
   href = (name: string) =>
-    this.router.urlFor('index', { queryParams: { district: name } });
+    this.router.urlFor('suche', { queryParams: { district: name } });
 
   stateOf = (name: string) =>
     [

@@ -27,7 +27,8 @@ import Load from 'ui/utils/load';
 import './palette-dialog.css';
 
 export const VIEWS = [
-  { route: 'index', label: 'Dokumente', icon: 'document', key: 'd' },
+  { route: 'index', label: 'Übersicht', icon: 'house', key: 'h' },
+  { route: 'suche', label: 'Suche', icon: 'search', key: 'f' },
   { route: 'sitzungen', label: 'Sitzungen', icon: 'calendar', key: 's' },
   { route: 'gremien', label: 'Gremien', icon: 'users', key: 'g' },
   { route: 'statistik', label: 'Statistik', icon: 'chart', key: 't' },

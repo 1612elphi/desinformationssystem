@@ -63,7 +63,7 @@ type FilterKey =
   | 'district'
   | 'street';
 
-export default class IndexController extends Controller {
+export default class SucheController extends Controller {
   queryParams = [
     'q',
     'committee',

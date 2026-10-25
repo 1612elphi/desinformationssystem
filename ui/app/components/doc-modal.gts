@@ -12,7 +12,7 @@ import CanonHeading from 'delphicanon/components/canon-heading';
 import CanonRow from 'delphicanon/components/canon-row';
 import CanonRows from 'delphicanon/components/canon-rows';
 import { fileUrl, getDocument, versionUrl, type Doc } from 'ui/api';
-import type IndexController from 'ui/controllers/index';
+import type SucheController from 'ui/controllers/suche';
 import DocsGlyph from 'ui/components/docs-glyph';
 import Icon from 'ui/components/icon';
 import { LoadState } from 'ui/components/loading';
@@ -85,9 +85,9 @@ export default class DocModal extends Component<Signature> {
 
   // previous and next through the result list on the Dokumente page
   get list() {
-    if (this.router.currentRouteName !== 'index') return undefined;
-    const c = getOwner(this)?.lookup('controller:index') as
-      IndexController | undefined;
+    if (this.router.currentRouteName !== 'suche') return undefined;
+    const c = getOwner(this)?.lookup('controller:suche') as
+      SucheController | undefined;
     const docs = c?.results ?? [];
     const i = docs.findIndex((d) => d.id === this.args.id);
     return c && i >= 0 ? { c, docs, i } : undefined;

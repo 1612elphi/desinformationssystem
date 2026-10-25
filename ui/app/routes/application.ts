@@ -8,6 +8,21 @@ import { formatStack, parseStack, type Overlay } from 'ui/services/nav';
 
 // Links from the React UI select the tab with ?tab=<slug> and one overlay
 // with ?doc= and the like; both become the current URL shape.
+const SEARCH_PARAMS = [
+  'q',
+  'committee',
+  'type',
+  'sub',
+  'pub',
+  'from',
+  'to',
+  'topic',
+  'district',
+  'street',
+  'cat',
+  'page',
+];
+
 const LEGACY_TABS = ['sitzungen', 'gremien', 'statistik', 'reden', 'karte'];
 
 export default class ApplicationRoute extends Route {
@@ -29,7 +44,11 @@ export default class ApplicationRoute extends Route {
     const panes = (Object.keys(legacy) as Overlay[])
       .filter((k) => legacy[k])
       .map((kind) => ({ kind, id: legacy[kind] }));
-    if (!panes.length && !(tab && LEGACY_TABS.includes(tab))) return;
+    // document search lived at / until it got its own view
+    const oldSearch =
+      location.pathname === '/' && SEARCH_PARAMS.some((k) => q.has(k));
+    if (!panes.length && !(tab && LEGACY_TABS.includes(tab)) && !oldSearch)
+      return;
     // after the boot transition: redirecting inside it fails in the router
     // (_queryParamsFor reads an undefined route)
     q.delete('tab');
@@ -37,7 +56,11 @@ export default class ApplicationRoute extends Route {
     q.set('stack', formatStack([...parseStack(stack), ...panes]));
     if (!panes.length && !stack) q.delete('stack');
     const path =
-      tab && LEGACY_TABS.includes(tab) ? `/${tab}` : location.pathname;
+      tab && LEGACY_TABS.includes(tab)
+        ? `/${tab}`
+        : oldSearch
+          ? '/suche'
+          : location.pathname;
     const query = q.toString();
     setTimeout(() =>
       this.router.replaceWith(query ? `${path}?${query}` : path),
