@@ -23,16 +23,13 @@ import Load from 'ui/utils/load';
 import { RIS_START, scrapeTime } from 'ui/utils/meta';
 import './application.css';
 
-// The same path only works behind the path-routing tunnel (dis.delphi.tools);
-// on a direct deployment the MCP server listens on its own port.
-// ∑CG: footer credit for the councillor portraits from the city's seating plan
-//   spec: credit the photographers and the city as the PDF does, one line, under 60 chars, plain
-//   sample: "Porträts: Stadt Karlsruhe, Müller-Gmelin, Fränkle"
-const PHOTO_CREDIT = '∑CG';
+const PHOTO_CREDIT = 'Porträts: Stadt Karlsruhe, Müller-Gmelin, Fränkle';
 
 const NO_NAZIS =
   'Nazis sind hier unerwünscht und damit meinen wir explizit die AfD ihr Faschos jaja';
 
+// The same path only works behind the path-routing tunnel (dis.delphi.tools);
+// on a direct deployment the MCP server listens on its own port.
 const MCP_HREF =
   window.location.hostname === 'dis.delphi.tools'
     ? '/mcp'
