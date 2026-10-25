@@ -3,7 +3,9 @@ import type RouterService from '@ember/routing/router-service';
 
 export type Overlay = 'doc' | 'meeting' | 'person' | 'vorlage';
 type Modals = Partial<Record<Overlay, string>>;
-type Filters = Partial<Record<'topic' | 'district' | 'street', string>>;
+type Filters = Partial<
+  Record<'topic' | 'district' | 'street' | 'cat' | 'q', string>
+>;
 
 // Open overlays and filters live in the query string, so every link is shareable.
 export default class NavService extends Service {

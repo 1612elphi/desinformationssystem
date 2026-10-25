@@ -200,6 +200,7 @@ func (s *Server) search(w http.ResponseWriter, r *http.Request) (any, error) {
 		Query: q.Get("q"), Committee: q.Get("committee"), DocType: q.Get("type"),
 		DateFrom: q.Get("from"), DateTo: q.Get("to"), Topic: q.Get("topic"),
 		Submitter: q.Get("submitter"), District: q.Get("district"), Street: q.Get("street"),
+		Category: q.Get("category"), Facets: truthy(q.Get("facets")),
 		Limit: limit, Offset: offset,
 	}
 	switch pub := q.Get("public"); pub {

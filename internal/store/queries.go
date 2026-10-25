@@ -9,15 +9,16 @@ type SearchParams struct {
 	Query, Committee, DocType, DateFrom, DateTo string
 	Public                                      *bool
 	Topic, Submitter, District, Street          string
+	Category                                    string
 	Limit, Offset                               int
+	// Facets adds per-value counts of doc_type and category to the result.
+	Facets bool
 }
 
 const agendaJoin = ` LEFT JOIN agenda_items ai
 	ON ai.meeting_id = f.meeting_id AND ai.anchor = f.agenda_anchor `
 
-// SearchDocuments is the faceted full-text search. List results never carry
-// fulltext; GetDocument returns it for one document.
-func (s *Store) SearchDocuments(p SearchParams) (Row, error) {
+func searchWhere(p SearchParams) where {
 	var w where
 	if p.Query != "" {
 		w.add("files_fts MATCH ?", FTSQuery(p.Query))
@@ -53,21 +54,45 @@ func (s *Store) SearchDocuments(p SearchParams) (Row, error) {
 	if p.Street != "" {
 		w.add("f.id IN (SELECT file_id FROM file_streets WHERE name = ? COLLATE NOCASE)", p.Street)
 	}
+	if p.Category != "" {
+		w.add("f.category = ?", p.Category)
+	}
+	return w
+}
+
+func searchFrom(p SearchParams, w where) string {
+	if p.Query != "" {
+		return " FROM files f JOIN files_fts ON files_fts.rowid = f.fts_id" +
+			" LEFT JOIN meetings m ON m.id = f.meeting_id" + agendaJoin + w.sql()
+	}
+	return " FROM files f LEFT JOIN meetings m ON m.id = f.meeting_id" + agendaJoin + w.sql()
+}
+
+// searchFacet counts the matches per value of col, ignoring the filter on col
+// itself so the other values stay selectable.
+func (s *Store) searchFacet(p SearchParams, col string) ([]Row, error) {
+	w := searchWhere(p)
+	return s.rows("SELECT f."+col+" AS value, COUNT(*) AS n"+searchFrom(p, w)+
+		" GROUP BY f."+col+" HAVING value IS NOT NULL AND value != '' ORDER BY n DESC, value LIMIT 12", w.args...)
+}
+
+// SearchDocuments is the faceted full-text search. List results never carry
+// fulltext; GetDocument returns it for one document.
+func (s *Store) SearchDocuments(p SearchParams) (Row, error) {
+	w := searchWhere(p)
 	cols := `SELECT f.*, m.body_name, m.body_id, m.date AS meeting_date,
 		m.title AS meeting_title, m.public AS meeting_public,
 		ai.number AS agenda_number, ai.title AS agenda_title`
-	var base, q string
+	var q string
+	base := searchFrom(p, w)
 	args := w.args
 	if p.Query != "" {
-		base = " FROM files f JOIN files_fts ON files_fts.rowid = f.fts_id" +
-			" LEFT JOIN meetings m ON m.id = f.meeting_id" + agendaJoin + w.sql()
 		// snippet delimiters are control chars the UI splits on, so document
 		// text can never inject markup
 		q = cols + `, snippet(files_fts, -1, ?, ?, ' … ', 20) AS snippet,
 			bm25(files_fts) AS rank` + base + " ORDER BY rank LIMIT ? OFFSET ?"
 		args = append([]any{"\x01", "\x02"}, w.args...)
 	} else {
-		base = " FROM files f LEFT JOIN meetings m ON m.id = f.meeting_id" + agendaJoin + w.sql()
 		q = cols + base + " ORDER BY m.date DESC, f.id DESC LIMIT ? OFFSET ?"
 	}
 	total, err := s.count("SELECT COUNT(*)"+base, w.args...)
@@ -82,7 +107,21 @@ func (s *Store) SearchDocuments(p SearchParams) (Row, error) {
 		decodeJSON(r)
 		delete(r, "fulltext")
 	}
-	return Row{"total": total, "results": rows}, nil
+	res := Row{"total": total, "results": rows}
+	if p.Facets {
+		tp, cp := p, p
+		tp.DocType, cp.Category = "", ""
+		types, err := s.searchFacet(tp, "doc_type")
+		if err != nil {
+			return nil, err
+		}
+		cats, err := s.searchFacet(cp, "category")
+		if err != nil {
+			return nil, err
+		}
+		res["facet_counts"] = Row{"doc_type": types, "category": cats}
+	}
+	return res, nil
 }
 
 func (s *Store) GetDocument(id string) (Row, error) {

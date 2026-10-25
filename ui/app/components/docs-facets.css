@@ -1,0 +1,80 @@
+.dis-facets {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dis-facets-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.dis-facets-label {
+  min-inline-size: 5.5rem;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dis-facet {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-block-size: 30px;
+  padding: 2px 8px 2px 2px;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font: inherit;
+  font-size: var(--canon-text-footnote);
+  cursor: pointer;
+}
+
+.dis-facet:not(:has(.dis-glyph)) {
+  padding-inline-start: 8px;
+}
+
+.dis-facet .dis-glyph {
+  inline-size: 24px;
+  block-size: 24px;
+}
+
+.dis-facet-n {
+  color: var(--canon-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-facet[aria-pressed="true"] {
+  border-color: var(--canon-foreground);
+  background: var(--canon-foreground);
+  color: var(--canon-background);
+}
+
+.dis-facet[aria-pressed="true"] .dis-facet-n {
+  color: inherit;
+}
+
+@media (hover: hover) {
+  .dis-facet[aria-pressed="false"]:hover {
+    background: var(--canon-muted);
+  }
+}
+
+@container (inline-size < 40rem) {
+  .dis-facets-group {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .dis-facets-label {
+    min-inline-size: auto;
+  }
+
+  .dis-facet {
+    flex: none;
+  }
+}

@@ -1,27 +1,32 @@
 import Component from '@glimmer/component';
 import { service } from '@ember/service';
 import { concat, fn } from '@ember/helper';
+import { on } from '@ember/modifier';
 import { pageTitle } from 'ember-page-title';
 import CanonButton from 'delphicanon/components/canon-button';
 import CanonEmptyRow from 'delphicanon/components/canon-empty-row';
 import CanonLoader from 'delphicanon/components/canon-loader';
 import CanonRow from 'delphicanon/components/canon-row';
+import CanonSegmented from 'delphicanon/components/canon-segmented';
 import CanonTextCell from 'delphicanon/components/canon-text-cell';
-import CanonTiles from 'delphicanon/components/canon-tiles';
 import type { Doc } from 'ui/api';
 import type IndexController from 'ui/controllers/index';
-import { ALL_COLUMNS, PAGE_SIZE } from 'ui/controllers/index';
+import { ALL_COLUMNS, PAGE_SIZE, VIEWS } from 'ui/controllers/index';
 import type { ApplicationModel } from 'ui/routes/application';
 import type NavService from 'ui/services/nav';
 import ColumnPicker from 'ui/components/column-picker';
 import DataTable from 'ui/components/data-table';
+import DocsFacets from 'ui/components/docs-facets';
+import DocsList from 'ui/components/docs-list';
+import DocsWeek from 'ui/components/docs-week';
 import { SelectField, DateField } from 'ui/components/fields';
 import Icon from 'ui/components/icon';
-import { LoadError, LoadState } from 'ui/components/loading';
+import { LoadError } from 'ui/components/loading';
 import Pagination from 'ui/components/pagination';
 import { SubmitterChips } from 'ui/components/party-chip';
 import Snippet from 'ui/components/snippet';
 import Tag from 'ui/components/tag';
+import shortcut from 'ui/modifiers/shortcut';
 import {
   PUBLIC_OPTS,
   SUBMITTERS,
@@ -29,7 +34,6 @@ import {
   eq,
   num,
   or,
-  scrapeTime,
 } from 'ui/utils/meta';
 import './index.css';
 
@@ -46,19 +50,6 @@ export default class DokumenteTemplate extends Component<Signature> {
 
   get facets() {
     return this.args.model.facets.value;
-  }
-
-  get tiles() {
-    const s = this.args.model.stats.value;
-    if (!s) return [];
-    return [
-      { label: 'Dokumente', value: num(s.documents) },
-      { label: 'Sitzungen', value: num(s.meetings) },
-      { label: 'Gremien', value: num(s.bodies) },
-      { label: 'Volltext', value: num(s.with_text) },
-      { label: 'Analysiert', value: num(s.enriched) },
-      { label: 'Letzter Abruf', value: scrapeTime(s.last_scrape) },
-    ];
   }
 
   get committeeItems() {
@@ -103,10 +94,47 @@ export default class DokumenteTemplate extends Component<Signature> {
 
   openDoc = (d: Doc) => this.nav.open({ doc: d.id });
 
+  focusSearch = () => document.getElementById('dis-q')?.focus();
+
+  searchKey = (e: KeyboardEvent) => {
+    if (e.key !== 'Escape') return;
+    if (this.args.controller.qValue) this.args.controller.clearQ();
+    else (e.target as HTMLElement).blur();
+  };
+
+  // j/k move real focus through the result rows, so Enter opens the row
+  move = (step: number) => {
+    const c = this.args.controller;
+    const rows = [
+      ...document.querySelectorAll<HTMLElement>(
+        '.dis-docs-results :is(.dis-dlist-open, .dis-table-open)',
+      ),
+    ];
+    if (!rows.length) return;
+    const from = c.cursor < 0 || c.cursor >= rows.length ? -1 : c.cursor;
+    const i =
+      from < 0
+        ? step > 0
+          ? 0
+          : rows.length - 1
+        : Math.min(rows.length - 1, Math.max(0, from + step));
+    c.setCursor(i);
+    rows[i]?.focus();
+    rows[i]?.closest('li, tr')?.scrollIntoView({ block: 'nearest' });
+  };
+
+  next = () => this.move(1);
+  prev = () => this.move(-1);
+
   <template>
     {{pageTitle "Dokumente"}}
     {{#let @controller as |c|}}
-      <div class="dis-docs">
+      <div
+        class="dis-docs"
+        {{shortcut "/" this.focusSearch}}
+        {{shortcut "j" this.next}}
+        {{shortcut "k" this.prev}}
+      >
         <header class="dis-docs-hero">
           <h1>Karlsruher Ratsdokumente</h1>
           <p>
@@ -115,9 +143,10 @@ export default class DokumenteTemplate extends Component<Signature> {
           </p>
         </header>
 
-        <LoadState @load={{@model.stats}}>
-          <CanonTiles class="dis-docs-tiles" @items={{this.tiles}} />
-        </LoadState>
+        {{#if @model.stats.error}}
+          <LoadError @error={{@model.stats.error}} />
+        {{/if}}
+        <DocsWeek @stats={{@model.stats.value}} />
 
         <div class="dis-docs-controls">
           <div role="search">
@@ -134,6 +163,7 @@ export default class DokumenteTemplate extends Component<Signature> {
                 @value={{c.qValue}}
                 @placeholder="Volltextsuche über alle Dokumente, Zusammenfassungen und Schlagworte…"
                 @onChange={{c.setQ}}
+                {{on "keydown" this.searchKey}}
               />
               {{#if c.qValue}}
                 <CanonButton
@@ -226,14 +256,38 @@ export default class DokumenteTemplate extends Component<Signature> {
               @onClick={{c.resetAll}}
             />
           {{/if}}
-          <span class="dis-docs-colpick">
-            <ColumnPicker
-              @columns={{ALL_COLUMNS}}
-              @selected={{c.cols}}
-              @onChange={{c.setCols}}
+          <span class="dis-docs-viewbar">
+            <kbd class="dis-docs-keys" title="Tastatur">/ · J / K</kbd>
+            {{#if (eq c.view 1)}}
+              <span class="dis-docs-colpick">
+                <ColumnPicker
+                  @columns={{ALL_COLUMNS}}
+                  @selected={{c.cols}}
+                  @onChange={{c.setCols}}
+                />
+              </span>
+            {{/if}}
+            <CanonSegmented
+              class="dis-docs-view"
+              aria-label="Ansicht"
+              @items={{VIEWS}}
+              @selected={{c.view}}
+              @boxed={{true}}
+              @onChange={{c.setView}}
             />
           </span>
         </div>
+
+        {{#if c.facetCounts}}
+          <DocsFacets
+            @categories={{c.facetCounts.category}}
+            @types={{c.facetCounts.doc_type}}
+            @category={{c.cat}}
+            @type={{c.type}}
+            @onCategory={{fn c.setFilter "cat"}}
+            @onType={{fn c.setFilter "type"}}
+          />
+        {{/if}}
 
         {{#if c.search.error}}
           <LoadError @error={{c.search.error}} />
@@ -242,45 +296,56 @@ export default class DokumenteTemplate extends Component<Signature> {
             @text="Keine Dokumente gefunden — Suchbegriff anpassen oder Filter zurücksetzen."
           />
         {{else if c.results.length}}
-          <DataTable
-            class="dis-docs-table"
-            @columns={{c.visibleColumns}}
-            @rows={{c.results}}
-            @caption="Dokumente"
-            @onOpen={{this.openDoc}}
-            @rowLabel={{docLabel}}
-            as |d col|
-          >
-            {{#if (eq col.key "date")}}
-              {{if d.meeting_date d.meeting_date "—"}}
-            {{else if (eq col.key "gremium")}}
-              {{if d.body_name d.body_name "—"}}
-            {{else if (eq col.key "top")}}
-              {{#if (or d.agenda_number d.agenda_title)}}
-                <span class="dis-docs-top" title={{d.agenda_title}}>
-                  {{#if d.agenda_number}}<span class="dis-docs-topnum">{{topNum
-                        d.agenda_number
-                      }}</span>{{/if}}
-                  {{d.agenda_title}}
-                </span>
-              {{else}}
-                —
-              {{/if}}
-            {{else if (eq col.key "sub")}}
-              <SubmitterChips @codes={{d.submitters}} />
-            {{else if (eq col.key "typ")}}
-              <Tag>{{d.doc_type}}</Tag>
-            {{else if (eq col.key "doc")}}
-              <span class="dis-docs-doc">
-                <span class="dis-docs-label">{{d.label}}</span>
-                {{#if d.snippet}}<Snippet @text={{d.snippet}} />{{/if}}
-              </span>
-            {{else if (eq col.key "cat")}}
-              {{#if d.category}}<Tag>{{d.category}}</Tag>{{/if}}
-            {{else if (eq col.key "stadtteil")}}
-              {{#if d.district}}<Tag>{{d.district}}</Tag>{{/if}}
+          <div class="dis-docs-results">
+            {{#if (eq c.view 0)}}
+              <DocsList
+                @docs={{c.results}}
+                @cursor={{c.cursor}}
+                @onOpen={{this.openDoc}}
+                @onFocusRow={{c.setCursor}}
+              />
+            {{else}}
+              <DataTable
+                class="dis-docs-table"
+                @columns={{c.visibleColumns}}
+                @rows={{c.results}}
+                @caption="Dokumente"
+                @onOpen={{this.openDoc}}
+                @rowLabel={{docLabel}}
+                as |d col|
+              >
+                {{#if (eq col.key "date")}}
+                  {{if d.meeting_date d.meeting_date "—"}}
+                {{else if (eq col.key "gremium")}}
+                  {{if d.body_name d.body_name "—"}}
+                {{else if (eq col.key "top")}}
+                  {{#if (or d.agenda_number d.agenda_title)}}
+                    <span class="dis-docs-top" title={{d.agenda_title}}>
+                      {{#if d.agenda_number}}<span
+                          class="dis-docs-topnum"
+                        >{{topNum d.agenda_number}}</span>{{/if}}
+                      {{d.agenda_title}}
+                    </span>
+                  {{else}}
+                    —
+                  {{/if}}
+                {{else if (eq col.key "sub")}}
+                  <SubmitterChips @codes={{d.submitters}} />
+                {{else if (eq col.key "typ")}}
+                  <Tag>{{d.doc_type}}</Tag>
+                {{else if (eq col.key "doc")}}
+                  <span class="dis-docs-doc">
+                    <span class="dis-docs-label">{{d.label}}</span>
+                    {{#if d.snippet}}<Snippet @text={{d.snippet}} />{{/if}}
+                  </span>
+                {{else if (eq col.key "cat")}}
+                  {{#if d.category}}<Tag>{{d.category}}</Tag>{{/if}}
+                {{else if (eq col.key "stadtteil")}}
+                  {{#if d.district}}<Tag>{{d.district}}</Tag>{{/if}}
+                {{/if}}
+              </DataTable>
             {{/if}}
-          </DataTable>
+          </div>
           <Pagination
             @page={{c.page}}
             @pageSize={{PAGE_SIZE}}

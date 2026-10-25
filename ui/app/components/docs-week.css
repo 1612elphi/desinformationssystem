@@ -1,0 +1,345 @@
+.dis-week {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+.dis-week-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+}
+
+.dis-week-head h2 {
+  margin: 0;
+  font-size: var(--canon-text-title3);
+  font-weight: 700;
+}
+
+.dis-week-kw {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-subheadline);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-week-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin: 0 0 0 auto;
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-week-stats div {
+  display: flex;
+  gap: 4px;
+}
+
+.dis-week-stats dt {
+  color: var(--canon-muted-foreground);
+}
+
+.dis-week-stats dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-week-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.dis-week-section h3 {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--canon-text-footnote);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.dis-week-sub {
+  color: var(--canon-muted-foreground);
+  font-weight: 400;
+  text-transform: none;
+}
+
+/* days, documents and votes scroll inside the band, never the page */
+.dis-week-days,
+.dis-week-strip {
+  display: grid;
+  grid-auto-columns: minmax(9.5rem, 1fr);
+  grid-auto-flow: column;
+  gap: var(--canon-hairline);
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-border);
+  list-style: none;
+  scroll-snap-type: x proximity;
+}
+
+.dis-week-strip {
+  grid-auto-columns: 14rem;
+}
+
+.dis-week-days > li,
+.dis-week-strip > li {
+  scroll-snap-align: start;
+}
+
+.dis-day {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-block-size: 5rem;
+  padding: 0 0 6px;
+  background: var(--canon-card);
+}
+
+.dis-day.is-empty {
+  background: var(--canon-background);
+}
+
+.dis-day-head {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 6px 10px 4px;
+  border-block-start: var(--canon-frame) solid transparent;
+}
+
+.dis-day.is-today .dis-day-head {
+  border-block-start-color: var(--dis-highlight);
+}
+
+.dis-day-wd {
+  font-size: var(--canon-text-footnote);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.dis-day-date {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-day-today,
+.dis-wvote-close {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: var(--canon-text-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.dis-day-today {
+  margin-inline-start: auto;
+}
+
+.dis-day-today::before,
+.dis-wvote-close::before {
+  content: "";
+  inline-size: 8px;
+  block-size: 8px;
+  background: var(--dis-highlight);
+}
+
+.dis-day-meeting {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 6px;
+  align-items: baseline;
+  padding: 3px 10px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-footnote);
+  line-height: 1.25;
+  text-align: start;
+  cursor: pointer;
+}
+
+.dis-day-body {
+  grid-column: 2;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.dis-day-time {
+  grid-column: 2;
+  color: var(--canon-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-day-live {
+  grid-row: 1;
+  grid-column: 1;
+  inline-size: 8px;
+  block-size: 8px;
+  background: var(--canon-destructive);
+  animation: dis-week-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dis-day-live {
+    animation: none;
+  }
+}
+
+@keyframes dis-week-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.dis-wdoc,
+.dis-wvote {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: 10px;
+  border: 0;
+  background: var(--canon-card);
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-footnote);
+  text-align: start;
+  cursor: pointer;
+}
+
+.dis-wdoc-head,
+.dis-wvote-head {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  inline-size: 100%;
+}
+
+.dis-wdoc-type {
+  font-weight: 600;
+}
+
+.dis-wdoc-date {
+  margin-inline-start: auto;
+  color: var(--canon-muted-foreground);
+  white-space: nowrap;
+}
+
+.dis-wdoc-body {
+  color: var(--canon-muted-foreground);
+}
+
+.dis-wdoc-title,
+.dis-wvote-title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--canon-text-subheadline);
+  font-weight: 600;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dis-wdoc .dis-tag {
+  margin-block-start: auto;
+  white-space: normal;
+}
+
+.dis-week-votes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--canon-hairline);
+  margin: 0;
+  padding: 0;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-border);
+  list-style: none;
+}
+
+.dis-wvote {
+  position: relative;
+}
+
+.dis-wvote.is-close::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: var(--canon-frame);
+  background: var(--dis-highlight);
+}
+
+.dis-wvote-top {
+  font-weight: 700;
+}
+
+.dis-wvote-result {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-inline-start: auto;
+  font-weight: 600;
+}
+
+.dis-wvote-result::before {
+  content: "";
+  inline-size: 8px;
+  block-size: 8px;
+  background: var(--dis-no);
+}
+
+.dis-wvote-result.is-passed::before {
+  background: var(--dis-yes);
+}
+
+.dis-wvote .dis-votebar {
+  inline-size: 100%;
+  margin-block-start: auto;
+}
+
+.dis-day-meeting:focus-visible,
+.dis-wdoc:focus-visible,
+.dis-wvote:focus-visible {
+  outline-offset: calc(-1 * var(--canon-frame));
+}
+
+@media (hover: hover) {
+  .dis-day-meeting:hover,
+  .dis-wdoc:hover,
+  .dis-wvote:hover {
+    background: var(--canon-accent-bg);
+  }
+}
+
+@container (inline-size < 40rem) {
+  .dis-week-votes {
+    grid-template-columns: none;
+    grid-auto-columns: 16rem;
+    grid-auto-flow: column;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .dis-week-votes > li {
+    scroll-snap-align: start;
+  }
+
+  .dis-week-stats {
+    margin-inline-start: 0;
+  }
+}
