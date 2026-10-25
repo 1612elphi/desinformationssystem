@@ -46,6 +46,7 @@ export const SHORTCUTS: {
     group: 'Sitzungen',
     items: [
       { keys: [['←'], ['↑'], ['→'], ['↓']], label: 'Tag wechseln' },
+      { keys: [['Pos1'], ['Ende']], label: 'Wochenanfang / -ende' },
       { keys: [['↵']], label: 'Tag öffnen' },
       {
         keys: [['Bild ↑'], ['Bild ↓'], ['['], [']']],
@@ -69,6 +70,10 @@ export const SHORTCUTS: {
         label: 'Vorige / nächste Sitzung',
       },
     ],
+  },
+  {
+    group: 'Person',
+    items: [{ keys: [['['], [']']], label: 'Voriges / nächstes Mitglied' }],
   },
   {
     group: 'Gremien',
