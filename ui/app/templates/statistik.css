@@ -71,17 +71,17 @@
 
 .dis-seg--ja,
 .dis-vt--ja {
-  --dis-vote: var(--canon-primary);
+  --dis-vote: var(--dis-yes);
 }
 
 .dis-seg--nein,
 .dis-vt--nein {
-  --dis-vote: var(--canon-destructive);
+  --dis-vote: var(--dis-no);
 }
 
 .dis-seg--enth,
 .dis-vt--enth {
-  --dis-vote: var(--canon-muted-foreground);
+  --dis-vote: var(--dis-abstain);
 }
 
 .dis-votetext {

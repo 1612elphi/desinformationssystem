@@ -25,6 +25,61 @@ html:root {
   --canon-text-subheadline: 15px;
   --canon-text-footnote: 13px;
   --canon-text-caption: 12px;
+
+  /* karlsruhe red and gold on grey; html: raises these over the kit's own theme blocks */
+  --canon-background: #f3f3f1;
+  --canon-foreground: #1c1c1e;
+  --canon-card: #fbfbfa;
+  --canon-muted: #e6e6e3;
+  --canon-muted-foreground: #5a5a5f;
+  --canon-secondary-foreground: #2c2c2f;
+  --canon-accent-bg: #ececea;
+  --canon-border: #d4d4d0;
+  --canon-primary: #c4001a;
+  --canon-primary-foreground: #fff;
+  --canon-destructive: #c4001a;
+  --dis-yes: #a67c00;
+  --dis-no: #c4001a;
+  --dis-abstain: #8e8e93;
+  --dis-highlight: #fc0;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:root:not(.light) {
+    --canon-background: #1b1b1d;
+    --canon-foreground: #f1f1f0;
+    --canon-card: #232326;
+    --canon-muted: #2d2d31;
+    --canon-muted-foreground: #a3a3a8;
+    --canon-secondary-foreground: #d4d4d8;
+    --canon-accent-bg: #2f2f33;
+    --canon-border: #3b3b40;
+    --canon-primary: #e2001a;
+    --canon-primary-foreground: #fff;
+    --canon-destructive: #ff3b4a;
+    --dis-yes: #fc0;
+    --dis-no: #ff3b4a;
+    --dis-abstain: #8e8e93;
+    --dis-highlight: #fc0;
+  }
+}
+
+html:root.dark {
+  --canon-background: #1b1b1d;
+  --canon-foreground: #f1f1f0;
+  --canon-card: #232326;
+  --canon-muted: #2d2d31;
+  --canon-muted-foreground: #a3a3a8;
+  --canon-secondary-foreground: #d4d4d8;
+  --canon-accent-bg: #2f2f33;
+  --canon-border: #3b3b40;
+  --canon-primary: #e2001a;
+  --canon-primary-foreground: #fff;
+  --canon-destructive: #ff3b4a;
+  --dis-yes: #fc0;
+  --dis-no: #ff3b4a;
+  --dis-abstain: #8e8e93;
+  --dis-highlight: #fc0;
 }
 
 html,

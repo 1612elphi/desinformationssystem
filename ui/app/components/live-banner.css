@@ -4,7 +4,7 @@
   gap: 4px var(--canon-panel-padding);
   align-items: center;
   padding-inline-start: var(--canon-panel-padding);
-  border-block-end: var(--canon-frame) solid var(--canon-primary);
+  border-block-end: var(--canon-frame) solid var(--dis-highlight);
   background: var(--canon-card);
   font-size: var(--canon-text-subheadline);
 }

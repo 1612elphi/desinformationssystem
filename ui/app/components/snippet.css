@@ -5,6 +5,6 @@
 }
 
 .dis-snippet mark {
-  background: color-mix(in srgb, var(--canon-primary) 22%, transparent);
+  background: color-mix(in srgb, var(--dis-highlight) 40%, transparent);
   color: var(--canon-foreground);
 }

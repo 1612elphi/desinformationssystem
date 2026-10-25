@@ -24,17 +24,17 @@
   inline-size: 8px;
   block-size: 8px;
   margin-inline-end: 6px;
-  background: var(--dis-vote, var(--canon-muted-foreground));
+  background: var(--dis-vote, var(--dis-abstain));
 }
 
 .dis-vote__ja,
 .dis-vote__m--ja {
-  --dis-vote: var(--canon-primary);
+  --dis-vote: var(--dis-yes);
 }
 
 .dis-vote__nein,
 .dis-vote__m--nein {
-  --dis-vote: var(--canon-destructive);
+  --dis-vote: var(--dis-no);
 }
 
 .dis-vote__roll summary {

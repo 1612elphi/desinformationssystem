@@ -36,9 +36,9 @@
 }
 
 .dis-person-vote--ja {
-  --dis-person-vote: var(--canon-primary);
+  --dis-person-vote: var(--dis-yes);
 }
 
 .dis-person-vote--nein {
-  --dis-person-vote: var(--canon-destructive);
+  --dis-person-vote: var(--dis-no);
 }
