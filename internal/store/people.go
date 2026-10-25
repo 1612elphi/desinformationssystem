@@ -135,6 +135,10 @@ func (s *Store) personVotes(full string) ([]Row, error) {
 	if err != nil {
 		return nil, err
 	}
+	lookup, err := s.partyLookup()
+	if err != nil {
+		return nil, err
+	}
 	counts := map[string]map[string]int{}
 	total := 0
 	for _, m := range members {
@@ -148,7 +152,8 @@ func (s *Store) personVotes(full string) ([]Row, error) {
 		}
 	}
 	rows, err := s.rows(`SELECT v.meeting_id, v.agenda_anchor, v.top_label, v.result_text, v.members,
-			v.source, m.body_id, m.body_name, m.date AS meeting_date,
+			v.source, v.ja, v.nein, v.enthaltung,
+			m.body_id, m.body_name, m.date AS meeting_date,
 			ai.title AS agenda_title, ai.number AS agenda_number
 		FROM votes v JOIN meetings m ON m.id = v.meeting_id
 		LEFT JOIN agenda_items ai
@@ -163,7 +168,8 @@ func (s *Store) personVotes(full string) ([]Row, error) {
 		if nSame == 0 {
 			nSame = total
 		}
-		for _, e := range rollCall(r["members"]) {
+		roll := rollCall(r["members"])
+		for _, e := range roll {
 			esn, eini := parseRollName(str(e["name"]))
 			if esn != sn || (eini != "" && ini != "" && eini != ini) || (eini == "" && nSame > 1) {
 				continue
@@ -171,11 +177,48 @@ func (s *Store) personVotes(full string) ([]Row, error) {
 			delete(r, "members")
 			r["vote"] = e["vote"]
 			r["roll_name"] = e["name"]
+			addPartyLine(r, roll, lookup, str(r["body_id"]), str(e["name"]))
 			out = append(out, r)
 			break
 		}
 	}
 	return out, nil
+}
+
+// addPartyLine sets party_code, party_tally and party_line (the majority of
+// the cast votes, as in VoteAnalytics) for the party rollName is attributed to.
+func addPartyLine(r Row, roll []map[string]any, lookup map[string]map[string][]partyCand, body, rollName string) {
+	code := entryParty(lookup, body, rollName)
+	if code == "" {
+		return
+	}
+	c := map[string]int{"ja": 0, "nein": 0, "enthaltung": 0, "abwesend": 0}
+	for _, e := range roll {
+		if entryParty(lookup, body, str(e["name"])) != code {
+			continue
+		}
+		w := str(e["vote"])
+		if w == "" {
+			w = "abwesend"
+		}
+		c[w]++
+	}
+	r["party_code"] = code
+	r["party_tally"] = c
+	if c["ja"]+c["nein"]+c["enthaltung"] > 0 {
+		r["party_line"] = partyLine(c)
+	}
+}
+
+// partyLine is the most cast vote; ties go to ja, then nein.
+func partyLine(c map[string]int) string {
+	line := "ja"
+	for _, k := range castKinds[1:] {
+		if c[k] > c[line] {
+			line = k
+		}
+	}
+	return line
 }
 
 // VorlageChain is the timeline of a Vorlagennummer: every meeting where a
@@ -473,12 +516,7 @@ func (s *Store) VoteAnalytics() (Row, error) {
 			if nCast == 0 {
 				continue
 			}
-			line := "ja"
-			for _, k := range castKinds[1:] {
-				if c[k] > c[line] {
-					line = k
-				}
-			}
+			line := partyLine(c)
 			lines[code] = line
 			agg, ok := party[code]
 			if !ok {

@@ -2,28 +2,165 @@
   display: grid;
   gap: var(--canon-panel-padding);
   font-size: var(--canon-text-subheadline);
+  container-type: inline-size;
 }
 
-.dis-person-facts {
+.dis-person-head {
   display: grid;
-  grid-template-columns: 7rem minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--canon-panel-padding);
+  align-items: start;
+}
+
+.dis-person-avatar {
+  display: grid;
+  place-items: center;
+  inline-size: 64px;
+  block-size: 64px;
+  border-block-end: 4px solid var(--dis-person-mark);
+  background: color-mix(in srgb, var(--dis-person-mark) 22%, var(--canon-card));
+  font-size: var(--canon-text-title3);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.dis-person-id {
+  display: grid;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.dis-person-party {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.dis-person-bodies .dis-tag {
+  white-space: normal;
+  text-align: start;
+}
+
+.dis-person-chair {
+  border-color: var(--canon-primary);
+}
+
+.dis-person-step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dis-person-bar {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px var(--canon-panel-padding);
-  margin: 0;
+  align-items: center;
 }
 
-.dis-person-facts dt {
-  color: var(--canon-muted-foreground);
-  font-size: var(--canon-text-footnote);
-}
-
-.dis-person-facts dd {
-  margin: 0;
+.dis-person-bar .dis-votebar {
+  flex: 1 1 14rem;
 }
 
 .dis-person-muted {
   margin: 0;
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);
+}
+
+.dis-person-pad {
+  padding-inline: var(--canon-panel-padding);
+}
+
+.dis-person-against {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+  gap: 4px var(--canon-panel-padding);
+  align-items: center;
+  margin: 0;
+  padding: 8px var(--canon-panel-padding);
+  border: 0;
+  border-inline-start: var(--canon-frame) solid var(--dis-highlight);
+  border-radius: 0;
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.dis-person-list {
+  display: grid;
+  gap: var(--canon-hairline);
+  background: var(--canon-border);
+}
+
+.dis-person-more {
+  justify-content: start;
+  padding-inline: var(--canon-panel-padding);
+  background: var(--canon-card);
+}
+
+.dis-person-against:focus-visible,
+.dis-person-all summary:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: calc(-1 * var(--canon-frame));
+}
+
+@media (hover: hover) {
+  .dis-person-against:hover {
+    background: var(--canon-muted);
+  }
+}
+
+.dis-person-against-when {
+  display: grid;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-person-against-top {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dis-person-against-votes {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.dis-person-against-votes .dis-votebar {
+  min-inline-size: 4rem;
+}
+
+@container (max-width: 560px) {
+  .dis-person-head {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .dis-person-step {
+    grid-column: 1 / -1;
+  }
+
+  .dis-person-against {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dis-person-all summary {
+  padding: 8px var(--canon-panel-padding);
+  background: var(--canon-card);
+  cursor: pointer;
+}
+
+.dis-person-vote {
+  white-space: nowrap;
 }
 
 .dis-person-vote::before {
@@ -41,4 +178,8 @@
 
 .dis-person-vote--nein {
   --dis-person-vote: var(--dis-no);
+}
+
+.dis-person-vote--enthaltung {
+  --dis-person-vote: var(--dis-abstain);
 }
