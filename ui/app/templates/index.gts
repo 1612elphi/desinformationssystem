@@ -1,5 +1,6 @@
 import type { TOC } from '@ember/component/template-only';
 import { pageTitle } from 'ember-page-title';
+import rough from 'ui/modifiers/rough';
 import DashLast from 'ui/components/dash-last';
 import DashNext from 'ui/components/dash-next';
 import DashQuick, { DashSearch } from 'ui/components/dash-quick';
@@ -11,7 +12,13 @@ import './index.css';
 const Uebersicht: TOC<{ Args: { model: IndexModel } }> = <template>
   {{pageTitle "Übersicht"}}
   <div class="dis-dash">
-    <h1 class="dis-visually-hidden">Übersicht</h1>
+    <header class="dis-dash-hero">
+      <h1><span {{rough "underline" strokeWidth=2}}>Karlsruher Ratsdokumente</span></h1>
+      <p>
+        Durchsuchbares Archiv des Sitzungskalenders der Stadt Karlsruhe —
+        täglich aktualisiert, volltextindiziert und kategorisiert.
+      </p>
+    </header>
     <DashSearch />
     <div class="dis-dash-hero">
       <DashLast @load={{@model.last}} />
