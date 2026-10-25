@@ -15,12 +15,22 @@ import type NavService from 'ui/services/nav';
 import DocRow from 'ui/components/doc-row';
 import GremiumMembers from 'ui/components/gremium-members';
 import GremiumShare from 'ui/components/gremium-share';
+import Icon from 'ui/components/icon';
 import { LoadState } from 'ui/components/loading';
 import SeatChart from 'ui/components/seat-chart';
+import rough from 'ui/modifiers/rough';
 import shortcut from 'ui/modifiers/shortcut';
 import { daysUntil, deDate, todayISO } from 'ui/utils/api-menschen';
 import { eq, num } from 'ui/utils/meta';
 import './gremien.css';
+
+const GROUP_ICON: Record<string, string> = {
+  Gemeinderat: 'landmark',
+  Ausschüsse: 'users',
+  Ortschaftsräte: 'map',
+  Weitere: 'building-2',
+};
+const groupIcon = (name: string) => GROUP_ICON[name] ?? 'building-2';
 
 const TITLE_ID = 'dis-gremium-title';
 const FILTER_ID = 'dis-gremien-q';
@@ -141,7 +151,11 @@ export default class GremienTemplate extends Component<Signature> {
             {{shortcut "j" this.next}}
             {{shortcut "k" this.prev}}
           >
-            <h2 class="canon-heading">Gremien
+            <h2 class="canon-heading dis-gremien-heading"><Icon
+                @name="landmark"
+                @size={{14}}
+              />
+              Gremien
               {{#if c.list.value}}({{num c.visible.length}}){{/if}}</h2>
             <CanonRow
               class="dis-gremien-filter"
@@ -163,7 +177,10 @@ export default class GremienTemplate extends Component<Signature> {
             <LoadState @load={{c.list}}>
               {{#each c.groups key="name" as |g|}}
                 <h3 class="canon-heading dis-gremien-group">
-                  <span>{{g.name}}</span>
+                  <span class="dis-gremien-heading"><Icon
+                      @name={{groupIcon g.name}}
+                      @size={{14}}
+                    />{{g.name}}</span>
                   <span class="dis-gremien-meta">{{num g.items.length}}</span>
                 </h3>
                 {{#each g.items key="id" as |item|}}
@@ -190,6 +207,7 @@ export default class GremienTemplate extends Component<Signature> {
               {{/each}}
             </LoadState>
             <p class="dis-gremien-keys" aria-hidden="true">
+              <Icon @name="keyboard" @size={{14}} />
               <kbd>/</kbd>
               Filter ·
               <kbd>J</kbd>
@@ -200,17 +218,28 @@ export default class GremienTemplate extends Component<Signature> {
         <:main>
           {{#if c.currentId}}
             <CanonRows class="dis-gremien-detail" @framed={{true}}>
-              <h2 id={{TITLE_ID}} class="canon-heading" tabindex="-1">{{if
-                  this.selectedName
-                  this.selectedName
-                  "Gremium"
-                }}</h2>
+              <h2 id={{TITLE_ID}} class="canon-heading" tabindex="-1"><span
+                  class="dis-gremien-title"
+                  {{rough
+                    "underline"
+                    color="--dis-highlight"
+                    strokeWidth=2.5
+                    padding=2
+                  }}
+                >{{if
+                    this.selectedName
+                    this.selectedName
+                    "Gremium"
+                  }}</span></h2>
               <LoadState @load={{c.selected}}>
                 {{#let c.selected.value as |sel|}}
                   <CanonTiles @items={{this.tiles}} />
 
                   {{#if c.members.length}}
-                    <h3 class="canon-heading">Zusammensetzung</h3>
+                    <h3 class="canon-heading dis-gremien-heading"><Icon
+                        @name="armchair"
+                        @size={{14}}
+                      />Zusammensetzung</h3>
                     <div class="dis-gremien-chamber">
                       <SeatChart
                         @seats={{c.members}}
@@ -221,26 +250,30 @@ export default class GremienTemplate extends Component<Signature> {
                     </div>
                     <GremiumShare @parts={{sel.composition}} />
 
-                    <h3 class="canon-heading">Mitglieder ({{num
-                        c.members.length
-                      }})</h3>
+                    <h3 class="canon-heading dis-gremien-heading"><Icon
+                        @name="users"
+                        @size={{14}}
+                      />Mitglieder ({{num c.members.length}})</h3>
                     <GremiumMembers
                       @members={{c.members}}
                       @onOpen={{this.openPerson}}
                     />
                   {{/if}}
 
-                  <h3 class="canon-heading">Nächste Sitzungen</h3>
-                  {{#each this.upcoming key="id" as |m|}}
+                  <h3 class="canon-heading dis-gremien-heading"><Icon
+                      @name="calendar-clock"
+                      @size={{14}}
+                    />Nächste Sitzungen</h3>
+                  {{#each this.upcoming key="id" as |m i|}}
                     <button
                       type="button"
                       class="dis-gremien-row"
                       {{on "click" (fn this.openMeeting m.id)}}
                     >
-                      <span class="dis-gremien-date">{{deDate
-                          m.date
-                          true
-                        }}</span>
+                      <span
+                        class="dis-gremien-date"
+                        {{rough "circle" show=(eq i 0) padding=6 delay=500}}
+                      >{{deDate m.date true}}</span>
                       <span class="dis-gremien-row-title">{{if
                           m.title
                           m.title
@@ -276,7 +309,10 @@ export default class GremienTemplate extends Component<Signature> {
                   {{/each}}
 
                   {{#if sel.recent_documents.length}}
-                    <h3 class="canon-heading">Neue Dokumente</h3>
+                    <h3 class="canon-heading dis-gremien-heading"><Icon
+                        @name="file-plus"
+                        @size={{14}}
+                      />Neue Dokumente</h3>
                     {{#each sel.recent_documents key="id" as |d|}}
                       <div class="dis-gremien-doc">
                         <span class="dis-gremien-date">{{deDate

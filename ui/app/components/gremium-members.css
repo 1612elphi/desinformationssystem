@@ -67,6 +67,7 @@
 }
 
 .dis-member-meta {
+  position: relative;
   display: flex;
   gap: 6px;
   min-inline-size: 0;
@@ -76,6 +77,10 @@
 }
 
 .dis-member-chair {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  margin-inline: 4px;
   color: var(--canon-primary);
   font-weight: 600;
 }

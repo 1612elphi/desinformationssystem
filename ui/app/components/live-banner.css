@@ -1,4 +1,5 @@
 .dis-live {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: 4px var(--canon-panel-padding);
@@ -29,6 +30,10 @@
 }
 
 .dis-live-label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-inline: 8px;
   font-weight: 700;
   text-transform: uppercase;
 }

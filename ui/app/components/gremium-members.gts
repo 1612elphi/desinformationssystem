@@ -4,6 +4,8 @@ import { on } from '@ember/modifier';
 import { htmlSafe } from '@ember/template';
 import type { Member } from 'ui/api';
 import Avatar from 'ui/components/avatar';
+import Icon from 'ui/components/icon';
+import rough from 'ui/modifiers/rough';
 import { isChair, partyMark, roleTitle } from 'ui/utils/api-menschen';
 import { SUBMITTERS } from 'ui/utils/meta';
 import './gremium-members.css';
@@ -41,7 +43,10 @@ const GremiumMembers: TOC<{
                   m.party
                 }}</span>
               {{#if (isChair m.role)}}
-                <span class="dis-member-chair">Vorsitz</span>
+                <span
+                  class="dis-member-chair"
+                  {{rough "box" padding=3 strokeWidth=1.2 delay=900}}
+                ><Icon @name="crown" @size={{12}} />Vorsitz</span>
               {{/if}}
               <span class="dis-member-role">{{roleTitle m.role}}</span>
             </span>

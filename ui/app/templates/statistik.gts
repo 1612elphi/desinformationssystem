@@ -14,6 +14,7 @@ import type { Analytics, AnalyticsParty } from 'ui/api';
 import { LoadState } from 'ui/components/loading';
 import PartyChip from 'ui/components/party-chip';
 import Icon from 'ui/components/icon';
+import rough from 'ui/modifiers/rough';
 import type NavService from 'ui/services/nav';
 import { getPeople } from 'ui/utils/api-shell';
 import Load from 'ui/utils/load';
@@ -94,6 +95,33 @@ export default class StatistikTemplate extends Component<Signature> {
   segment = (n: number) => basis(n / this.maxCast);
 
   cohesion = (p: AnalyticsParty) => p.cohesion ?? 0;
+
+  get loosest() {
+    const rated = this.parties.filter((p) => p.cohesion != null);
+    if (rated.length < 2) return '';
+    return rated.reduce((a, b) => (this.cohesion(b) < this.cohesion(a) ? b : a))
+      .code;
+  }
+
+  // one cell of the symmetric pair, the one above the diagonal
+  @cached
+  get closest() {
+    let best: { a: string; b: string; agree: number } | undefined;
+    for (const x of this.data?.agreement ?? [])
+      if (!best || x.agree > best.agree) best = x;
+    if (!best) return '';
+    const [a, b] = [best.a, best.b].sort((x, y) => seat(x) - seat(y));
+    return `${a}|${b}`;
+  }
+
+  isClosest = (row: string, col: string) => this.closest === `${row}|${col}`;
+
+  get topDissents() {
+    return Math.max(0, ...(this.data?.dissenters ?? []).map((d) => d.dissents));
+  }
+
+  isTopDissenter = (d: Dissenter) =>
+    d.dissents > 0 && d.dissents === this.topDissents;
 
   get codes() {
     return this.parties.map((p) => p.code);
@@ -231,7 +259,10 @@ export default class StatistikTemplate extends Component<Signature> {
 
             {{#if data.parties.length}}
               <section class="dis-stat-section">
-                <h2 class="dis-stat-heading">Fraktionsdisziplin</h2>
+                <h2 class="dis-stat-heading"><Icon
+                    @name="magnet"
+                    @size={{20}}
+                  />Fraktionsdisziplin</h2>
                 <p class="dis-stat-note">
                   Anteil der abgegebenen Stimmen, die der Mehrheitslinie der
                   eigenen Fraktion folgen.
@@ -263,7 +294,14 @@ export default class StatistikTemplate extends Component<Signature> {
                         aria-hidden="true"
                         @share={{this.cohesion p}}
                       />
-                      <span class="dis-bar-value">{{pct p.cohesion}}</span>
+                      <span class="dis-bar-value"><span
+                          {{rough
+                            "circle"
+                            show=(eq p.code this.loosest)
+                            padding=6
+                            delay=400
+                          }}
+                        >{{pct p.cohesion}}</span></span>
                       <span class="dis-bar-meta">{{num p.votes}}
                         Abst. ·
                         {{num p.members_cast}}
@@ -274,7 +312,10 @@ export default class StatistikTemplate extends Component<Signature> {
               </section>
 
               <section class="dis-stat-section">
-                <h2 class="dis-stat-heading">Stimmverteilung</h2>
+                <h2 class="dis-stat-heading"><Icon
+                    @name="vote"
+                    @size={{20}}
+                  />Stimmverteilung</h2>
                 <p class="dis-stat-note">
                   Alle zugeordneten Einzelstimmen je Fraktion (Gelb = Ja, Rot =
                   Nein, Grau = Enthaltung — wie auf dem Abstimmungspanel).
@@ -322,8 +363,10 @@ export default class StatistikTemplate extends Component<Signature> {
 
               {{#if this.showMatrix}}
                 <section class="dis-stat-section">
-                  <h2 class="dis-stat-heading">Übereinstimmung zwischen
-                    Fraktionen</h2>
+                  <h2 class="dis-stat-heading"><Icon
+                      @name="handshake"
+                      @size={{20}}
+                    />Übereinstimmung zwischen Fraktionen</h2>
                   <p class="dis-stat-note">
                     Wie oft zwei Fraktionen bei derselben Abstimmung dieselbe
                     Mehrheitslinie hatten.
@@ -393,7 +436,15 @@ export default class StatistikTemplate extends Component<Signature> {
                                         "mouseenter"
                                         (fn this.enterCell row col)
                                       }}
-                                    >{{x.text}}</td>
+                                    ><span
+                                        {{rough
+                                          "circle"
+                                          show=(this.isClosest row col)
+                                          color="--canon-foreground"
+                                          padding=6
+                                          delay=1000
+                                        }}
+                                      >{{x.text}}</span></td>
                                   {{/let}}
                                 {{/if}}
                               {{/each}}
@@ -409,7 +460,7 @@ export default class StatistikTemplate extends Component<Signature> {
                           @party={{this.allyParty}}
                         /></h3>
                       <CanonRows @framed={{true}}>
-                        {{#each this.allies key="code" as |a|}}
+                        {{#each this.allies key="code" as |a i|}}
                           {{! template-lint-disable no-invalid-interactive }}
                           <div
                             class="dis-bar-row dis-ally"
@@ -425,7 +476,16 @@ export default class StatistikTemplate extends Component<Signature> {
                               aria-hidden="true"
                               @share={{a.share}}
                             />
-                            <span class="dis-bar-value">{{pct a.share}}</span>
+                            <span class="dis-bar-value"><span
+                                {{rough
+                                  "underline"
+                                  show=(eq i 0)
+                                  color="--dis-highlight"
+                                  strokeWidth=2.5
+                                  padding=2
+                                  delay=800
+                                }}
+                              >{{pct a.share}}</span></span>
                           </div>
                         {{/each}}
                       </CanonRows>
@@ -437,12 +497,21 @@ export default class StatistikTemplate extends Component<Signature> {
               {{#if data.dissenters.length}}
                 <section class="dis-stat-section">
                   <div class="dis-stat-headrow">
-                    <h2 class="dis-stat-heading">Abweichler</h2>
+                    <h2 class="dis-stat-heading"><Icon
+                        @name="user-x"
+                        @size={{20}}
+                      />Abweichler</h2>
                     {{#if this.selected}}
                       <button
                         type="button"
                         class="dis-filter-chip"
                         aria-label="Alle Fraktionen"
+                        {{rough
+                          "underline"
+                          color="--dis-highlight"
+                          strokeWidth=2.5
+                          padding=3
+                        }}
                         {{on "click" this.clear}}
                       >
                         <PartyChip
@@ -501,9 +570,14 @@ export default class StatistikTemplate extends Component<Signature> {
                             <td data-label="Fraktion">
                               <PartyChip @code={{d.party}} @party={{d.party}} />
                             </td>
-                            <td class="dis-num" data-label="Abweichungen">{{num
-                                d.dissents
-                              }}</td>
+                            <td class="dis-num" data-label="Abweichungen"><span
+                                {{rough
+                                  "circle"
+                                  show=(this.isTopDissenter d)
+                                  padding=6
+                                  delay=1200
+                                }}
+                              >{{num d.dissents}}</span></td>
                             <td class="dis-num" data-label="Stimmen">{{num
                                 d.votes
                               }}</td>

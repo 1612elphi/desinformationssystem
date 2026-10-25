@@ -29,6 +29,7 @@
 }
 
 .dis-share-legend li {
+  position: relative;
   display: inline-flex;
   gap: 6px;
   align-items: center;

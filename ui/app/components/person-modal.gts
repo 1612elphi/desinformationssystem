@@ -20,6 +20,7 @@ import PartyChip from 'ui/components/party-chip';
 import PersonTimeline from 'ui/components/person-timeline';
 import Tag from 'ui/components/tag';
 import VoteBar from 'ui/components/vote-bar';
+import rough from 'ui/modifiers/rough';
 import shortcut from 'ui/modifiers/shortcut';
 import type NavService from 'ui/services/nav';
 import {
@@ -202,7 +203,11 @@ export default class PersonModal extends Component<Signature> {
                         class={{if (isChair m.role) "dis-person-chair"}}
                         title={{m.role}}
                         @onClick={{fn this.openBody m.body_id}}
-                      >{{m.body_name}}</Tag>
+                      >{{#if (isChair m.role)}}<Icon
+                            @name="crown"
+                            @size={{12}}
+                          />
+                        {{/if}}{{m.body_name}}</Tag>
                     {{/each}}
                   </div>
                 </div>
@@ -241,9 +246,18 @@ export default class PersonModal extends Component<Signature> {
                     {{num this.summary.absent}}</span>
                 </div>
 
-                <h4 class="canon-heading">Gegen die Fraktion ({{num
-                    this.against.length
-                  }})</h4>
+                <h4 class="canon-heading dis-person-heading"><Icon
+                    @name="split"
+                    @size={{14}}
+                  />Gegen die Fraktion
+                  <span
+                    {{rough
+                      "circle"
+                      show=(if this.against.length true false)
+                      padding=5
+                      delay=600
+                    }}
+                  >{{num this.against.length}}</span></h4>
                 <div class="dis-person-list">
                   {{#each this.shownAgainst as |v|}}
                     <button
@@ -298,7 +312,10 @@ export default class PersonModal extends Component<Signature> {
                   {{/if}}
                 </div>
 
-                <h4 class="canon-heading">Verlauf</h4>
+                <h4 class="canon-heading dis-person-heading"><Icon
+                    @name="history"
+                    @size={{14}}
+                  />Verlauf</h4>
                 <PersonTimeline
                   @votes={{this.votes}}
                   @onOpen={{this.openMeeting}}
@@ -308,9 +325,8 @@ export default class PersonModal extends Component<Signature> {
                   class="dis-person-all"
                   {{on "toggle" this.onToggleTable}}
                 >
-                  <summary>Alle Abstimmungen ({{num
-                      this.votes.length
-                    }})</summary>
+                  <summary><Icon @name="table" @size={{14}} />
+                    Alle Abstimmungen ({{num this.votes.length}})</summary>
                   {{#if this.tableOpen}}
                     <DataTable
                       @columns={{VOTE_COLUMNS}}

@@ -1,3 +1,7 @@
+.dis-footer .dis-icon {
+  margin-inline-end: 2px;
+}
+
 /* the toolbar sits outside the canon-window container, and the window fills the viewport */
 @media (width < 640px) {
   .dis-toolbar-council .canon-button-title {

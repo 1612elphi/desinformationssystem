@@ -130,6 +130,7 @@ export default class ApplicationTemplate extends Component<Signature> {
           {{outlet}}
           <footer class="dis-footer">
             <span>
+              <Icon @name="database" @size={{14}} />
               Quelle:
               <a
                 href={{RIS_START}}
@@ -137,11 +138,16 @@ export default class ApplicationTemplate extends Component<Signature> {
                 rel="noopener noreferrer"
               >Sitzungskalender der Stadt Karlsruhe</a>
             </span>
-            <span>Open Data (CC BY-ND)</span>
-            <span>{{PHOTO_CREDIT}}</span>
-            <span>MCP: <a href={{MCP_HREF}}>/mcp</a></span>
+            <span><Icon @name="scale" @size={{14}} />
+              Open Data (CC BY-ND)</span>
+            <span><Icon @name="camera" @size={{14}} /> {{PHOTO_CREDIT}}</span>
+            <span><Icon @name="plug" @size={{14}} />
+              MCP:
+              <a href={{MCP_HREF}}>/mcp</a></span>
             {{#if this.stats.last_scrape}}
-              <span>Stand {{scrapeTime this.stats.last_scrape}}</span>
+              <span><Icon @name="time" @size={{14}} />
+                Stand
+                {{scrapeTime this.stats.last_scrape}}</span>
             {{/if}}
           </footer>
         </main>

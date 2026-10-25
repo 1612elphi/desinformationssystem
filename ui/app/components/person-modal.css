@@ -46,6 +46,17 @@
   border-color: var(--canon-primary);
 }
 
+.dis-person-chair .dis-icon {
+  color: var(--canon-primary);
+}
+
+.dis-person-heading {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .dis-person-step {
   display: flex;
   align-items: center;
