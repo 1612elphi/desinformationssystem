@@ -1,0 +1,214 @@
+.dis-mtop {
+  --dis-mtop-node: var(--canon-border);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+  scroll-margin-block: 160px 16px;
+}
+
+.dis-mtop::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 11px;
+  inline-size: 2px;
+  background: var(--canon-border);
+}
+
+.dis-mtop-node {
+  position: relative;
+  grid-row: 1;
+  grid-column: 1;
+  place-self: start center;
+  inline-size: 10px;
+  block-size: 10px;
+  margin-block-start: 17px;
+  border: var(--canon-frame) solid var(--dis-mtop-node);
+  background: var(--canon-card);
+}
+
+.dis-mtop--vote {
+  --dis-mtop-node: var(--dis-yes);
+}
+
+.dis-mtop--docs {
+  --dis-mtop-node: var(--canon-muted-foreground);
+}
+
+.dis-mtop--vote .dis-mtop-node {
+  background: var(--dis-mtop-node);
+}
+
+.dis-mtop--contested {
+  --dis-mtop-node: var(--dis-no);
+}
+
+.dis-mtop--contested .dis-mtop-node {
+  inline-size: 14px;
+  block-size: 14px;
+  margin-block-start: 15px;
+  background: var(--dis-mtop-node);
+}
+
+.dis-mtop--contested::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: 4px;
+  background: var(--dis-no);
+}
+
+.dis-mtop-head {
+  display: grid;
+  grid-row: 1;
+  grid-column: 2;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: baseline;
+  min-block-size: var(--canon-control-height);
+  padding: 10px var(--canon-panel-padding) 10px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-subheadline);
+  text-align: start;
+}
+
+button.dis-mtop-head {
+  cursor: pointer;
+}
+
+.dis-mtop-head:focus-visible,
+.dis-mtop-head--static:focus {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: calc(-1 * var(--canon-frame));
+}
+
+@media (hover: hover) {
+  button.dis-mtop-head:hover {
+    background: var(--canon-muted);
+  }
+}
+
+.dis-mtop--current .dis-mtop-head {
+  background: var(--canon-accent-bg);
+}
+
+.dis-mtop-head--static {
+  color: var(--canon-muted-foreground);
+}
+
+.dis-mtop-num {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-callout);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dis-mtop--sub .dis-mtop-num {
+  padding-inline-start: 12px;
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-mtop--contested .dis-mtop-num {
+  color: var(--dis-no);
+}
+
+.dis-mtop-title {
+  overflow-wrap: anywhere;
+}
+
+.dis-mtop-title .dis-tag {
+  margin-inline-start: 6px;
+}
+
+.dis-mtop--contested .dis-mtop-title {
+  font-weight: 600;
+}
+
+.dis-mtop-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  align-self: center;
+  justify-content: end;
+}
+
+.dis-mtop-bar {
+  inline-size: 7rem;
+  min-inline-size: 0;
+}
+
+.dis-mtop-outcome {
+  min-inline-size: 6.5rem;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-mtop-outcome--contested {
+  color: var(--dis-no);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-inline-end: 4px;
+}
+
+.dis-mtop-docs {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  min-inline-size: 2.5rem;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-mtop-arrow {
+  color: var(--canon-muted-foreground);
+  transition: rotate 0.15s;
+}
+
+.dis-mtop--open .dis-mtop-arrow {
+  rotate: 180deg;
+}
+
+@container dis-agenda (inline-size < 640px) {
+  .dis-mtop {
+    scroll-margin-block-start: 180px;
+  }
+
+  .dis-mtop-head {
+    grid-template-columns: 3rem minmax(0, 1fr);
+  }
+
+  .dis-mtop-meta {
+    grid-column: 2;
+    justify-content: start;
+  }
+
+  .dis-mtop-outcome {
+    min-inline-size: 0;
+  }
+
+  .dis-mtop-arrow {
+    margin-inline-start: auto;
+  }
+}
+
+.dis-mtop-body {
+  display: grid;
+  grid-column: 2;
+  gap: 8px;
+  padding: 0 var(--canon-panel-padding) var(--canon-panel-padding) 4px;
+}
+
+.dis-mtop-docs-list {
+  display: grid;
+  border: var(--canon-hairline) solid var(--canon-border);
+}

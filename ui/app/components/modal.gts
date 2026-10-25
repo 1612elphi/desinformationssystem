@@ -6,11 +6,16 @@ import './modal.css';
 
 // Side sheet for one detail view; the dialog traps focus and returns it on close.
 const Modal: TOC<{
-  Args: { heading: string; open: boolean; onClose: () => void };
+  Args: {
+    heading: string;
+    open: boolean;
+    onClose: () => void;
+    wide?: boolean;
+  };
   Blocks: { default: [] };
 }> = <template>
   <CanonSheet
-    class="dis-sheet"
+    class="dis-sheet {{if @wide 'dis-sheet--wide'}}"
     @open={{@open}}
     @edge="end"
     @title={{@heading}}

@@ -1,61 +1,199 @@
 .dis-vote {
   display: grid;
-  gap: 8px;
+  gap: var(--canon-panel-padding);
   padding: var(--canon-panel-padding);
-  border: var(--canon-hairline) solid var(--canon-border);
+  border-inline-start: 4px solid var(--dis-yes);
   background: var(--canon-card);
+  font-size: var(--canon-text-subheadline);
+  container-type: inline-size;
+}
+
+.dis-vote--contested {
+  border-inline-start-color: var(--dis-no);
+}
+
+.dis-vote-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px var(--canon-panel-padding);
+  align-items: center;
+}
+
+.dis-vote-bar {
+  flex: 1 1 14rem;
+  max-inline-size: 28rem;
   font-size: var(--canon-text-subheadline);
 }
 
-.dis-vote__result {
+.dis-vote-bar .dis-votebar-track {
+  block-size: 12px;
+}
+
+.dis-vote-result {
   font-weight: 600;
 }
 
-.dis-vote__tally {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  font-variant-numeric: tabular-nums;
-}
-
-.dis-vote__n::before {
-  content: "";
-  display: inline-block;
-  inline-size: 8px;
-  block-size: 8px;
-  margin-inline-end: 6px;
-  background: var(--dis-vote, var(--dis-abstain));
-}
-
-.dis-vote__ja,
-.dis-vote__m--ja {
-  --dis-vote: var(--dis-yes);
-}
-
-.dis-vote__nein,
-.dis-vote__m--nein {
-  --dis-vote: var(--dis-no);
-}
-
-.dis-vote__roll summary {
-  cursor: pointer;
-}
-
-.dis-vote__members {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-block-start: 8px;
-}
-
-.dis-vote__m {
+.dis-outcome {
   padding: 1px 6px;
   border: var(--canon-hairline) solid var(--canon-border);
-  border-inline-start: 4px solid var(--dis-vote, var(--canon-border));
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  white-space: nowrap;
+}
+
+.dis-outcome--contested {
+  border-color: var(--dis-no);
+  background: var(--dis-no);
+  color: var(--canon-primary-foreground);
+  font-weight: 600;
+}
+
+.dis-outcome--abgelehnt.dis-outcome--contested {
+  border-color: var(--canon-foreground);
+  background: var(--canon-foreground);
+  color: var(--canon-background);
+}
+
+.dis-vote-roll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--canon-panel-padding);
+}
+
+@container (inline-size >= 640px) {
+  .dis-vote-roll {
+    grid-template-columns: minmax(16rem, 2fr) minmax(0, 3fr);
+    align-items: start;
+  }
+}
+
+.dis-vote-chart,
+.dis-vote-parties {
+  display: grid;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+.dis-vote-chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dis-vote-title {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-weight: 600;
+}
+
+.dis-vote-mode {
+  inline-size: 12rem;
+}
+
+.dis-vote-absent {
+  margin: 0;
+  color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);
 }
 
-.dis-vote__image {
+.dis-vote-dissent-n {
+  border-block-end: var(--canon-frame) solid var(--dis-highlight);
+  color: var(--canon-foreground);
+}
+
+.dis-vote-party-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+  list-style: none;
+}
+
+.dis-vote-party {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(7rem, 10rem) minmax(0, 1fr);
+  gap: 4px 12px;
+  align-items: center;
+  min-block-size: 36px;
+  padding-block: 4px;
+  padding-inline-start: 8px;
+  border-inline-start: 3px solid transparent;
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+}
+
+@container (inline-size < 420px) {
+  .dis-vote-party {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+  }
+
+  .dis-vote-party-who {
+    grid-column: 1 / -1;
+  }
+}
+
+.dis-vote-party--split {
+  border-inline-start-color: var(--dis-highlight);
+}
+
+.dis-vote-party-who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.dis-vote-closed {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-vote-dissenter {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 2px 6px;
+  border: var(--canon-hairline) solid var(--canon-border);
+  border-inline-start: 4px solid var(--dis-vote, var(--dis-abstain));
+  background: var(--canon-background);
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-footnote);
+}
+
+button.dis-vote-dissenter {
+  cursor: pointer;
+}
+
+button.dis-vote-dissenter:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: calc(-1 * var(--canon-frame));
+}
+
+@media (hover: hover) {
+  button.dis-vote-dissenter:hover {
+    background: var(--canon-muted);
+  }
+}
+
+.dis-vote-dissenter--ja {
+  --dis-vote: var(--dis-yes);
+}
+
+.dis-vote-dissenter--nein {
+  --dis-vote: var(--dis-no);
+}
+
+.dis-vote-dissenter-v {
+  color: var(--canon-muted-foreground);
+}
+
+.dis-vote-image {
+  justify-self: start;
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);
 }

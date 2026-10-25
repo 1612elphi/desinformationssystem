@@ -2,6 +2,10 @@
   --canon-sheet-width: 720px;
 }
 
+.canon-dialog.canon-sheet.dis-sheet--wide {
+  --canon-sheet-width: 1120px;
+}
+
 .dis-sheet .canon-dialog-header {
   position: absolute;
   inset-block-start: 0;
