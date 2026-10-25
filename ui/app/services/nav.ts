@@ -26,6 +26,20 @@ export default class NavService extends Service {
     }
   }
 
+  // leave every overlay for another view
+  go(route: string, queryParams: Record<string, unknown> = {}) {
+    this.pushed = 0;
+    this.router.transitionTo(route, {
+      queryParams: {
+        doc: '',
+        meeting: '',
+        person: '',
+        vorlage: '',
+        ...queryParams,
+      },
+    });
+  }
+
   filter(queryParams: Filters) {
     this.pushed = 0;
     this.router.transitionTo('index', {

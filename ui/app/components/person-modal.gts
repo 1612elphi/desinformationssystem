@@ -1,20 +1,47 @@
 import Component from '@glimmer/component';
-import { cached } from '@glimmer/tracking';
+import { cached, tracked } from '@glimmer/tracking';
+import { fn } from '@ember/helper';
+import { on } from '@ember/modifier';
+import { getOwner } from '@ember/owner';
+import { service } from '@ember/service';
+import { htmlSafe } from '@ember/template';
+import type RouterService from '@ember/routing/router-service';
+import CanonButton from 'delphicanon/components/canon-button';
 import CanonTiles from 'delphicanon/components/canon-tiles';
 import 'delphicanon/components/canon-heading.css';
-import { getPerson, type PersonVote } from 'ui/api';
+import { getPerson } from 'ui/api';
+import type GremienController from 'ui/controllers/gremien';
 import DataTable, { type Column } from 'ui/components/data-table';
+import Icon from 'ui/components/icon';
 import { LoadError, LoadState } from 'ui/components/loading';
 import Modal from 'ui/components/modal';
 import PartyChip from 'ui/components/party-chip';
+import PersonTimeline from 'ui/components/person-timeline';
+import Tag from 'ui/components/tag';
+import VoteBar from 'ui/components/vote-bar';
+import shortcut from 'ui/modifiers/shortcut';
+import type NavService from 'ui/services/nav';
+import {
+  againstParty,
+  deDate,
+  initials,
+  isChair,
+  partyMark,
+  roleTitle,
+  type PartyVote,
+  type PersonDetail,
+} from 'ui/utils/api-menschen';
 import Load from 'ui/utils/load';
-import { VOTE_LABEL, num } from 'ui/utils/meta';
+import { SUBMITTERS, VOTE_LABEL, num, pct } from 'ui/utils/meta';
 import './person-modal.css';
 
 const voteLabel = (v: string) => VOTE_LABEL[v] || v;
 const orDash = (s?: string) => s || '—';
 const eq = (a: string, b: string) => a === b;
-const voteClass = (v: string) => v.replace(/[^a-z]/g, '');
+const voteClass = (v?: string) => (v ?? '').replace(/[^a-z]/g, '');
+const markStyle = (code?: string) =>
+  htmlSafe(`--dis-person-mark: ${partyMark(code)}`);
+const tallyOf = (v: PartyVote, k: string) => v.party_tally?.[k] ?? 0;
 
 const VOTE_COLUMNS: Column[] = [
   { key: 'date', label: 'Datum', width: '7rem' },
@@ -23,31 +50,117 @@ const VOTE_COLUMNS: Column[] = [
   { key: 'vote', label: 'Stimme', width: '7rem' },
 ];
 
+const SHORT_LIST = 8;
+const longer = (xs: unknown[], n: number) => xs.length > n;
+
 interface Signature {
   Args: { id: string; open: boolean; onClose: () => void };
 }
 
 export default class PersonModal extends Component<Signature> {
+  @service declare nav: NavService;
+  @service declare router: RouterService;
+
+  @tracked showAllAgainst = false;
+  @tracked tableOpen = false;
+
   @cached
   get load() {
-    return this.args.id ? new Load(getPerson(this.args.id)) : undefined;
+    return this.args.id
+      ? new Load<PersonDetail>(getPerson(this.args.id))
+      : undefined;
   }
 
   get person() {
     return this.load?.value;
   }
 
-  get votes(): PersonVote[] {
+  get votes(): PartyVote[] {
     return this.person?.votes ?? [];
   }
 
-  get tiles() {
-    const s = this.person?.vote_summary ?? {};
-    return ['ja', 'nein', 'enthaltung', 'abwesend'].map((k) => ({
-      label: voteLabel(k),
-      value: num(s[k]),
-    }));
+  @cached
+  get against() {
+    return this.votes.filter(againstParty);
   }
+
+  get shownAgainst() {
+    return this.showAllAgainst
+      ? this.against
+      : this.against.slice(0, SHORT_LIST);
+  }
+
+  get partyName() {
+    const p = this.person;
+    return (p?.party_code && SUBMITTERS[p.party_code]?.name) || p?.party || '';
+  }
+
+  get roles() {
+    const titles = new Set<string>();
+    for (const m of this.person?.memberships ?? [])
+      for (const t of roleTitle(m.role).split(/\s*[,|]\s*/))
+        if (t) titles.add(t);
+    return [...titles].join(' · ');
+  }
+
+  get summary() {
+    const s = this.person?.vote_summary ?? {};
+    const cast = (s['ja'] ?? 0) + (s['nein'] ?? 0) + (s['enthaltung'] ?? 0);
+    const n = (k: string) => s[k] ?? 0;
+    return {
+      ja: n('ja'),
+      nein: n('nein'),
+      enthaltung: n('enthaltung'),
+      cast,
+      absent: n('abwesend'),
+    };
+  }
+
+  get tiles() {
+    const { cast, absent } = this.summary;
+    const lined = this.votes.filter(
+      (v) => v.party_line && v.vote !== 'abwesend' && v.vote,
+    ).length;
+    const attendance = cast + absent ? cast / (cast + absent) : undefined;
+    const loyalty = lined ? 1 - this.against.length / lined : undefined;
+    return [
+      { label: 'Abstimmungen', value: num(this.votes.length) },
+      { label: 'Anwesenheit', value: pct(attendance), level: attendance },
+      { label: 'Mit Fraktion', value: pct(loyalty), level: loyalty },
+      { label: 'Gegen Fraktion', value: num(this.against.length) },
+    ];
+  }
+
+  // stepping through the committee the sheet was opened from
+  get roster() {
+    if (this.router.currentRouteName !== 'gremien') return undefined;
+    const c = getOwner(this)?.lookup('controller:gremien') as
+      GremienController | undefined;
+    const members = c?.selectedId ? c.members : [];
+    const i = members.findIndex((m) => m.person_id === this.args.id);
+    if (i < 0) return undefined;
+    return {
+      pos: `${num(i + 1)} / ${num(members.length)}`,
+      prev: members[i - 1]?.person_id,
+      next: members[i + 1]?.person_id,
+    };
+  }
+
+  step = (id?: string) => {
+    if (!id) return;
+    this.showAllAgainst = false;
+    this.tableOpen = false;
+    this.router.replaceWith({ queryParams: { person: id } });
+  };
+
+  stepPrev = () => this.step(this.roster?.prev);
+  stepNext = () => this.step(this.roster?.next);
+
+  openMeeting = (id: string) => this.nav.open({ meeting: id });
+  openBody = (id: string) => this.nav.go('gremien', { gremium: id });
+  toggleAgainst = () => (this.showAllAgainst = !this.showAllAgainst);
+  onToggleTable = (e: Event) =>
+    (this.tableOpen = (e.target as HTMLDetailsElement).open);
 
   <template>
     <Modal
@@ -60,56 +173,166 @@ export default class PersonModal extends Component<Signature> {
       {{else}}
         <LoadState @load={{this.load}}>
           {{#let this.person as |person|}}
-            <div class="dis-person">
-              <dl class="dis-person-facts">
-                <dt>Fraktion</dt>
-                <dd>
-                  <PartyChip
-                    @code={{person.party_code}}
-                    @party={{person.party}}
-                  />
-                  {{#if person.party}}<span class="dis-person-muted">
-                      {{person.party}}</span>{{/if}}
-                </dd>
-                <dt>Gremien</dt>
-                <dd>
-                  {{#each person.memberships key="body_id" as |m|}}
-                    <div>
-                      {{m.body_name}}
-                      {{#if m.role}}<span class="dis-person-muted">
-                          —
-                          {{m.role}}</span>{{/if}}
-                    </div>
-                  {{/each}}
-                </dd>
-              </dl>
+            <div
+              class="dis-person"
+              style={{markStyle person.party_code}}
+              {{shortcut "[" this.stepPrev}}
+              {{shortcut "]" this.stepNext}}
+            >
+              <header class="dis-person-head">
+                <span class="dis-person-avatar" aria-hidden="true">{{initials
+                    person.name
+                  }}</span>
+                <div class="dis-person-id">
+                  <div class="dis-person-party">
+                    <PartyChip
+                      @code={{person.party_code}}
+                      @party={{person.party}}
+                    />
+                    {{#if this.partyName}}<span>{{this.partyName}}</span>{{/if}}
+                  </div>
+                  {{#if this.roles}}
+                    <div class="dis-person-muted">{{this.roles}}</div>
+                  {{/if}}
+                  <div class="dis-tags dis-person-bodies">
+                    {{#each person.memberships key="body_id" as |m|}}
+                      <Tag
+                        class={{if (isChair m.role) "dis-person-chair"}}
+                        title={{m.role}}
+                        @onClick={{fn this.openBody m.body_id}}
+                      >{{m.body_name}}</Tag>
+                    {{/each}}
+                  </div>
+                </div>
+                {{#if this.roster}}
+                  <div class="dis-person-step">
+                    <CanonButton
+                      @kind="cell"
+                      @icon={{component Icon name="chevron-left"}}
+                      @label="Vorherige Person"
+                      @disabled={{if this.roster.prev false true}}
+                      aria-keyshortcuts="["
+                      @onClick={{this.stepPrev}}
+                    />
+                    <span class="dis-person-muted">{{this.roster.pos}}</span>
+                    <CanonButton
+                      @kind="cell"
+                      @icon={{component Icon name="chevron-right"}}
+                      @label="Nächste Person"
+                      @disabled={{if this.roster.next false true}}
+                      aria-keyshortcuts="]"
+                      @onClick={{this.stepNext}}
+                    />
+                  </div>
+                {{/if}}
+              </header>
 
-              <h4 class="canon-heading">Abstimmungsverhalten ({{num
-                  this.votes.length
-                }})</h4>
               {{#if this.votes.length}}
                 <CanonTiles @items={{this.tiles}} />
-                <DataTable
-                  @columns={{VOTE_COLUMNS}}
-                  @rows={{this.votes}}
-                  as |v col|
-                >
-                  {{#if (eq col.key "date")}}
-                    {{orDash v.meeting_date}}
-                  {{else if (eq col.key "body")}}
-                    {{orDash v.body_name}}
-                  {{else if (eq col.key "top")}}
-                    <span>{{v.top_label}}{{#if v.agenda_title}}
-                        —
-                        {{v.agenda_title}}{{/if}}</span>
+                <div class="dis-person-bar">
+                  <VoteBar
+                    @ja={{this.summary.ja}}
+                    @nein={{this.summary.nein}}
+                    @enthaltung={{this.summary.enthaltung}}
+                  />
+                  <span class="dis-person-muted">Abwesend
+                    {{num this.summary.absent}}</span>
+                </div>
+
+                <h4 class="canon-heading">Gegen die Fraktion ({{num
+                    this.against.length
+                  }})</h4>
+                <div class="dis-person-list">
+                  {{#each this.shownAgainst as |v|}}
+                    <button
+                      type="button"
+                      class="dis-person-against"
+                      {{on "click" (fn this.openMeeting v.meeting_id)}}
+                    >
+                      <span class="dis-person-against-when">
+                        {{deDate v.meeting_date}}
+                        <span class="dis-person-muted">{{v.body_name}}</span>
+                      </span>
+                      <span class="dis-person-against-top">{{v.top_label}}{{#if
+                          v.agenda_title
+                        }}
+                          —
+                          {{v.agenda_title}}{{/if}}</span>
+                      <span class="dis-person-against-votes">
+                        <span
+                          class="dis-person-vote dis-person-vote--{{voteClass
+                              v.vote
+                            }}"
+                        >{{voteLabel v.vote}}</span>
+                        <span class="dis-person-muted">≠
+                          {{v.party_code}}</span>
+                        <span
+                          class="dis-person-vote dis-person-vote--{{voteClass
+                              v.party_line
+                            }}"
+                        >{{voteLabel (orDash v.party_line)}}</span>
+                        <VoteBar
+                          @compact={{true}}
+                          @ja={{tallyOf v "ja"}}
+                          @nein={{tallyOf v "nein"}}
+                          @enthaltung={{tallyOf v "enthaltung"}}
+                        />
+                      </span>
+                    </button>
                   {{else}}
-                    <span
-                      class="dis-person-vote dis-person-vote--{{voteClass
-                          v.vote
-                        }}"
-                    >{{voteLabel v.vote}}</span>
+                    <p class="dis-person-muted dis-person-pad">—</p>
+                  {{/each}}
+                  {{#if (longer this.against SHORT_LIST)}}
+                    <CanonButton
+                      class="dis-person-more"
+                      @kind="cell"
+                      @text={{if
+                        this.showAllAgainst
+                        "Weniger anzeigen"
+                        "Alle anzeigen"
+                      }}
+                      @onClick={{this.toggleAgainst}}
+                    />
                   {{/if}}
-                </DataTable>
+                </div>
+
+                <h4 class="canon-heading">Verlauf</h4>
+                <PersonTimeline
+                  @votes={{this.votes}}
+                  @onOpen={{this.openMeeting}}
+                />
+
+                <details
+                  class="dis-person-all"
+                  {{on "toggle" this.onToggleTable}}
+                >
+                  <summary>Alle Abstimmungen ({{num
+                      this.votes.length
+                    }})</summary>
+                  {{#if this.tableOpen}}
+                    <DataTable
+                      @columns={{VOTE_COLUMNS}}
+                      @rows={{this.votes}}
+                      as |v col|
+                    >
+                      {{#if (eq col.key "date")}}
+                        {{orDash v.meeting_date}}
+                      {{else if (eq col.key "body")}}
+                        {{orDash v.body_name}}
+                      {{else if (eq col.key "top")}}
+                        <span>{{v.top_label}}{{#if v.agenda_title}}
+                            —
+                            {{v.agenda_title}}{{/if}}</span>
+                      {{else}}
+                        <span
+                          class="dis-person-vote dis-person-vote--{{voteClass
+                              v.vote
+                            }}"
+                        >{{voteLabel v.vote}}</span>
+                      {{/if}}
+                    </DataTable>
+                  {{/if}}
+                </details>
                 <p class="dis-person-muted">
                   Zuordnung über den Nachnamen im Abstimmungspanel; mehrdeutige
                   Einträge werden nicht gezählt.

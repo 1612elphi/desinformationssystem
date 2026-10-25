@@ -185,6 +185,18 @@ func (s *Store) GetCommittee(id string) (Row, error) {
 	if b["meetings"], err = s.ListMeetings(MeetingFilter{Committee: id}, false, 300, 0); err != nil {
 		return nil, err
 	}
+	docs, err := s.rows(`SELECT f.id, f.label, f.doc_type, f.submitters, f.meeting_id,
+			m.date AS meeting_date
+		FROM files f JOIN meetings m ON m.id = f.meeting_id
+		WHERE m.body_id = ? AND m.date <= date('now')
+		ORDER BY m.date DESC, f.id DESC LIMIT 8`, id)
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range docs {
+		decodeJSON(d)
+	}
+	b["recent_documents"] = docs
 	return b, nil
 }
 

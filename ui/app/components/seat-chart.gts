@@ -19,6 +19,7 @@ interface Placed {
   y: number;
   fill: string;
   title: string;
+  absent: boolean;
 }
 
 const VOTE_ORDER = ['ja', 'nein', 'enthaltung', 'abwesend'];
@@ -62,10 +63,14 @@ export default class SeatChart extends Component<Signature> {
             : vote === 'enthaltung'
               ? 'var(--dis-abstain)'
               : 'transparent';
-      const title = [seat.name, seat.party_code, VOTE_LABEL[vote] ?? vote]
+      const title = [
+        seat.name,
+        seat.party_code,
+        !byParty && (VOTE_LABEL[vote] ?? vote),
+      ]
         .filter(Boolean)
         .join(' · ');
-      return { seat, ...pos[i]!, fill, title };
+      return { seat, ...pos[i]!, fill, title, absent: !byParty && !seat.vote };
     });
   }
 
@@ -90,7 +95,7 @@ export default class SeatChart extends Component<Signature> {
     >
       {{#each this.placed as |p|}}
         <circle
-          class="dis-seat {{unless p.seat.vote 'dis-seat--absent'}}"
+          class="dis-seat {{if p.absent 'dis-seat--absent'}}"
           cx={{p.x}}
           cy={{p.y}}
           r={{this.dot}}

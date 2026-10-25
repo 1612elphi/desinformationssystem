@@ -4,26 +4,27 @@ import { on } from '@ember/modifier';
 import { fn } from '@ember/helper';
 import { pageTitle } from 'ember-page-title';
 import CanonEmptyRow from 'delphicanon/components/canon-empty-row';
+import CanonRow from 'delphicanon/components/canon-row';
 import CanonRows from 'delphicanon/components/canon-rows';
 import CanonSplit from 'delphicanon/components/canon-split';
+import CanonTextCell from 'delphicanon/components/canon-text-cell';
+import CanonTiles from 'delphicanon/components/canon-tiles';
 import 'delphicanon/components/canon-heading.css';
-import type { Member } from 'ui/api';
 import type GremienController from 'ui/controllers/gremien';
 import type NavService from 'ui/services/nav';
-import DataTable, { type Column } from 'ui/components/data-table';
+import DocRow from 'ui/components/doc-row';
+import GremiumMembers from 'ui/components/gremium-members';
+import GremiumShare from 'ui/components/gremium-share';
 import { LoadState } from 'ui/components/loading';
-import PartyChip from 'ui/components/party-chip';
+import SeatChart from 'ui/components/seat-chart';
+import shortcut from 'ui/modifiers/shortcut';
+import { daysUntil, deDate, todayISO } from 'ui/utils/api-menschen';
 import { eq, num } from 'ui/utils/meta';
 import './gremien.css';
 
-const MEMBER_COLUMNS: Column[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'party', label: 'Fraktion', width: '8rem' },
-  { key: 'role', label: 'Funktion' },
-];
-
 const TITLE_ID = 'dis-gremium-title';
-const memberLabel = (m: Member) => m.name;
+const FILTER_ID = 'dis-gremien-q';
+const ITEM = '.dis-gremien-item';
 
 interface Signature {
   Args: { controller: GremienController };
@@ -32,21 +33,51 @@ interface Signature {
 export default class GremienTemplate extends Component<Signature> {
   @service declare nav: NavService;
 
-  get list() {
-    return this.args.controller.list.value ?? [];
-  }
-
   get selectedName() {
     const c = this.args.controller;
     return (
-      this.list.find((g) => g.id === c.selectedId)?.name ??
+      c.list.value?.find((g) => g.id === c.selectedId)?.name ??
       c.selected?.value?.name ??
       ''
     );
   }
 
-  get members() {
-    return this.args.controller.selected?.value?.members ?? [];
+  get upcoming() {
+    const today = todayISO();
+    return (this.args.controller.selected?.value?.meetings ?? [])
+      .filter((m) => (m.date ?? '') >= today)
+      .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
+      .slice(0, 4);
+  }
+
+  get lastMeeting() {
+    const today = todayISO();
+    return this.args.controller.selected?.value?.meetings.find(
+      (m) => (m.date ?? '') < today,
+    );
+  }
+
+  get tiles() {
+    const c = this.args.controller;
+    const sel = c.selected?.value;
+    if (!sel) return [];
+    // the committee payload caps meetings at 300; the list has the full count
+    const meetings =
+      c.list.value?.find((g) => g.id === c.selectedId)?.meetings ??
+      sel.meetings.length;
+    return [
+      { label: 'Mitglieder', value: num(sel.members.length) },
+      { label: 'Sitzungen', value: num(meetings) },
+      { label: 'Dokumente', value: num(sel.document_count) },
+      {
+        label: 'Nächste Sitzung',
+        value: this.upcoming[0] ? deDate(this.upcoming[0].date) : '—',
+      },
+    ];
+  }
+
+  get seatLabel() {
+    return `Sitzverteilung ${this.selectedName}`;
   }
 
   // in one column the detail sits below the list, out of sight
@@ -62,7 +93,41 @@ export default class GremienTemplate extends Component<Signature> {
     });
   };
 
-  openPerson = (m: Member) => this.nav.open({ person: m.person_id });
+  openPerson = (id: string) => this.nav.open({ person: id });
+  openMeeting = (id: string) => this.nav.open({ meeting: id });
+  openDoc = (id: string) => this.nav.open({ doc: id });
+
+  focusFilter = () => document.getElementById(FILTER_ID)?.focus();
+
+  items = () => [...document.querySelectorAll<HTMLButtonElement>(ITEM)];
+
+  move = (step: number) => {
+    const items = this.items();
+    if (!items.length) return;
+    let i = items.indexOf(document.activeElement as HTMLButtonElement);
+    if (i < 0) i = items.findIndex((b) => b.ariaCurrent === 'true');
+    const next =
+      items[i < 0 ? 0 : Math.max(0, Math.min(items.length - 1, i + step))]!;
+    next.focus();
+    next.scrollIntoView({ block: 'nearest' });
+  };
+
+  next = () => this.move(1);
+  prev = () => this.move(-1);
+
+  filterKey = (e: KeyboardEvent) => {
+    const c = this.args.controller;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      this.items()[0]?.focus();
+    } else if (e.key === 'Enter' && c.visible[0]) {
+      e.preventDefault();
+      this.pick(c.visible[0].id);
+    } else if (e.key === 'Escape' && c.query) {
+      e.preventDefault();
+      c.setQuery('');
+    }
+  };
 
   <template>
     {{pageTitle "Gremien"}}
@@ -70,34 +135,71 @@ export default class GremienTemplate extends Component<Signature> {
     {{#let @controller as |c|}}
       <CanonSplit class="dis-gremien" @sidebarWidth={{380}}>
         <:sidebar>
-          <CanonRows @framed={{true}}>
+          <CanonRows
+            @framed={{true}}
+            {{shortcut "/" this.focusFilter}}
+            {{shortcut "j" this.next}}
+            {{shortcut "k" this.prev}}
+          >
             <h2 class="canon-heading">Gremien
-              {{#if c.list.value}}({{num this.list.length}}){{/if}}</h2>
+              {{#if c.list.value}}({{num c.visible.length}}){{/if}}</h2>
+            <CanonRow
+              class="dis-gremien-filter"
+              @title="Filter"
+              @form="flush"
+              as |titleId|
+            >
+              <CanonTextCell
+                id={{FILTER_ID}}
+                autocomplete="off"
+                aria-labelledby={{titleId}}
+                aria-keyshortcuts="/"
+                @value={{c.query}}
+                @placeholder="/"
+                @onChange={{c.setQuery}}
+                {{on "keydown" this.filterKey}}
+              />
+            </CanonRow>
             <LoadState @load={{c.list}}>
-              {{#each this.list key="id" as |g|}}
-                <button
-                  type="button"
-                  class="dis-gremien-item"
-                  aria-current={{if (eq c.selectedId g.id) "true"}}
-                  {{on "click" (fn this.pick g.id)}}
-                >
+              {{#each c.groups key="name" as |g|}}
+                <h3 class="canon-heading dis-gremien-group">
                   <span>{{g.name}}</span>
-                  <span class="dis-gremien-meta">
-                    {{num g.members}}
-                    Mitglieder ·
-                    {{num g.meetings}}
-                    Sitzungen ·
-                    {{num g.documents}}
-                    Dok.
-                  </span>
-                </button>
+                  <span class="dis-gremien-meta">{{num g.items.length}}</span>
+                </h3>
+                {{#each g.items key="id" as |item|}}
+                  <button
+                    type="button"
+                    class="dis-gremien-item
+                      {{unless item.members 'dis-gremien-item--empty'}}"
+                    aria-current={{if (eq c.selectedId item.id) "true"}}
+                    {{on "click" (fn this.pick item.id)}}
+                  >
+                    <span>{{item.name}}</span>
+                    <span class="dis-gremien-meta">
+                      {{num item.members}}
+                      Mitglieder ·
+                      {{num item.meetings}}
+                      Sitzungen ·
+                      {{num item.documents}}
+                      Dok.
+                    </span>
+                  </button>
+                {{/each}}
+              {{else}}
+                <CanonEmptyRow @text="Keine Treffer" />
               {{/each}}
             </LoadState>
+            <p class="dis-gremien-keys" aria-hidden="true">
+              <kbd>/</kbd>
+              Filter ·
+              <kbd>J</kbd>
+              <kbd>K</kbd>
+              Auswahl</p>
           </CanonRows>
         </:sidebar>
         <:main>
           {{#if c.selectedId}}
-            <CanonRows @framed={{true}}>
+            <CanonRows class="dis-gremien-detail" @framed={{true}}>
               <h2 id={{TITLE_ID}} class="canon-heading" tabindex="-1">{{if
                   this.selectedName
                   this.selectedName
@@ -105,37 +207,89 @@ export default class GremienTemplate extends Component<Signature> {
                 }}</h2>
               <LoadState @load={{c.selected}}>
                 {{#let c.selected.value as |sel|}}
-                  {{#if sel.composition.length}}
+                  <CanonTiles @items={{this.tiles}} />
+
+                  {{#if c.members.length}}
                     <h3 class="canon-heading">Zusammensetzung</h3>
-                    <div class="dis-gremien-composition">
-                      {{#each sel.composition as |p|}}
-                        <span class="dis-gremien-party">
-                          <PartyChip @code={{p.code}} @party={{p.code}} />
-                          <span class="dis-gremien-meta">{{num p.n}}</span>
-                        </span>
-                      {{/each}}
+                    <div class="dis-gremien-chamber">
+                      <SeatChart
+                        @seats={{c.members}}
+                        @mode="party"
+                        @label={{this.seatLabel}}
+                        @onPick={{this.openPerson}}
+                      />
                     </div>
+                    <GremiumShare @parts={{sel.composition}} />
+
+                    <h3 class="canon-heading">Mitglieder ({{num
+                        c.members.length
+                      }})</h3>
+                    <GremiumMembers
+                      @members={{c.members}}
+                      @onOpen={{this.openPerson}}
+                    />
                   {{/if}}
-                  <h3 class="canon-heading">Mitglieder ({{num
-                      this.members.length
-                    }})</h3>
-                  <DataTable
-                    class="dis-gremien-members"
-                    title="Profil und Abstimmungsverhalten anzeigen"
-                    @columns={{MEMBER_COLUMNS}}
-                    @rows={{this.members}}
-                    @onOpen={{this.openPerson}}
-                    @rowLabel={{memberLabel}}
-                    as |m col|
-                  >
-                    {{#if (eq col.key "name")}}
-                      {{m.name}}
-                    {{else if (eq col.key "party")}}
-                      <PartyChip @code={{m.party_code}} @party={{m.party}} />
+
+                  <h3 class="canon-heading">Nächste Sitzungen</h3>
+                  {{#each this.upcoming key="id" as |m|}}
+                    <button
+                      type="button"
+                      class="dis-gremien-row"
+                      {{on "click" (fn this.openMeeting m.id)}}
+                    >
+                      <span class="dis-gremien-date">{{deDate
+                          m.date
+                          true
+                        }}</span>
+                      <span class="dis-gremien-row-title">{{if
+                          m.title
+                          m.title
+                          sel.name
+                        }}</span>
+                      <span class="dis-gremien-meta">{{daysUntil m.date}}{{#if
+                          m.time
+                        }}
+                          ·
+                          {{m.time}}{{/if}}</span>
+                    </button>
+                  {{else}}
+                    {{#if this.lastMeeting}}
+                      <button
+                        type="button"
+                        class="dis-gremien-row"
+                        {{on "click" (fn this.openMeeting this.lastMeeting.id)}}
+                      >
+                        <span class="dis-gremien-date">{{deDate
+                            this.lastMeeting.date
+                            true
+                          }}</span>
+                        <span class="dis-gremien-row-title">{{if
+                            this.lastMeeting.title
+                            this.lastMeeting.title
+                            sel.name
+                          }}</span>
+                        <span class="dis-gremien-meta">Letzte Sitzung</span>
+                      </button>
                     {{else}}
-                      {{m.role}}
+                      <CanonEmptyRow @text="Keine Termine" />
                     {{/if}}
-                  </DataTable>
+                  {{/each}}
+
+                  {{#if sel.recent_documents.length}}
+                    <h3 class="canon-heading">Neue Dokumente</h3>
+                    {{#each sel.recent_documents key="id" as |d|}}
+                      <div class="dis-gremien-doc">
+                        <span class="dis-gremien-date">{{deDate
+                            d.meeting_date
+                          }}</span>
+                        <DocRow
+                          @doc={{d}}
+                          @submitters={{true}}
+                          @onOpen={{fn this.openDoc d.id}}
+                        />
+                      </div>
+                    {{/each}}
+                  {{/if}}
                 {{/let}}
               </LoadState>
             </CanonRows>
