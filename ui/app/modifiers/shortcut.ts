@@ -1,12 +1,12 @@
 import { modifier } from 'ember-modifier';
 
 // Keys typed into a field are text, not commands.
-const typing = (t: EventTarget | null) =>
+export const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement &&
   (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
 // The topmost open modal dialog, or null when none is open.
-const topDialog = () => {
+export const topDialog = () => {
   const open = [
     ...document.querySelectorAll<HTMLDialogElement>('dialog[open]'),
   ];
