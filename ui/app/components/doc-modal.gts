@@ -19,6 +19,7 @@ import { LoadState } from 'ui/components/loading';
 import Modal, { type PaneContext } from 'ui/components/modal';
 import { SubmitterChips } from 'ui/components/party-chip';
 import Tag from 'ui/components/tag';
+import rough from 'ui/modifiers/rough';
 import shortcut from 'ui/modifiers/shortcut';
 import type NavService from 'ui/services/nav';
 import Load from 'ui/utils/load';
@@ -27,10 +28,15 @@ import { RIS_BASE, or } from 'ui/utils/meta';
 import './doc-modal.css';
 
 const EntityRow: TOC<{
-  Args: { label: string; items?: string[]; onPick: (q: string) => void };
+  Args: {
+    label: string;
+    icon: string;
+    items?: string[];
+    onPick: (q: string) => void;
+  };
 }> = <template>
   {{#if @items.length}}
-    <CanonRow @title={{@label}}>
+    <CanonRow @title={{@label}} @icon={{component Icon name=@icon}}>
       <span class="dis-tags dis-doc-tags">
         {{#each @items as |i|}}
           <Tag @onClick={{fn @onPick i}}>{{i}}</Tag>
@@ -220,6 +226,7 @@ export default class DocModal extends Component<Signature> {
             <CanonButton
               @kind="cell"
               @text={{if this.copied this.copied "Link kopieren"}}
+              @icon={{component Icon name="docs-link"}}
               @onClick={{this.copyLink}}
             />
             <a
@@ -255,10 +262,14 @@ export default class DocModal extends Component<Signature> {
                   <p class="dis-doc-subject">{{doc.agenda_title}}</p>
                 {{/if}}
                 {{#if doc.summary_de}}
-                  <p class="dis-doc-summary">{{doc.summary_de}}</p>
+                  <p
+                    class="dis-doc-summary"
+                    {{rough "bracket" brackets="left" padding=2 delay=300}}
+                  >{{doc.summary_de}}</p>
                 {{/if}}
                 {{#if doc.topics.length}}
                   <div class="dis-tags" aria-label="Schlagworte" role="group">
+                    <Icon class="dis-doc-topics-icon" @name="docs-topics" />
                     {{#each doc.topics as |t|}}
                       <Tag @onClick={{fn this.filter "topic" t}}>{{t}}</Tag>
                     {{/each}}
@@ -280,26 +291,35 @@ export default class DocModal extends Component<Signature> {
                 <CanonHeading @text="Erwähnte Entitäten" />
                 <EntityRow
                   @label="Personen"
+                  @icon="docs-person"
                   @items={{this.ents.people}}
                   @onPick={{this.searchFor}}
                 />
                 <EntityRow
                   @label="Organisationen"
+                  @icon="docs-org"
                   @items={{this.ents.orgs}}
                   @onPick={{this.searchFor}}
                 />
                 <EntityRow
                   @label="Orte"
+                  @icon="docs-district"
                   @items={{this.ents.locations}}
                   @onPick={{this.searchFor}}
                 />
               {{/if}}
 
               <CanonHeading @text="Angaben" />
-              <CanonRow @title="Gremium">
+              <CanonRow
+                @title="Gremium"
+                @icon={{component Icon name="docs-body"}}
+              >
                 <span class="dis-doc-value">{{orDash doc.body_name}}</span>
               </CanonRow>
-              <CanonRow @title="Sitzung">
+              <CanonRow
+                @title="Sitzung"
+                @icon={{component Icon name="calendar"}}
+              >
                 <span class="dis-doc-value">
                   {{#if doc.meeting_id}}
                     <a
@@ -316,7 +336,10 @@ export default class DocModal extends Component<Signature> {
                 </span>
               </CanonRow>
               {{#if (or doc.agenda_number doc.agenda_title)}}
-                <CanonRow @title="Tagesordnungspunkt">
+                <CanonRow
+                  @title="Tagesordnungspunkt"
+                  @icon={{component Icon name="docs-top"}}
+                >
                   <span class="dis-doc-value">
                     {{#if this.agendaUrl}}
                       <a
@@ -333,26 +356,35 @@ export default class DocModal extends Component<Signature> {
                   </span>
                 </CanonRow>
               {{/if}}
-              <CanonRow @title="Datum">
+              <CanonRow @title="Datum" @icon={{component Icon name="docs-day"}}>
                 <span class="dis-doc-value">{{orDash doc.meeting_date}}</span>
               </CanonRow>
-              <CanonRow @title="Typ">
+              <CanonRow @title="Typ" @icon={{component Icon name="docs-type"}}>
                 <span class="dis-doc-value">{{doc.doc_type}}</span>
               </CanonRow>
               {{#if doc.submitters.length}}
-                <CanonRow @title="Einbringer">
+                <CanonRow
+                  @title="Einbringer"
+                  @icon={{component Icon name="users"}}
+                >
                   <SubmitterChips @codes={{doc.submitters}} />
                 </CanonRow>
               {{/if}}
               {{#if doc.category}}
-                <CanonRow @title="Kategorie">
+                <CanonRow
+                  @title="Kategorie"
+                  @icon={{component Icon name="docs-category"}}
+                >
                   <Tag
                     @onClick={{fn this.filter "cat" doc.category}}
                   >{{doc.category}}</Tag>
                 </CanonRow>
               {{/if}}
               {{#if doc.district}}
-                <CanonRow @title="Stadtteil">
+                <CanonRow
+                  @title="Stadtteil"
+                  @icon={{component Icon name="docs-district"}}
+                >
                   <Tag
                     @onClick={{fn this.filter "district" doc.district}}
                     title="Dokumente aus diesem Stadtteil anzeigen"
@@ -360,7 +392,10 @@ export default class DocModal extends Component<Signature> {
                 </CanonRow>
               {{/if}}
               {{#if doc.vorlage}}
-                <CanonRow @title="Vorlage">
+                <CanonRow
+                  @title="Vorlage"
+                  @icon={{component Icon name="docs-route"}}
+                >
                   <Tag
                     @onClick={{fn this.vorlage doc.vorlage}}
                     title="Werdegang dieser Vorlage anzeigen"
@@ -409,6 +444,7 @@ export default class DocModal extends Component<Signature> {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
+                        <Icon @name="docs-history" @size={{14}} />
                         Version bis
                         {{versionUntil v.superseded_at}}
                       </a>
@@ -419,9 +455,18 @@ export default class DocModal extends Component<Signature> {
                     </li>
                   {{/each}}
                 </ul>
-                <p class="dis-doc-text dis-doc-muted">
-                  Dieses Dokument wurde im RIS nachträglich verändert; ältere
-                  Fassungen bleiben hier archiviert.
+                <p class="dis-doc-text dis-doc-muted dis-doc-changed">
+                  Dieses Dokument wurde im RIS
+                  <span
+                    {{rough
+                      "underline"
+                      color="--dis-highlight"
+                      padding=1
+                      multiline=true
+                      delay=500
+                    }}
+                  >nachträglich verändert</span>; ältere Fassungen bleiben hier
+                  archiviert.
                 </p>
               {{/if}}
 

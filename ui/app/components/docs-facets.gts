@@ -2,6 +2,7 @@ import type { TOC } from '@ember/component/template-only';
 import { fn } from '@ember/helper';
 import { on } from '@ember/modifier';
 import DocsGlyph from 'ui/components/docs-glyph';
+import Icon from 'ui/components/icon';
 import type { FacetCount } from 'ui/utils/api-dokumente';
 import { eq, num } from 'ui/utils/meta';
 import './docs-facets.css';
@@ -22,6 +23,7 @@ const toggled = (value: string, current: string) =>
 const FacetGroup: TOC<{
   Args: {
     label: string;
+    icon: string;
     items?: FacetCount[];
     value: string;
     glyph?: boolean;
@@ -30,7 +32,10 @@ const FacetGroup: TOC<{
 }> = <template>
   {{#if @items.length}}
     <div class="dis-facets-group" role="group" aria-label={{@label}}>
-      <span class="dis-facets-label">{{@label}}</span>
+      <span class="dis-facets-label"><Icon
+          @name={{@icon}}
+          @size={{14}}
+        />{{@label}}</span>
       {{#each (top @items @value) as |f|}}
         <button
           type="button"
@@ -61,12 +66,14 @@ const DocsFacets: TOC<{
   <div class="dis-facets">
     <FacetGroup
       @label="Kategorie"
+      @icon="docs-category"
       @items={{@categories}}
       @value={{@category}}
       @onPick={{@onCategory}}
     />
     <FacetGroup
       @label="Typ"
+      @icon="docs-type"
       @items={{@types}}
       @value={{@type}}
       @glyph={{true}}

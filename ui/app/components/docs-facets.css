@@ -13,6 +13,9 @@
 }
 
 .dis-facets-label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
   min-inline-size: 5.5rem;
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);

@@ -3,6 +3,7 @@ import { fn } from '@ember/helper';
 import { on } from '@ember/modifier';
 import type { Doc } from 'ui/api';
 import DocsGlyph from 'ui/components/docs-glyph';
+import Icon from 'ui/components/icon';
 import { SubmitterChips } from 'ui/components/party-chip';
 import Snippet from 'ui/components/snippet';
 import Tag from 'ui/components/tag';
@@ -53,7 +54,10 @@ const DocsList: TOC<{
               >{{relDate d.meeting_date}}</time>
             {{/if}}
             {{#if d.body_name}}
-              <span class="dis-dlist-body">{{d.body_name}}</span>
+              <span class="dis-dlist-body"><Icon
+                  @name="docs-body"
+                  @size={{12}}
+                />{{d.body_name}}</span>
             {{/if}}
           </span>
           <span class="dis-tags">

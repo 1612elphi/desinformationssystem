@@ -53,7 +53,7 @@ export default class ColumnPicker extends Component<Signature> {
           {{popover.trigger}}
           @kind="cell"
           @text={{this.triggerText}}
-          @icon={{component Icon name="chevron-down"}}
+          @icon={{component Icon name="docs-columns"}}
         />
       </:trigger>
       <:content>
@@ -75,6 +75,7 @@ export default class ColumnPicker extends Component<Signature> {
           <CanonButton
             @kind="secondary"
             @text="Alle Spalten"
+            @icon={{component Icon name="docs-show"}}
             @disabled={{this.allOn}}
             @onClick={{this.showAll}}
           />

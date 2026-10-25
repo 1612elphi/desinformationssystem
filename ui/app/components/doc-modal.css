@@ -112,6 +112,11 @@
   list-style: none;
 }
 
+.dis-doc-topics-icon {
+  align-self: center;
+  color: var(--canon-muted-foreground);
+}
+
 .dis-doc-action {
   display: flex;
   gap: 8px;

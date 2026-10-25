@@ -26,6 +26,7 @@ import Pagination from 'ui/components/pagination';
 import { SubmitterChips } from 'ui/components/party-chip';
 import Snippet from 'ui/components/snippet';
 import Tag from 'ui/components/tag';
+import rough from 'ui/modifiers/rough';
 import shortcut from 'ui/modifiers/shortcut';
 import {
   PUBLIC_OPTS,
@@ -40,6 +41,7 @@ import './index.css';
 const topNum = (n?: string) => (n ? `TOP ${n}` : '');
 const removeLabel = (label: string) => `Entfernen: ${label}`;
 const docLabel = (d: Doc) => d.label;
+const stagger = (i: number) => 600 + i * 150;
 
 interface Signature {
   Args: { model: ApplicationModel; controller: IndexController };
@@ -136,7 +138,7 @@ export default class DokumenteTemplate extends Component<Signature> {
         {{shortcut "k" this.prev}}
       >
         <header class="dis-docs-hero">
-          <h1>Karlsruher Ratsdokumente</h1>
+          <h1><span {{rough "underline" strokeWidth=2}}>Karlsruher Ratsdokumente</span></h1>
           <p>
             Durchsuchbares Archiv des Sitzungskalenders der Stadt Karlsruhe —
             täglich aktualisiert, volltextindiziert und kategorisiert.
@@ -228,6 +230,7 @@ export default class DokumenteTemplate extends Component<Signature> {
 
         <div class="dis-docs-bar">
           <span class="dis-docs-count" role="status">
+            <Icon @name="docs-files" />
             {{if c.search.pending "Lädt…" (concat (num c.total) " Treffer")}}
           </span>
           <a
@@ -240,9 +243,16 @@ export default class DokumenteTemplate extends Component<Signature> {
           </a>
           {{#if c.activeFilters.length}}
             <span class="dis-tags dis-docs-active">
-              {{#each c.activeFilters as |f|}}
+              <Icon @name="docs-filter" />
+              {{#each c.activeFilters as |f i|}}
                 <Tag
                   aria-label={{removeLabel f.label}}
+                  {{rough
+                    "underline"
+                    color="--dis-highlight"
+                    padding=2
+                    delay=(stagger i)
+                  }}
                   @onClick={{fn c.setFilter f.k f.clear}}
                 >
                   {{f.label}}
@@ -252,12 +262,17 @@ export default class DokumenteTemplate extends Component<Signature> {
             </span>
             <CanonButton
               @kind="cell"
+              @icon={{component Icon name="docs-reset"}}
               @text="Alle zurücksetzen"
               @onClick={{c.resetAll}}
             />
           {{/if}}
           <span class="dis-docs-viewbar">
-            <kbd class="dis-docs-keys" title="Tastatur">/ · J / K</kbd>
+            <kbd class="dis-docs-keys" title="Tastatur"><Icon
+                @name="docs-keys"
+                @size={{14}}
+              />
+              / · J / K</kbd>
             {{#if (eq c.view 1)}}
               <span class="dis-docs-colpick">
                 <ColumnPicker
@@ -292,9 +307,12 @@ export default class DokumenteTemplate extends Component<Signature> {
         {{#if c.search.error}}
           <LoadError @error={{c.search.error}} />
         {{else if this.empty}}
-          <CanonEmptyRow
-            @text="Keine Dokumente gefunden — Suchbegriff anpassen oder Filter zurücksetzen."
-          />
+          <div class="dis-docs-none">
+            <Icon @name="docs-none" @size={{20}} />
+            <CanonEmptyRow
+              @text="Keine Dokumente gefunden — Suchbegriff anpassen oder Filter zurücksetzen."
+            />
+          </div>
         {{else if c.results.length}}
           <div class="dis-docs-results">
             {{#if (eq c.view 0)}}
