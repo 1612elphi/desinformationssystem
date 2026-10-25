@@ -1,0 +1,143 @@
+.dis-docs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--canon-panel-padding);
+  padding: var(--canon-panel-padding);
+}
+
+.dis-docs-hero h1 {
+  margin: 0;
+  font-size: var(--canon-text-title2);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dis-docs-hero p {
+  margin: 4px 0 0;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-subheadline);
+}
+
+.dis-docs-tiles,
+.dis-docs-controls {
+  border: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-docs-controls {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--canon-hairline);
+  background: var(--canon-border);
+}
+
+.dis-docs-search > .canon-row-label {
+  flex-grow: 1;
+}
+
+.dis-docs-search > .canon-row-control {
+  flex: 999 1 16rem;
+}
+
+.dis-docs-search.canon-row > .canon-row-control > .canon-text-cell {
+  flex: 1 1 0;
+  inline-size: auto;
+  min-inline-size: 0;
+}
+
+.dis-docs-search.canon-row > .canon-row-control > .dis-docs-clear {
+  flex: none;
+}
+
+/* 13rem: five then two per row at 1440 wide, never six and one */
+.dis-docs-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--canon-hairline);
+}
+
+.dis-docs-filters > * {
+  flex: 1 1 13rem;
+  min-inline-size: 0;
+}
+
+/* a wrapping column line takes its widest item's width and overflows the cell */
+.dis-docs-filters > .canon-row--stacked {
+  flex-wrap: nowrap;
+}
+
+@container (inline-size < 40rem) {
+  .dis-docs-filters > * {
+    flex-basis: 9rem;
+  }
+}
+
+.dis-docs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px var(--canon-panel-padding);
+  align-items: center;
+  font-size: var(--canon-text-subheadline);
+}
+
+.dis-docs-count {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-docs-feed {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--canon-muted-foreground);
+}
+
+.dis-docs-active .dis-tag {
+  white-space: normal;
+}
+
+.dis-docs-colpick {
+  margin-inline-start: auto;
+  border: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-docs-table .dis-table {
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-docs-table .dis-table caption {
+  padding-inline: 0;
+}
+
+.dis-docs-table .dis-tag {
+  justify-self: start;
+  white-space: normal;
+  overflow-wrap: normal;
+}
+
+.dis-docs-doc {
+  display: block;
+}
+
+.dis-docs-top {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.dis-docs-topnum {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dis-docs-label {
+  display: block;
+  font-weight: 600;
+}
+
+.dis-docs-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--canon-panel-padding);
+}
