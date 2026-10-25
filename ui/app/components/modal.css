@@ -42,6 +42,13 @@
   background: var(--canon-muted);
 }
 
+.dis-pane-kind,
+.dis-pane-spine-kind {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .dis-pane-kind {
   grid-column: 1;
   padding-block-start: 6px;

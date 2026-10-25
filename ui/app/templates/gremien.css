@@ -43,6 +43,23 @@
   gap: 8px;
 }
 
+.dis-gremien-heading {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dis-gremien-title {
+  display: inline-block;
+  max-inline-size: 100%;
+}
+
+/* rough marks are absolute siblings of the marked element */
+.dis-gremien-detail > .canon-heading,
+.dis-gremien-row {
+  position: relative;
+}
+
 .dis-gremien-meta {
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);
@@ -103,6 +120,7 @@
 }
 
 .dis-gremien-date {
+  justify-self: start;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

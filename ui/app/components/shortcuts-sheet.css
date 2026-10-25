@@ -41,6 +41,9 @@
 }
 
 .dis-keys-heading {
+  display: flex;
+  gap: 6px;
+  align-items: center;
   margin: 0 0 4px;
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);

@@ -1,5 +1,6 @@
 import type { TOC } from '@ember/component/template-only';
 import { htmlSafe } from '@ember/template';
+import rough from 'ui/modifiers/rough';
 import { partyMark } from 'ui/utils/api-menschen';
 import { SEAT_ORDER, SUBMITTERS, num } from 'ui/utils/meta';
 import './gremium-share.css';
@@ -13,6 +14,8 @@ const rank = (code: string) => {
 const ordered = (parts: Part[] = []) =>
   [...parts].sort((a, b) => rank(a.code) - rank(b.code));
 const total = (parts: Part[] = []) => parts.reduce((a, p) => a + p.n, 0);
+const isLargest = (p: Part, parts: Part[] = []) =>
+  parts.length > 1 && p.n === Math.max(...parts.map((x) => x.n));
 const segStyle = (p: Part) =>
   htmlSafe(`flex-grow: ${p.n}; background: ${partyMark(p.code)}`);
 const markStyle = (p: Part) =>
@@ -40,7 +43,17 @@ const GremiumShare: TOC<{
       <ul class="dis-share-legend">
         {{#each (ordered @parts) as |p|}}
           <li style={{markStyle p}} title={{nameOf p.code}}>
-            <span class="dis-share-code">{{if p.code p.code "–"}}</span>
+            <span
+              class="dis-share-code"
+              {{rough
+                "underline"
+                show=(isLargest p @parts)
+                color="--dis-highlight"
+                strokeWidth=2
+                padding=1
+                delay=700
+              }}
+            >{{if p.code p.code "–"}}</span>
             <span class="dis-share-n">{{num p.n}}</span>
             <span class="dis-share-pct">{{pctOf p.n all}}</span>
           </li>

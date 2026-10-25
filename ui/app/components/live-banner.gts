@@ -6,6 +6,7 @@ import type Owner from '@ember/owner';
 import CanonButton from 'delphicanon/components/canon-button';
 import { getLive, type Meeting } from 'ui/api';
 import Icon from 'ui/components/icon';
+import rough from 'ui/modifiers/rough';
 import type NavService from 'ui/services/nav';
 import './live-banner.css';
 
@@ -53,7 +54,11 @@ export default class LiveBanner extends Component {
       {{#if this.live.length}}
         <div class="dis-live">
           <span class="dis-live-pulse" aria-hidden="true"></span>
-          <span class="dis-live-label">Jetzt live</span>
+          <span
+            class="dis-live-label"
+            {{rough "circle" color="--canon-destructive" padding=5}}
+          ><Icon @name="radio-tower" @size={{14}} />
+            Jetzt live</span>
           <span class="dis-live-text">{{this.text}}</span>
           <CanonButton
             class="dis-live-open"

@@ -6,6 +6,7 @@ import { modifier } from 'ember-modifier';
 import CanonSheet from 'delphicanon/components/canon-sheet';
 import { VIEWS } from 'ui/components/palette-dialog';
 import shortcut, { topDialog, typing } from 'ui/modifiers/shortcut';
+import Icon from 'ui/components/icon';
 import './shortcuts-sheet.css';
 
 export const MOD = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Strg';
@@ -13,10 +14,12 @@ export const MOD = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Strg';
 // each entry: alternatives, each a key sequence; edit freely, the sheet renders this list
 export const SHORTCUTS: {
   group: string;
+  icon: string;
   items: { keys: string[][]; label: string }[];
 }[] = [
   {
     group: 'Überall',
+    icon: 'globe',
     items: [
       { keys: [[MOD, 'K']], label: 'Befehle' },
       ...VIEWS.map((v) => ({
@@ -29,6 +32,7 @@ export const SHORTCUTS: {
   },
   {
     group: 'Dokumente',
+    icon: 'search',
     items: [
       { keys: [['/']], label: 'Suche' },
       { keys: [['Esc']], label: 'Suche leeren' },
@@ -38,6 +42,7 @@ export const SHORTCUTS: {
   },
   {
     group: 'Dokument',
+    icon: 'document',
     items: [
       { keys: [['←'], ['→'], ['J'], ['K']], label: 'Voriges / nächstes' },
       { keys: [['O']], label: 'PDF öffnen' },
@@ -45,6 +50,7 @@ export const SHORTCUTS: {
   },
   {
     group: 'Sitzungen',
+    icon: 'calendar',
     items: [
       { keys: [['←'], ['↑'], ['→'], ['↓']], label: 'Tag wechseln' },
       { keys: [['Pos1'], ['Ende']], label: 'Wochenanfang / -ende' },
@@ -61,6 +67,7 @@ export const SHORTCUTS: {
   },
   {
     group: 'Sitzung',
+    icon: 'gavel',
     items: [
       { keys: [['J'], ['K']], label: 'TOP wechseln' },
       { keys: [['↵'], ['Leer']], label: 'TOP auf/zu' },
@@ -74,10 +81,12 @@ export const SHORTCUTS: {
   },
   {
     group: 'Person',
+    icon: 'user',
     items: [{ keys: [['['], [']']], label: 'Voriges / nächstes Mitglied' }],
   },
   {
     group: 'Gremien',
+    icon: 'landmark',
     items: [
       { keys: [['/']], label: 'Gremien filtern' },
       { keys: [['J'], ['K']], label: 'Gremium wechseln' },
@@ -86,6 +95,7 @@ export const SHORTCUTS: {
   },
   {
     group: 'Reden',
+    icon: 'mic',
     items: [{ keys: [['['], [']']], label: 'Vorige / nächste Sitzung' }],
   },
 ];
@@ -142,7 +152,7 @@ export default class ShortcutsSheet extends Component {
       aria-hidden="true"
       {{this.sequence}}
       {{shortcut "?" this.show}}
-    ><kbd>G</kbd> …</span>
+    ><Icon @name="keyboard" @size={{14}} /><kbd>G</kbd> …</span>
     <CanonSheet
       class="dis-keys-sheet"
       @open={{this.open}}
@@ -153,7 +163,8 @@ export default class ShortcutsSheet extends Component {
       <div class="dis-keys">
         {{#each SHORTCUTS as |g|}}
           <section class="dis-keys-group">
-            <h3 class="dis-keys-heading">{{g.group}}</h3>
+            <h3 class="dis-keys-heading"><Icon @name={{g.icon}} @size={{14}} />
+              {{g.group}}</h3>
             <dl class="dis-keys-list">
               {{#each g.items as |s|}}
                 <div class="dis-keys-row">

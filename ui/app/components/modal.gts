@@ -23,6 +23,13 @@ const KIND_LABEL: Record<string, string> = {
   vorlage: 'Vorlage',
 };
 const kindLabel = (kind?: string) => (kind ? (KIND_LABEL[kind] ?? kind) : '');
+const KIND_ICON: Record<string, string> = {
+  doc: 'document',
+  meeting: 'calendar',
+  person: 'user',
+  vorlage: 'file-stack',
+};
+const kindIcon = (kind?: string) => (kind ? (KIND_ICON[kind] ?? '') : '');
 
 // the newest pane takes focus, so the keyboard follows the stack
 const focusWhen = modifier((el: HTMLElement, [active]: [boolean?]) => {
@@ -45,7 +52,10 @@ const Modal: TOC<{
       title={{@heading}}
       {{on "click" @pane.onSelect}}
     >
-      <span class="dis-pane-spine-kind">{{kindLabel @pane.kind}}</span>
+      <span class="dis-pane-spine-kind"><Icon
+          @name={{kindIcon @pane.kind}}
+          @size={{14}}
+        />{{kindLabel @pane.kind}}</span>
       <span class="dis-pane-spine-title">{{@heading}}</span>
     </button>
   {{else}}
@@ -56,7 +66,10 @@ const Modal: TOC<{
         aria-labelledby={{hid}}
       >
         <header class="dis-pane-head">
-          <span class="dis-pane-kind">{{kindLabel @pane.kind}}</span>
+          <span class="dis-pane-kind"><Icon
+              @name={{kindIcon @pane.kind}}
+              @size={{12}}
+            />{{kindLabel @pane.kind}}</span>
           <h2
             id={{hid}}
             class="dis-pane-title"

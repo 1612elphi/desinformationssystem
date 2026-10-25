@@ -41,8 +41,8 @@ const ICONS: Record<Kind, ComponentLike> = {
   view: <template><Icon @name="chevron-right" /></template>,
   doc: <template><Icon @name="document" /></template>,
   meeting: <template><Icon @name="calendar" /></template>,
-  person: <template><Icon @name="users" /></template>,
-  committee: <template><Icon @name="users" /></template>,
+  person: <template><Icon @name="user" /></template>,
+  committee: <template><Icon @name="landmark" /></template>,
 };
 
 const iconFor = (name: string): ComponentLike => <template>

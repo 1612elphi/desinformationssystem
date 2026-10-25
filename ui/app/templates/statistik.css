@@ -11,6 +11,9 @@
 }
 
 .dis-stat-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   margin: 0;
   font-size: var(--canon-text-title3);
   font-weight: var(--canon-weight-semibold);
@@ -44,6 +47,14 @@
   flex: 1 1 12rem;
   min-inline-size: 0;
   block-size: 8px;
+}
+
+/* rough marks are absolute siblings of the marked element; they need a positioned parent inside the scroller */
+.dis-bar-value,
+.dis-matrix td,
+.dis-dissent td,
+.dis-stat-headrow {
+  position: relative;
 }
 
 .dis-bar-value {
