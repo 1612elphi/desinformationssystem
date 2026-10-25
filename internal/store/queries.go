@@ -210,10 +210,35 @@ func (s *Store) GetMeeting(id string) (Row, error) {
 		decodeJSON(f)
 	}
 	m["files"] = files
-	if m["votes"], err = s.MeetingVotes(id); err != nil {
+	votes, err := s.MeetingVotes(id)
+	if err != nil {
 		return nil, err
 	}
+	if err := s.attributeRollCalls(votes, str(m["body_id"])); err != nil {
+		return nil, err
+	}
+	m["votes"] = votes
 	return m, nil
+}
+
+// attributeRollCalls adds party_code and person_id to roll-call entries
+// where the members roster identifies them.
+func (s *Store) attributeRollCalls(votes []Row, body string) error {
+	lookup, err := s.partyLookup()
+	if err != nil {
+		return err
+	}
+	for _, v := range votes {
+		members, _ := v["members"].([]any)
+		for _, e := range members {
+			if m, ok := e.(map[string]any); ok {
+				party, person := entryMatch(lookup, body, str(m["name"]))
+				m["party_code"] = nilIfEmpty(party)
+				m["person_id"] = nilIfEmpty(person)
+			}
+		}
+	}
+	return nil
 }
 
 // topOrder sorts "TOP 3.1" as (3, 1), between TOP 3 and TOP 4; CAST stops at
@@ -423,4 +448,11 @@ func rollCall(v any) []map[string]any {
 		return out
 	}
 	return nil
+}
+
+func nilIfEmpty(s string) any {
+	if s == "" {
+		return nil
+	}
+	return s
 }

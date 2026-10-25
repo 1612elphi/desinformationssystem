@@ -336,11 +336,11 @@ func (s *Store) LiveMeetings(now time.Time) ([]Row, error) {
 	return out, nil
 }
 
-type partyCand struct{ initial, party string }
+type partyCand struct{ initial, party, person string }
 
 // partyLookup maps body_id -> surname -> candidates for roll-call attribution.
 func (s *Store) partyLookup() (map[string]map[string][]partyCand, error) {
-	rows, err := s.rows("SELECT body_id, name, party_code FROM members WHERE COALESCE(party_code,'') != ''")
+	rows, err := s.rows("SELECT body_id, name, party_code, person_id FROM members WHERE COALESCE(party_code,'') != ''")
 	if err != nil {
 		return nil, err
 	}
@@ -351,12 +351,19 @@ func (s *Store) partyLookup() (map[string]map[string][]partyCand, error) {
 			out[b] = map[string][]partyCand{}
 		}
 		sn := surname(str(r["name"]))
-		out[b][sn] = append(out[b][sn], partyCand{firstInitial(str(r["name"])), str(r["party_code"])})
+		out[b][sn] = append(out[b][sn], partyCand{firstInitial(str(r["name"])), str(r["party_code"]), str(r["person_id"])})
 	}
 	return out, nil
 }
 
 func entryParty(lookup map[string]map[string][]partyCand, body, rollName string) string {
+	party, _ := entryMatch(lookup, body, rollName)
+	return party
+}
+
+// entryMatch attributes a roll-call name to a party, and to a person when
+// exactly one member matches; ambiguous parties give "".
+func entryMatch(lookup map[string]map[string][]partyCand, body, rollName string) (party, person string) {
 	sn, ini := parseRollName(rollName)
 	cands := lookup[body][sn]
 	if len(cands) == 0 {
@@ -376,14 +383,20 @@ func entryParty(lookup map[string]map[string][]partyCand, body, rollName string)
 			cands = f
 		}
 	}
-	party := ""
 	for _, c := range cands {
 		if party != "" && c.party != party {
-			return ""
+			return "", ""
 		}
 		party = c.party
 	}
-	return party
+	persons := map[string]bool{}
+	for _, c := range cands {
+		persons[c.person] = true
+	}
+	if len(persons) == 1 && len(cands) > 0 {
+		person = cands[0].person
+	}
+	return party, person
 }
 
 // round3 rounds like Python's round(x, 3) for the values seen here.
