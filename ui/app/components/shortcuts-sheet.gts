@@ -31,13 +31,14 @@ export const SHORTCUTS: {
     ],
   },
   {
-    group: 'Dokumente',
+    group: 'Suche',
     icon: 'search',
     items: [
-      { keys: [['/']], label: 'Suche' },
+      { keys: [['/']], label: 'Suchfeld' },
       { keys: [['Esc']], label: 'Suche leeren' },
       { keys: [['J'], ['K']], label: 'Treffer wechseln' },
       { keys: [['↵']], label: 'Öffnen' },
+      { keys: [['1'], ['…'], ['7']], label: 'Bereich wechseln' },
     ],
   },
   {

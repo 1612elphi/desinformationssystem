@@ -1,6 +1,19 @@
 import Controller from '@ember/controller';
 import { tracked, cached } from '@glimmer/tracking';
+import type { Meeting } from 'ui/api';
 import { searchFaceted, type FacetedResult } from 'ui/utils/api-dokumente';
+import {
+  fold,
+  matches,
+  searchMeetings,
+  searchSpeeches,
+  searchVotes,
+  type Hits,
+  type PersonHit,
+  type SpeechHit,
+  type VoteHit,
+} from 'ui/utils/api-suche';
+import { getCommitteeList, getPeople } from 'ui/utils/api-shell';
 import type { Column } from 'ui/components/data-table';
 import Load from 'ui/utils/load';
 import { PUBLIC_OPTS, SUBMITTERS } from 'ui/utils/meta';
@@ -21,6 +34,26 @@ const COL_KEYS = ALL_COLUMNS.map((c) => c.key);
 const COLS_STORAGE = 'dis-cols';
 const VIEW_STORAGE = 'dis-docs-view';
 export const VIEWS = ['Liste', 'Tabelle'];
+const FILTERS_STORAGE = 'dis-suche-filters';
+
+export const SCOPES = [
+  { id: 'alles', label: 'Alles', icon: 'suche-all' },
+  { id: 'dokumente', label: 'Dokumente', icon: 'suche-docs' },
+  { id: 'sitzungen', label: 'Sitzungen', icon: 'suche-meetings' },
+  { id: 'personen', label: 'Personen', icon: 'suche-people' },
+  { id: 'gremien', label: 'Gremien', icon: 'suche-bodies' },
+  { id: 'reden', label: 'Reden', icon: 'suche-speeches' },
+  { id: 'abstimmungen', label: 'Abstimmungen', icon: 'suche-votes' },
+] as const;
+export type Scope = (typeof SCOPES)[number]['id'];
+export const LIST_SIZE = 25;
+
+// name matches first: starts with the query, then a word does, then anywhere
+const rankBy = (q: string, name: string) => {
+  const n = fold(name);
+  const f = fold(q);
+  return n.startsWith(f) ? 0 : n.includes(` ${f}`) ? 1 : n.includes(f) ? 2 : 3;
+};
 
 function stored(key: string): string {
   try {
@@ -65,6 +98,7 @@ type FilterKey =
 
 export default class SucheController extends Controller {
   queryParams = [
+    'scope',
     'q',
     'committee',
     'type',
@@ -80,6 +114,27 @@ export default class SucheController extends Controller {
   ];
 
   @tracked q = '';
+  @tracked scope: Scope = 'alles';
+  @tracked listPage = 1;
+
+  setScope = (scope: Scope) => {
+    this.scope = scope;
+    // a same-value write still invalidates, and every search reads listPage
+    if (this.listPage !== 1) this.listPage = 1;
+    this.cursor = -1;
+  };
+
+  setListPage = (page: number) => {
+    this.listPage = page;
+    this.cursor = -1;
+  };
+
+  @tracked filtersOpen = stored(FILTERS_STORAGE) === '1';
+
+  toggleFilters = () => {
+    this.filtersOpen = !this.filtersOpen;
+    store(FILTERS_STORAGE, this.filtersOpen ? '1' : '');
+  };
   @tracked committee = '';
   @tracked type = '';
   @tracked cat = '';
@@ -131,6 +186,7 @@ export default class SucheController extends Controller {
       this.q = v;
       this.qDraft = null;
       this.page = 1;
+      this.listPage = 1;
       this.cursor = -1;
     }, 350);
   };
@@ -140,6 +196,7 @@ export default class SucheController extends Controller {
     this.qDraft = null;
     this.q = '';
     this.page = 1;
+    this.listPage = 1;
     this.cursor = -1;
   };
 
@@ -244,5 +301,93 @@ export default class SucheController extends Controller {
     if (this.district) add('district', `Stadtteil: ${this.district}`);
     if (this.street) add('street', `Straße: ${this.street}`);
     return f;
+  }
+
+  // ponytail: every kind reads listPage, so paging one list refetches the other two small searches
+  #page(scope: Scope) {
+    // scope is read only past page 1, so switching scope does not refetch
+    const offset =
+      this.listPage > 1 && this.scope === scope
+        ? (this.listPage - 1) * LIST_SIZE
+        : 0;
+    return { q: this.q, limit: LIST_SIZE, offset };
+  }
+
+  #lastMeetings?: Load<Hits<Meeting>>;
+  #lastSpeeches?: Load<Hits<SpeechHit>>;
+  #lastVotes?: Load<Hits<VoteHit>>;
+
+  // untracked handles on the previous requests, read by the new Loads only
+  /* eslint-disable ember/no-side-effects */
+  @cached
+  get meetings() {
+    return (this.#lastMeetings = new Load(
+      searchMeetings(this.#page('sitzungen')),
+      this.#lastMeetings,
+    ));
+  }
+
+  @cached
+  get speeches() {
+    return (this.#lastSpeeches = new Load(
+      searchSpeeches(this.#page('reden')),
+      this.#lastSpeeches,
+    ));
+  }
+
+  @cached
+  get votes() {
+    return (this.#lastVotes = new Load(
+      searchVotes(this.#page('abstimmungen')),
+      this.#lastVotes,
+    ));
+  }
+  /* eslint-enable ember/no-side-effects */
+
+  people = new Load<PersonHit[]>(getPeople());
+  committees = new Load(getCommitteeList());
+
+  @cached
+  get personIds() {
+    return new Map((this.people.value ?? []).map((p) => [p.name, p.person_id]));
+  }
+
+  @cached
+  get personHits() {
+    const q = this.q.trim();
+    const all = this.people.value ?? [];
+    if (!q) return [...all].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    return all
+      .filter((p) => matches(q, [p.name, p.party, p.party_code]))
+      .sort(
+        (a, b) =>
+          rankBy(q, a.name) - rankBy(q, b.name) ||
+          a.name.localeCompare(b.name, 'de'),
+      );
+  }
+
+  @cached
+  get committeeHits() {
+    const q = this.q.trim();
+    const all = this.committees.value ?? [];
+    return all
+      .filter((c) => !q || matches(q, [c.name]))
+      .sort(
+        (a, b) =>
+          (q ? rankBy(q, a.name) - rankBy(q, b.name) : 0) ||
+          b.meetings - a.meetings,
+      );
+  }
+
+  // undefined while a kind is still loading or failed
+  get counts(): Partial<Record<Scope, number>> {
+    return {
+      dokumente: this.search.value?.total,
+      sitzungen: this.meetings.value?.total,
+      personen: this.people.value ? this.personHits.length : undefined,
+      gremien: this.committees.value ? this.committeeHits.length : undefined,
+      reden: this.speeches.value?.total,
+      abstimmungen: this.votes.value?.total,
+    };
   }
 }

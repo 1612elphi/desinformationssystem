@@ -5,6 +5,7 @@ const replace = { replace: true };
 
 export default class SucheRoute extends Route {
   queryParams = {
+    scope: replace,
     q: replace,
     committee: replace,
     type: replace,
