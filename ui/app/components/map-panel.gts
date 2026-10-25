@@ -43,7 +43,7 @@ export default class MapPanel extends Component<Signature> {
     return KIND_LABEL[this.args.place.kind];
   }
 
-  // below the map in the narrow layout, where it would open out of sight
+  // narrow layout: off-screen
   reveal = modifier((el: HTMLElement, [id]: [number]) => {
     if (id) el.scrollIntoView({ block: 'nearest' });
   });

@@ -21,7 +21,6 @@ const isFirst = (i: number) => i === 0;
 export default class ColumnPicker extends Component<Signature> {
   isOn = (key: string) => this.args.selected.includes(key);
 
-  // the last visible column cannot be switched off
   isLast = (key: string) => this.args.selected.length === 1 && this.isOn(key);
 
   get allOn() {

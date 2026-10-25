@@ -9,7 +9,7 @@ import (
 
 func isPySpace(r rune) bool { return unicode.IsSpace(r) || (r >= 0x1c && r <= 0x1f) }
 
-// pyFields is Python's str.split() with no separator.
+// python str.split() parity
 func pyFields(s string) []string { return strings.FieldsFunc(s, isPySpace) }
 
 func LastField(s string) string {
@@ -66,14 +66,10 @@ func MemberFor(name string, members []Row) Row {
 	return nil
 }
 
-// groupOrder is the roll-call order on the council's display: OB first, then
-// the fractions.
 var groupOrder = append([]string{"OB"}, partyOrder...)
 
 func isChair(m Row) bool { return strings.Contains(str(m["role"]), "Oberbürgermeister") }
 
-// withGroups gives each roll-call entry a "group" (OB for the chair, else the
-// member's party code) and sorts the entries by group.
 func withGroups(entries []any, roster []Row) []any {
 	rank := func(e any) int {
 		m, _ := e.(map[string]any)
@@ -219,8 +215,7 @@ func (s *Store) SearchSpeeches(p SpeechSearch) (Row, error) {
 	return Row{"total": total, "results": rows}, nil
 }
 
-// snippet cuts 120 characters before and 280 from the match. The offset is
-// found in the casefolded text and applied to the original, as Python does.
+// python casefold offset parity
 func snippet(text, query string) string {
 	i := 0
 	if query != "" {

@@ -11,20 +11,18 @@ type RoughType =
   | 'bracket';
 
 interface Options {
-  // a colour token such as "--dis-highlight"; default the primary colour
   color?: string;
-  // false draws nothing, so a condition can switch the annotation off
   show?: boolean;
   padding?: number;
   strokeWidth?: number;
   iterations?: number;
   multiline?: boolean;
   brackets?: 'left' | 'right' | 'top' | 'bottom';
-  // ms before the drawing starts, to stagger several annotations
+  // ms, to stagger
   delay?: number;
 }
 
-// rough-notation writes the colour into an SVG attribute, where var() does not resolve
+// svg attributes skip var()
 const resolve = (token: string) =>
   getComputedStyle(document.documentElement).getPropertyValue(token).trim() ||
   'currentColor';
@@ -37,12 +35,12 @@ const resolve = (token: string) =>
 export default modifier(
   (el: HTMLElement, [type]: [RoughType], options: Options) => {
     if (options.show === false) return;
-    // the mark is an SVG sibling; inside a table row it would become a stray cell
+    // svg sibling breaks rows
     if (/^(TD|TH|TR)$/.test(el.tagName)) {
       console.warn('rough: mark an element inside the cell, not the cell', el);
       return;
     }
-    // the SVG is placed absolutely against the parent; a static parent lets it drift on scroll
+    // needs positioned parent
     const parent = el.parentElement;
     const restore =
       parent && getComputedStyle(parent).position === 'static'

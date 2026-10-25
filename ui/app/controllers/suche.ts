@@ -49,7 +49,6 @@ export const SCOPES = [
 export type Scope = (typeof SCOPES)[number]['id'];
 export const LIST_SIZE = 25;
 
-// name matches first: starts with the query, then a word does, then anywhere
 const rankBy = (q: string, name: string) => {
   const n = fold(name);
   const f = fold(q);
@@ -68,7 +67,7 @@ function store(key: string, value: string) {
   try {
     localStorage.setItem(key, value);
   } catch {
-    // storage blocked: the choice lasts for this page view only
+    // storage blocked
   }
 }
 
@@ -80,7 +79,7 @@ function storedCols(): string[] {
       : [];
     if (valid.length) return valid;
   } catch {
-    // unreadable storage: use the default columns
+    // unreadable storage
   }
   return COL_KEYS;
 }
@@ -120,7 +119,7 @@ export default class SucheController extends Controller {
 
   setScope = (scope: Scope) => {
     this.scope = scope;
-    // a same-value write still invalidates, and every search reads listPage
+    // same-value write still invalidates
     if (this.listPage !== 1) this.listPage = 1;
     this.cursor = -1;
   };
@@ -161,7 +160,6 @@ export default class SucheController extends Controller {
     store(VIEW_STORAGE, VIEWS[i] ?? '');
   };
 
-  // highlighted result row for j/k; -1 for none
   @tracked cursor = -1;
 
   setCursor = (i: number) => {
@@ -172,7 +170,6 @@ export default class SucheController extends Controller {
     return ALL_COLUMNS.filter((c) => this.cols.includes(c.key));
   }
 
-  // The search box updates the URL (and the search) 350 ms after typing stops.
   @tracked qDraft: string | null = null;
   #qTimer?: ReturnType<typeof setTimeout>;
 
@@ -305,7 +302,7 @@ export default class SucheController extends Controller {
 
   // ponytail: every kind reads listPage, so paging one list refetches the other two small searches
   #page(scope: Scope) {
-    // scope is read only past page 1, so switching scope does not refetch
+    // page 1 skips scope
     const offset =
       this.listPage > 1 && this.scope === scope
         ? (this.listPage - 1) * LIST_SIZE
@@ -379,7 +376,6 @@ export default class SucheController extends Controller {
       );
   }
 
-  // undefined while a kind is still loading or failed
   get counts(): Partial<Record<Scope, number>> {
     return {
       dokumente: this.search.value?.total,

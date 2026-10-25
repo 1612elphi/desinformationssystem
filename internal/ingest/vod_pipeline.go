@@ -16,7 +16,7 @@ import (
 	"github.com/1612elphi/desinformationssystem/internal/store"
 )
 
-// same floor as ops/vod-capture.sh; keeps out teaser clips
+// matches vod-capture.sh floor
 const pipelineMinSeconds = 600
 
 var JobwatchURL = envStr("JOBWATCH_URL", "http://127.0.0.1:3740/api/run")
@@ -30,8 +30,7 @@ type PipelineCounts struct {
 	Failed   int `json:"failed"`
 }
 
-// Pipeline steps; variables so tests run the orchestration without video
-// or models.
+// vars for test stubs
 var (
 	pipelineVotes = func(st *store.Store, video, mid, date string) (int, error) {
 		v, err := ProcessVODVotes(st, video, mid, date, true)
@@ -45,7 +44,6 @@ var (
 	pipelineJudge = func(st *store.Store, mid string) (int, error) { return JudgeSpeeches(st, mid, false) }
 )
 
-// guarded turns a panic in one step into its error, so the next video still runs.
 func guarded(fn func() error) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -159,7 +157,7 @@ func RunVODPipeline(st *store.Store, dir string, dryRun bool) (PipelineCounts, e
 			if err != nil {
 				c.Failed++
 				log.Printf("vod-pipeline:   %s failed: %v", step, err)
-				// later steps depend on this one
+				// later steps need this
 				break
 			}
 		}

@@ -88,7 +88,7 @@ function readRecent(): Stored[] {
   }
 }
 
-// best matches first, capped; the command list itself re-ranks across groups
+// command list re-ranks
 const top = (items: CanonCommandItem[], q: string) =>
   items
     .map((i) => ({ i, s: itemScore(q, i) }))
@@ -124,7 +124,6 @@ export default class PaletteDialog extends Component<Signature> {
 
   #data?: ReturnType<PaletteDialog['load']>;
 
-  // fetched on the first open, kept for the session
   get data() {
     // untracked cache, written once
     // eslint-disable-next-line ember/no-side-effects
@@ -186,7 +185,7 @@ export default class PaletteDialog extends Component<Signature> {
     );
     const docs = (this.docs?.value?.results ?? []).map((doc) =>
       item({ id: `doc:${doc.id}`, title: doc.label }, 'Dokumente', {
-        // full-text hits always match; the prefix scores them as a substring match, under name matches
+        // prefix ranks below names
         keywords: [`…${q}`],
         detail: this.docDetail(doc),
       }),
@@ -228,7 +227,7 @@ export default class PaletteDialog extends Component<Signature> {
     close(picked.id);
   };
 
-  // runs after the dialog has closed, so a sheet opened here is the only dialog
+  // after close: one dialog
   closed = () => {
     clearTimeout(this.#timer);
     this.query = '';
@@ -265,7 +264,7 @@ export default class PaletteDialog extends Component<Signature> {
     try {
       localStorage.setItem(RECENT_KEY, JSON.stringify(this.recent));
     } catch {
-      // storage blocked: the list lasts for this page view only
+      // storage blocked
     }
   }
 

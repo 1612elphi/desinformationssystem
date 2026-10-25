@@ -7,7 +7,6 @@ import './data-table.css';
 export interface Column {
   key: string;
   label: string;
-  // css width, e.g. '7rem'; unset columns share the rest
   width?: string;
   cls?: string;
 }
@@ -16,8 +15,6 @@ const widthStyle = (c: Column) =>
   c.width ? htmlSafe(`inline-size: ${c.width}`) : undefined;
 const isFirst = (i: number) => i === 0;
 
-// Dense hairline table. With @onOpen each row is one button for keyboard and
-// screen readers; under 640px of container width rows stack as labelled blocks.
 interface Signature<T> {
   Element: HTMLDivElement;
   Args: {

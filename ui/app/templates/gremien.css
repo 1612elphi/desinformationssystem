@@ -54,7 +54,7 @@
   max-inline-size: 100%;
 }
 
-/* rough marks are absolute siblings of the marked element */
+/* rough marks are absolute */
 .dis-gremien-detail > .canon-heading,
 .dis-gremien-row {
   position: relative;

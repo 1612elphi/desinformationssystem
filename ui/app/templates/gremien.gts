@@ -72,7 +72,7 @@ export default class GremienTemplate extends Component<Signature> {
     const c = this.args.controller;
     const sel = c.selected?.value;
     if (!sel) return [];
-    // the committee payload caps meetings at 300; the list has the full count
+    // payload caps at 300
     const meetings =
       c.list.value?.find((g) => g.id === c.currentId)?.meetings ??
       sel.meetings.length;
@@ -91,7 +91,7 @@ export default class GremienTemplate extends Component<Signature> {
     return `Sitzverteilung ${this.selectedName}`;
   }
 
-  // in one column the detail sits below the list, out of sight
+  // one column: detail below
   pick = (id: string) => {
     this.args.controller.select(id);
     requestAnimationFrame(() => {

@@ -88,7 +88,7 @@ const fill = (share: number, code: string) =>
 const at = (share: number) => css(`inset-inline-start: ${share * 100}%`);
 const grow = (n?: number) => css(`flex-grow: ${n ?? 0}`);
 
-// gold for agreeing, red for rejecting, as on the voting panel; |v| below 0.02 is neutral
+// voting panel colours
 function diverging(v: number | null | undefined, max = 1) {
   if (v == null || Math.abs(v) < 0.02) return undefined;
   const c = v > 0 ? 'var(--dis-yes)' : 'var(--dis-no)';
@@ -96,7 +96,6 @@ function diverging(v: number | null | undefined, max = 1) {
   return css(`background: color-mix(in srgb, ${c} ${p}%, var(--canon-card))`);
 }
 
-// sentiment -1..1 as a bar growing left or right from the centre
 function mood(v?: number | null) {
   const x = Math.max(-1, Math.min(1, v ?? 0));
   const c = x >= 0 ? 'var(--dis-yes)' : 'var(--dis-no)';
@@ -112,7 +111,6 @@ interface Signature {
 export default class RedenTemplate extends Component<Signature> {
   @service declare nav: NavService;
 
-  // a party picked in the floor-time chart narrows speakers, said-vs-voted and words
   @tracked party = '';
 
   ids = new Load(getPersonIds());
@@ -157,7 +155,7 @@ export default class RedenTemplate extends Component<Signature> {
     ];
   }
 
-  // meetings are listed newest first
+  // list is newest first
   step = (by: number) => () => {
     const ids = ['', ...this.c.meetings.map((m) => m.id)];
     const i = ids.indexOf(this.c.meeting);
@@ -197,7 +195,6 @@ export default class RedenTemplate extends Component<Signature> {
     }));
   }
 
-  // the party furthest over its seat share
   get loudest() {
     let best = '';
     let most = 0;
@@ -248,7 +245,6 @@ export default class RedenTemplate extends Component<Signature> {
 
   @tracked svAll = false;
 
-  // contradictions first, then agreements, then the rows that do not count
   @cached
   get svRows() {
     const rank = (r: SaidVotedRow) =>

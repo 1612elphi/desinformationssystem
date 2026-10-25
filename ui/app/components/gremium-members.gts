@@ -19,7 +19,6 @@ const markStyle = (m: Member) =>
 const partyLabel = (m: Member) =>
   m.party_code ? partyName(m.party_code) : m.party;
 
-// Members as a dense grid of cards; each card opens the person sheet.
 const GremiumMembers: TOC<{
   Element: HTMLUListElement;
   Args: { members: Member[]; onOpen: (personId: string) => void };

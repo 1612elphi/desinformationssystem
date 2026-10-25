@@ -4,20 +4,20 @@ import { getSpeechAnalytics, type SpeechAnalytics } from 'ui/utils/api-reden';
 import Load from 'ui/utils/load';
 
 export default class RedenController extends Controller {
-  // ?meeting= is taken: the application reads it as an old link to the meeting pane
+  // ?meeting= opens legacy pane
   queryParams = [{ meeting: 'sitzung' }];
 
   @tracked meeting = '';
 
   #last?: Load<SpeechAnalytics>;
 
-  // unfiltered: the meeting picker needs every meeting, a filtered answer lists only its own
+  // picker needs every meeting
   @cached
   get all() {
     return new Load(getSpeechAnalytics());
   }
 
-  // the previous meeting's numbers stay on screen until the next arrive
+  // keep stale until loaded
   @cached
   get load() {
     const meeting = this.meeting;

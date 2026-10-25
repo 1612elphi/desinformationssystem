@@ -87,7 +87,7 @@ export async function getJSON<T>(url: string): Promise<T> {
   return (await get(url)).json() as Promise<T>;
 }
 
-// one request per session; a failure is retried on the next call
+// failures retry next call
 export const once = <T>(load: () => Promise<T>) => {
   let p: Promise<T> | undefined;
   return () =>

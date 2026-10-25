@@ -27,8 +27,7 @@ type placeBatch struct {
 	} `json:"docs"`
 }
 
-// invitations name the meeting room ("Bürgersaal, Rathaus am Marktplatz");
-// that line is the venue of the meeting, not a subject of the document
+// skip invitation venue lines
 var venueRE = regexp.MustCompile(`(?i)^[\s,.:;()-]*((bürger|sitzungs|rats)saal)?[\s,.:;()-]*$`)
 
 func isVenueLine(name, quote string) bool {

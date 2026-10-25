@@ -21,7 +21,6 @@ interface SelectSignature {
   };
 }
 
-// A labelled CanonMenuCell; a value not among the items shows as the placeholder.
 export class SelectField extends Component<SelectSignature> {
   get labels() {
     return this.args.items.map((i) => i.label);

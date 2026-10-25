@@ -1,5 +1,3 @@
-// Compares the speech endpoints of two servers as parsed JSON.
-//   node scripts/verify/speech-parity.mjs [go-base] [python-base]
 const goBase = process.argv[2] ?? 'http://127.0.0.1:4380';
 const pyBase = process.argv[3] ?? 'https://dis.delphi.tools';
 const paths = [
@@ -13,9 +11,9 @@ const paths = [
 	'/api/speeches/analytics?meeting=termin-1',
 	'/api/meeting/termin-1/speeches',
 ];
-// last-digit float noise from summation order and libm
+// summation order, libm noise
 const eps = 1e-9;
-// the Go roll-call entries also name the member; the Python ones do not
+// go adds member attribution
 const goOnly = /\.votes\.\d+\.members\.\d+\.(party_code|person_id)$/;
 
 function diff(a, b, path, out) {

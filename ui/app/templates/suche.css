@@ -35,7 +35,7 @@
   flex: none;
 }
 
-/* 13rem: five then two per row at 1440 wide, never six and one */
+/* 13rem: five, then two */
 .dis-docs-filters {
   display: flex;
   flex-wrap: wrap;
@@ -47,7 +47,7 @@
   min-inline-size: 0;
 }
 
-/* a wrapping column line takes its widest item's width and overflows the cell */
+/* wrapped column overflows cell */
 .dis-docs-filters > .canon-row--stacked {
   flex-wrap: nowrap;
 }

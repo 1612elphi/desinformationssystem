@@ -32,11 +32,8 @@ type Place struct {
 // Gazetteer resolves extracted place names to Places.
 type Gazetteer struct {
 	places []Place
-	// key of each name and alt name
-	exact map[string][]int
-	// loose key of each name and alt name
-	loose map[string][]int
-	// loose key to its words, space separated
+	exact  map[string][]int
+	loose  map[string][]int
 	spaced map[string]string
 }
 
@@ -87,9 +84,7 @@ var (
 	houseNoRE  = regexp.MustCompile(`\s+\d+\s*[a-zA-Z]?(\s*[-–/]\s*\d+\s*[a-zA-Z]?)?$`)
 )
 
-// key folds case, umlauts and ß, expands Str./Pl. and drops everything that
-// is not a letter or digit, so "Karl-Friedrich-Str." and "Karl Friedrich
-// Straße" share a key.
+// fold case, umlauts, abbreviations
 func key(s string) string {
 	s = strAbbrRE.ReplaceAllString(s, "straße$1")
 	s = platzAbbRE.ReplaceAllString(s, "platz$1")
@@ -103,7 +98,6 @@ func key(s string) string {
 	return b.String()
 }
 
-// generic words that council texts and OSM put around the same name
 var (
 	prefixes = []string{
 		"stadtteil", "stadtbezirk", "ortsteil", "ortschaft", "karlsruhe", "ka",
@@ -113,8 +107,7 @@ var (
 	suffixes = []string{"karlsruhe", "ka", "bad", "haltestelle", "bahnhof"}
 )
 
-// stripHouseNo drops a trailing house number ("Kreuzstraße 13a"), but keeps
-// road numbers ("A 5", "L 560").
+// keeps road numbers
 func stripHouseNo(s string) string {
 	s = strings.TrimSpace(s)
 	if t := houseNoRE.ReplaceAllString(s, ""); len(key(t)) >= 4 {
@@ -129,8 +122,6 @@ func nameWords(s string) []string {
 	})
 }
 
-// looseWords are the keys of the words of s (hyphens split words), without
-// a house number and without generic leading and trailing words.
 func looseWords(s string) []string {
 	var ws []string
 	for _, w := range nameWords(strings.ReplaceAll(s, "-", " ")) {
@@ -149,7 +140,6 @@ func looseWords(s string) []string {
 
 func loose(s string) string { return strings.Join(looseWords(s), "") }
 
-// kinds that the extractor and OSM assign to the same feature
 var related = map[string][]string{
 	"street":   {"square", "transit"},
 	"square":   {"street", "transit", "area"},
@@ -162,11 +152,9 @@ var related = map[string][]string{
 	"transit":  {"building", "street", "square"},
 }
 
-// one feature often carries several kinds in OSM (Zündhütle is a building,
-// a street and a stop); this order picks the most specific one
+// osm kinds, most specific
 var kindOrder = []string{"district", "square", "park", "area", "water", "building", "school", "street", "transit"}
 
-// names the council uses for features OSM names differently
 var aliases = map[string]string{
 	"zoo":                   "Zoologischer Stadtgarten",
 	"staatstheater":         "Badisches Staatstheater",
@@ -181,11 +169,8 @@ var aliases = map[string]string{
 }
 
 const (
-	// a feature named with a Stadtteil qualifier lies within this distance
-	// of the Stadtteil's centre
 	qualifierKm = 3.0
-	// shortest loose key that prefix and suffix matching apply to
-	minAffix = 8
+	minAffix    = 8
 )
 
 // Match is the result of resolving one extracted name.
@@ -204,7 +189,7 @@ func (g *Gazetteer) Resolve(name, kind string) (Match, bool) {
 	if i, ok := g.pick(g.exact[key(name)], kind); ok {
 		return m(i, "exact")
 	}
-	// an address names a building on a street; place it on the street
+	// address: place on street
 	if s := stripHouseNo(name); s != name {
 		if i, ok := g.pick(g.exact[key(s)], "street"); ok {
 			return m(i, "exact")
@@ -217,14 +202,12 @@ func (g *Gazetteer) Resolve(name, kind string) (Match, bool) {
 			return m(i, "alias")
 		}
 	}
-	// a stripped generic word may leave a different feature's name, so the
-	// kind must agree
+	// kind must agree here
 	if i, ok := g.unique(g.loose[lk], kind); ok {
 		return m(i, "loose")
 	}
 	words := nameWords(name)
 	if d, rest, ok := g.qualifier(words); ok {
-		// "Festhalle Durlach": the rest of the name, near that Stadtteil
 		if i, ok := g.near(rest, kind, d); ok {
 			return m(i, "district")
 		}
@@ -233,7 +216,6 @@ func (g *Gazetteer) Resolve(name, kind string) (Match, bool) {
 	if i, ok := g.affix(lw, kind); ok {
 		return m(i, "prefix")
 	}
-	// "Wertstoffstation Schäferstraße": a facility named after its street
 	for n := 1; n < len(words); n++ {
 		for _, i := range g.loose[loose(strings.Join(words[n:], " "))] {
 			if k := g.places[i].Kind; k == "street" || k == "square" {
@@ -241,16 +223,13 @@ func (g *Gazetteer) Resolve(name, kind string) (Match, bool) {
 			}
 		}
 	}
-	// a typo keeps the kind; "Turmbergbahn" is one letter from Turmbergbad
+	// typo match keeps kind
 	if i, ok := g.unique(g.nearest(lk), kind); ok && g.places[i].Kind == kind {
 		return m(i, "edit")
 	}
 	return Match{}, false
 }
 
-// qualifier finds a Stadtteil, or its adjective ("Hagsfelder"), as the first
-// or last word of a name of two or more words and returns its place index
-// and the remaining words.
 func (g *Gazetteer) qualifier(words []string) (int, []string, bool) {
 	if len(words) < 2 {
 		return 0, nil, false
@@ -271,10 +250,6 @@ func (g *Gazetteer) qualifier(words []string) (int, []string, bool) {
 	return 0, nil, false
 }
 
-// near resolves rest among the entries within qualifierKm of place d: an
-// exact or loose name first (nearest wins), then the one entry of the best
-// kind whose name contains both rest and the Stadtteil ("Friedhof Aue" is
-// Friedhof Durlach-Aue).
 func (g *Gazetteer) near(rest []string, kind string, d int) (int, bool) {
 	lk := loose(strings.Join(rest, " "))
 	if len(lk) < 4 {
@@ -309,11 +284,6 @@ func (g *Gazetteer) near(rest []string, kind string, d int) (int, bool) {
 	return g.unique(cands, kind)
 }
 
-// affix matches on whole words: the one entry whose name starts with the
-// query ("Citypark" is Citypark Stadtpark), else the longest entry name the
-// query starts with ("Kaiserstraße-West" is Kaiserstraße), else the one
-// entry whose name ends with a query of two or more words
-// ("Schickard-Straße" is Wilhelm-Schickard-Straße).
 func (g *Gazetteer) affix(lw []string, kind string) (int, bool) {
 	q := strings.Join(lw, " ")
 	if len(q) < minAffix {
@@ -336,8 +306,7 @@ func (g *Gazetteer) affix(lw []string, kind string) (int, bool) {
 		return i, true
 	}
 	if best != "" {
-		// a one-word building name ("Verwaltungsgebäude") is a category,
-		// not a name another name can start with
+		// one-word building: category
 		var named []int
 		for _, i := range g.loose[strings.ReplaceAll(best, " ", "")] {
 			switch g.places[i].Kind {
@@ -356,7 +325,6 @@ func (g *Gazetteer) affix(lw []string, kind string) (int, bool) {
 	return g.unique(ends, kind)
 }
 
-// unique returns the only candidate of the first kind tier that has any.
 func (g *Gazetteer) unique(cands []int, kind string) (int, bool) {
 	for _, want := range append([]string{kind}, related[kind]...) {
 		var hit []int
@@ -372,8 +340,6 @@ func (g *Gazetteer) unique(cands []int, kind string) (int, bool) {
 	return 0, false
 }
 
-// pick chooses among candidates sharing a name: the same kind first, then a
-// related kind, then the first kind in kindOrder.
 func (g *Gazetteer) pick(cands []int, kind string) (int, bool) {
 	if len(cands) == 0 {
 		return 0, false
@@ -398,7 +364,7 @@ func cmpFloat(a, b float64) int {
 	return 0
 }
 
-// km is the equirectangular distance, accurate to well under 1% at city scale.
+// equirectangular, under 1% error
 func km(a, b Place) float64 {
 	const r = 6371.0
 	x := (b.Lon - a.Lon) * math.Pi / 180 * math.Cos((a.Lat+b.Lat)/2*math.Pi/180)
@@ -406,8 +372,6 @@ func km(a, b Place) float64 {
 	return r * math.Hypot(x, y)
 }
 
-// nearest returns the entries of the one loose key within edit distance 1
-// (2 from 12 letters) of k, or nil when none or several keys are that close.
 // ponytail: linear scan over ~6k keys per unmatched name, an index when the
 // gazetteer grows past one city.
 func (g *Gazetteer) nearest(k string) []int {
@@ -442,7 +406,7 @@ func (g *Gazetteer) nearest(k string) []int {
 	return g.loose[hit]
 }
 
-// editDistance is the Levenshtein distance, or limit when it reaches limit.
+// levenshtein, capped at limit
 func editDistance(a, b string, limit int) int {
 	ra, rb := []rune(a), []rune(b)
 	prev := make([]int, len(rb)+1)

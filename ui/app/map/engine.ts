@@ -37,10 +37,9 @@ export interface MapEvents {
 setWorkerUrl(workerUrl);
 addProtocol('pmtiles', new Protocol().tile);
 
-// tile extract bounds, see scripts/map/fetch-tiles.mjs
+// see scripts/map/fetch-tiles.mjs
 const BOUNDS: [number, number, number, number] = [8.25, 48.92, 8.57, 49.11];
 const CITY: [number, number, number, number] = [8.277, 48.94, 8.542, 49.092];
-// heatmap gives way to blobs between these zooms
 const Z_FADE = [12.5, 14] as const;
 const STEPS = 4;
 
@@ -98,7 +97,7 @@ function flavor(s: MapState) {
     subplace_label_halo: c(s, 'bg'),
     city_label: c(s, 'fg'),
     city_label_halo: c(s, 'bg'),
-    // no basemap POI layer; its icons compete with the place blobs
+    // poi icons clash
     pois: undefined,
   };
 }
@@ -152,7 +151,7 @@ function dataLayers(s: MapState): LayerSpecification[] {
     ['get', 'kind'],
     ['literal', s.kinds],
   ];
-  // sqrt so a place with four times the documents has twice the radius
+  // sqrt: area ∝ documents
   const r: ExpressionSpecification = [
     '+',
     3,
@@ -401,7 +400,6 @@ export default class MapEngine {
     this.map.setStyle(style(state), { diff: true });
   }
 
-  // Enter on the focused map picks the place nearest the centre
   enter = (e: KeyboardEvent) => {
     if (e.key !== 'Enter') return;
     const mid = this.map.project(this.map.getCenter());

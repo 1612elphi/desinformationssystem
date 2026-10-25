@@ -13,7 +13,7 @@ import (
 	"github.com/1612elphi/desinformationssystem/internal/typesafe"
 )
 
-// speech words sent to Jev; longer speeches are cut (cost and focus)
+// cut for cost, focus
 const jevWords = 1500
 
 // JevSystemOne is the Jev call; a variable so tests run without TypeSafe.
@@ -52,9 +52,7 @@ func judgeQuestions(topTitle string, targets []string, subs []subItem) map[strin
 			"neutral", "neutral or balanced",
 			"negativ", "negative, disapproving, alarmed")),
 	}
-	// A TOP debated together with its sub-items (14 with 14.1, a fraction's
-	// motion) gets one stance per item: Müller spoke against motion 14.1 and
-	// voted for 14 on 2026-09-29.
+	// one stance per sub-item
 	for _, s := range subs {
 		q["stance_"+s.anchor] = typesafe.Choice("This speech may also address the related motion «"+s.title+"». What is the "+
 			"speaker's position on that motion specifically?", criteria(
@@ -157,7 +155,6 @@ func JudgeSpeeches(st *store.Store, meetingID string, redo bool) (int, error) {
 		}
 		ans, err := JevSystemOne(state, judgeQuestions(title, targets, subs))
 		if err != nil {
-			// one failure must not lose the rest of the run
 			log.Printf("speech-judge:   jev failed for %s: %v", r.id, err)
 			continue
 		}

@@ -24,7 +24,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 export const iso = (d: Date) =>
   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-// Local midnight; an invalid or empty string gives today.
+// local midnight; invalid: today
 export function parseIso(s?: string): Date {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s ?? '');
   const d = m ? new Date(+m[1]!, +m[2]! - 1, +m[3]!) : new Date();
@@ -35,14 +35,13 @@ export function parseIso(s?: string): Date {
 
 export const today = () => parseIso(iso(new Date()));
 
-// "2026-10-25" or "2026-10-25T…" -> "25.10.2026"; '' without a date.
 export const dateDe = (s?: string) =>
   s ? s.slice(0, 10).split('-').reverse().join('.') : '';
 
 export const addDays = (d: Date, n: number) =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 
-// Same day of the month, clamped to the target month's last day.
+// clamps to month end
 export function addMonths(d: Date, n: number): Date {
   const last = new Date(d.getFullYear(), d.getMonth() + n + 1, 0).getDate();
   return new Date(
@@ -52,10 +51,8 @@ export function addMonths(d: Date, n: number): Date {
   );
 }
 
-// Monday of the week holding d.
 export const weekStart = (d: Date) => addDays(d, -((d.getDay() + 6) % 7));
 
-// Whole weeks, Monday first, covering the month of d.
 export function monthWeeks(d: Date): Date[][] {
   const first = new Date(d.getFullYear(), d.getMonth(), 1);
   const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
@@ -66,7 +63,7 @@ export function monthWeeks(d: Date): Date[][] {
   return weeks;
 }
 
-// ISO 8601 week number.
+// iso 8601 week number
 export function isoWeek(d: Date): number {
   const thu = addDays(d, 3 - ((d.getDay() + 6) % 7));
   const jan4 = new Date(thu.getFullYear(), 0, 4);
@@ -75,7 +72,7 @@ export function isoWeek(d: Date): number {
 
 export const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
 
-// "16.30 bis 18.30 Uhr" -> minutes after midnight; null when unparsable.
+// "16.30 bis 18.30 Uhr" input
 export function timeWindow(t?: string): { start: number; end: number } | null {
   const m = /(\d{1,2})(?:[.:](\d{2}))?\s*bis\s*(\d{1,2})(?:[.:](\d{2}))?/.exec(
     t ?? '',
@@ -89,7 +86,6 @@ export function timeWindow(t?: string): { start: number; end: number } | null {
 export const clock = (min: number) =>
   `${Math.floor(min / 60)}${min % 60 ? `.${pad(min % 60)}` : ''}`;
 
-// Start of the window, "16.30"; '' without a time.
 export const startLabel = (t?: string) => {
   const w = timeWindow(t);
   return w ? clock(w.start) : '';
@@ -102,7 +98,6 @@ export function isLive(m: Meeting, now = new Date()): boolean {
   return min >= w.start && min <= w.end;
 }
 
-// Lane per meeting so overlapping windows sit side by side.
 export function lanes<T>(
   items: T[],
   win: (x: T) => { start: number; end: number },
@@ -132,7 +127,6 @@ export const DAY_LONG = fmt({
 export const DAY_SHORT = fmt({ weekday: 'short', day: 'numeric' });
 export const RANGE = fmt({ day: 'numeric', month: 'long', year: 'numeric' });
 
-// Mo Di Mi Do Fr Sa So
 export const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6].map((i) =>
   fmt({ weekday: 'short' })
     .format(new Date(2024, 0, 1 + i))

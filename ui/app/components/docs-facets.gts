@@ -9,7 +9,6 @@ import './docs-facets.css';
 
 const TOP = 6;
 
-// The top values, plus the selected one when it ranks lower.
 const top = (items: FacetCount[] | undefined, value: string) => {
   const all = items ?? [];
   const head = all.slice(0, TOP);
@@ -52,7 +51,6 @@ const FacetGroup: TOC<{
   {{/if}}
 </template>;
 
-// Quick filters with match counts for the current search.
 const DocsFacets: TOC<{
   Args: {
     categories?: FacetCount[];

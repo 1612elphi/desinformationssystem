@@ -11,7 +11,7 @@ import {
 import { num } from 'ui/utils/meta';
 import './calendar-chip.css';
 
-// The kind colour already says Ortschaftsrat or Ausschuss.
+// kind colour shows type
 const shortName = (name?: string) =>
   (name ?? '—').replace(/^(Ortschaftsrat|Ausschuss für)\s+/, '');
 
@@ -20,7 +20,6 @@ interface Signature {
   Args: {
     meeting: CalMeeting;
     onOpen: (m: CalMeeting) => void;
-    // full body name instead of the short one
     full?: boolean;
   };
 }

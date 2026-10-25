@@ -20,7 +20,6 @@ const who = (s: Speech) => s.speaker || 'Unbekannt';
 const lookup = (ids: Map<string, string> | undefined, s: Speech) =>
   s.speaker ? ids?.get(s.speaker) : undefined;
 
-// The transcribed contributions to one agenda item, in order, each one collapsible.
 const SpeechList: TOC<{
   Args: {
     speeches: Speech[];

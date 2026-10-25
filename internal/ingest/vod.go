@@ -106,7 +106,7 @@ func Hotwords(st *store.Store, meetingID string) (string, error) {
 func whisperArgs(wav, outBase, prompt string, gpu bool) []string {
 	args := []string{"-m", WhisperModel, "-l", "de", "-t", strconv.Itoa(WhisperThreads),
 		"-oj", "-of", outBase, "-np", "-f", wav}
-	// whisper.cpp's initial prompt is what faster-whisper's hotwords become
+	// whisper.cpp hotwords via prompt
 	if prompt != "" {
 		args = append(args, "--prompt", prompt)
 	}

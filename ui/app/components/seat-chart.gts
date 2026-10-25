@@ -30,7 +30,7 @@ interface Desk {
   placed?: Placed;
 }
 
-// desk size and spacing of the Bürgersaal layout, in viewBox units
+// viewBox units
 const DESK_W = 1;
 const DESK_H = 0.62;
 const GAP = 0.14;
@@ -49,17 +49,14 @@ interface Signature {
   Element: SVGSVGElement;
   Args: {
     seats: Seat[];
-    // vote: seats coloured by vote; party: by party colour
     mode?: 'vote' | 'party';
     label: string;
     onPick?: (personId: string) => void;
   };
 }
 
-// Seat chart: the Bürgersaal plan when the seats are the Gemeinderat's,
-// otherwise a half circle grouped by party left to right.
 export default class SeatChart extends Component<Signature> {
-  // most members with a person_id sit on the Gemeinderat plan
+  // most person_ids on plan
   get isHall() {
     const known = this.args.seats.filter((s) => s.person_id);
     const onPlan = known.filter((s) => chamberIds.has(s.person_id!));
@@ -76,7 +73,6 @@ export default class SeatChart extends Component<Signature> {
     return seats.map((seat, i) => this.paint(seat, pos[i]!.x, pos[i]!.y));
   }
 
-  // dais desks first, then the plan's grid, then roll-call entries not on the plan
   get desks(): Desk[] {
     const byId = new Map(
       this.args.seats.filter((s) => s.person_id).map((s) => [s.person_id!, s]),

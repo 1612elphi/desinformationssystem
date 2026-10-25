@@ -198,7 +198,6 @@ func parseModelJSON(content string) (map[string]any, error) {
 
 var noRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 
-// chatCompletion posts one request to base and returns choices[0].message.content.
 func chatCompletion(base string, payload any, headers map[string]string, timeout time.Duration) (string, error) {
 	body, err := json.Marshal(payload)
 	if err != nil {

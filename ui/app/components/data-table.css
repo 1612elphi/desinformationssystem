@@ -56,7 +56,7 @@
   outline-offset: calc(-1 * var(--canon-frame));
 }
 
-/* links and buttons inside cells stay clickable over the row button */
+/* stay above row button */
 .dis-table--open td :is(a, button:not(.dis-table-open)) {
   position: relative;
   z-index: 1;

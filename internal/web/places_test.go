@@ -42,7 +42,7 @@ func TestPlaces(t *testing.T) {
 		{FileID: "f1", Name: "Durlach", Kind: "district", Lat: 48.99, Lon: 8.47, N: 1},
 		{FileID: "missing", Name: "Durlach", Kind: "district", Lat: 48.99, Lon: 8.47, N: 1},
 	}
-	// a second run replaces the first
+	// rerun replaces rows
 	for range 2 {
 		skipped, err := st.ReplacePlaces("haiku", links)
 		if err != nil || skipped != 1 {

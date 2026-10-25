@@ -212,8 +212,7 @@ func (s *Server) Handler() http.Handler {
 	return mux
 }
 
-// mapTiles serves the PMTiles archive; the map client reads it with Range
-// requests, which ServeContent answers.
+// servecontent answers range requests
 func (s *Server) mapTiles(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(filepath.Join(s.MapDir, "karlsruhe.pmtiles"))
 	if err != nil {
@@ -289,8 +288,7 @@ func (s *Server) meetings(w http.ResponseWriter, r *http.Request) (any, error) {
 	return s.Store.ListMeetings(f, strings.EqualFold(order, "asc"), limit, offset)
 }
 
-// page reads limit and offset; an over-cap limit is clamped as the MCP tools
-// clamp it, a non-integer or a limit below 1 is a 422.
+// clamps like mcp tools
 func page(r *http.Request, def, most int) (limit, offset int, err error) {
 	if limit, err = intParam(r, "limit", def, 1, 1<<31-1); err != nil {
 		return 0, 0, err
@@ -299,7 +297,7 @@ func page(r *http.Request, def, most int) (limit, offset int, err error) {
 	return min(limit, most), offset, err
 }
 
-// votes is the MCP search_votes tool over HTTP.
+// mcp search_votes over http
 func (s *Server) votes(w http.ResponseWriter, r *http.Request) (any, error) {
 	limit, offset, err := page(r, 50, 200)
 	if err != nil {
@@ -313,7 +311,7 @@ func (s *Server) votes(w http.ResponseWriter, r *http.Request) (any, error) {
 	})
 }
 
-// speechSearch is the MCP search_speeches tool over HTTP.
+// mcp search_speeches over http
 func (s *Server) speechSearch(w http.ResponseWriter, r *http.Request) (any, error) {
 	limit, offset, err := page(r, 20, 100)
 	if err != nil {
@@ -357,7 +355,6 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request) (any, error) {
 	return m, nil
 }
 
-// cachedRow returns load's result, kept 10 min per key.
 // ponytail: one lock for all keys, a slow load blocks the others; per-key locks if that shows
 func (s *Server) cachedRow(key string, load func() (store.Row, error)) (store.Row, error) {
 	s.cacheMu.Lock()
@@ -376,12 +373,11 @@ func (s *Server) cachedRow(key string, load func() (store.Row, error)) (store.Ro
 	return a, nil
 }
 
-// analyticsHandler is cached since the aggregation walks every roll-call.
+// cached: walks every roll-call
 func (s *Server) analyticsHandler(w http.ResponseWriter, r *http.Request) (any, error) {
 	return s.cachedRow("votes", s.Store.VoteAnalytics)
 }
 
-// speechAnalytics is the "Reden" tab, cached per meeting filter.
 func (s *Server) speechAnalytics(w http.ResponseWriter, r *http.Request) (any, error) {
 	key := r.URL.Query().Get("meeting")
 	return s.cachedRow("speeches:"+key, func() (store.Row, error) { return s.Store.SpeechAnalytics(key) })
@@ -458,7 +454,7 @@ func (s *Server) spa() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := filepath.Join(s.Dist, filepath.FromSlash(filepath.Clean("/"+r.URL.Path)))
 		if st, err := os.Stat(p); (err != nil && filepath.Ext(p) == "") || (err == nil && st.IsDir()) {
-			// the page names the current hashed bundle; a cached copy would load an old one
+			// page names hashed bundle
 			w.Header().Set("Cache-Control", "no-cache")
 			http.ServeFile(w, r, filepath.Join(s.Dist, "index.html"))
 			return

@@ -7,9 +7,7 @@ import Icon from 'ui/components/icon';
 import './modal.css';
 
 export interface PaneContext {
-  // below the visible panes: drawn as a spine
   collapsed: boolean;
-  // the newest pane: it holds focus and the keyboard shortcuts
   active: boolean;
   index: number;
   kind: string;
@@ -31,12 +29,10 @@ const KIND_ICON: Record<string, string> = {
 };
 const kindIcon = (kind?: string) => (kind ? (KIND_ICON[kind] ?? '') : '');
 
-// the newest pane takes focus, so the keyboard follows the stack
 const focusWhen = modifier((el: HTMLElement, [active]: [boolean?]) => {
   if (active) el.focus({ preventScroll: true });
 });
 
-// One pane in the stack: the full view on top, a spine with its title below.
 const Modal: TOC<{
   Args: {
     heading: string;

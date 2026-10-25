@@ -55,7 +55,6 @@ const seatRank = (code?: string) => {
   return i < 0 ? SEAT_ORDER.length : i;
 };
 
-// Chamber order: party left to right as in the seat chart, then surname.
 export const byChamber = (members: Member[]) =>
   [...members].sort(
     (a, b) =>
@@ -80,7 +79,6 @@ export function committeeGroup(c: CommitteeListItem): CommitteeGroup {
   return 'Weitere';
 }
 
-// "Stadträtin, Ortschaftsrätin Ordentliches Mitglied" -> "Stadträtin, Ortschaftsrätin"
 export const roleTitle = (role?: string) =>
   (role ?? '')
     .replace(
@@ -103,7 +101,6 @@ export function deDate(s?: string, weekday = false) {
   return weekday ? WEEKDAY_DATE.format(parseIso(s)) : dateDe(s);
 }
 
-// "heute", "morgen", "in 5 Tagen"
 export function daysUntil(iso?: string): string {
   if (!iso) return '';
   const ms = parseIso(iso).getTime() - today().getTime();

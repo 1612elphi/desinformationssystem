@@ -2,7 +2,7 @@
   margin-inline-end: 2px;
 }
 
-/* the toolbar sits outside the canon-window container, and the window fills the viewport */
+/* toolbar outside canon-window */
 @media (width < 640px) {
   .dis-toolbar-council .canon-button-title {
     position: absolute;
@@ -14,7 +14,6 @@
   }
 }
 
-/* the rows fill the sidebar so the card can sit at its bottom */
 .dis-window .canon-sidebar-rows {
   min-block-size: 100%;
 }
@@ -41,7 +40,6 @@
   margin: 0;
 }
 
-/* in the icon rail only the shield shows; the text stays its title */
 .canon-sidebar--collapsed .dis-sidebar-card {
   justify-content: center;
   margin-inline: 0;

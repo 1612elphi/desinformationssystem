@@ -1,19 +1,16 @@
 package ingest
 
-// Who is speaking, under which TOP, second by second, from the XPanel in a
-// council VOD. The panel draws a green border around the tile of the member
-// who has the floor and shows the current TOP label.
+// panel: green speaker border
 
 const (
-	// px in reference coordinates around a tile where the border sits; border
-	// colour measured on 2026-09-29 (Tröndle, 53:20): median (89, 186, 89)
+	// measured 2026-09-29, rgb(89,186,89)
 	borderPad = 6
 	borderMin = 0.02
-	// Text pixels (grey < 140) that differ between samples. Measured
-	// 2026-09-29 at 720p: at most 2 within one TOP, 13 for TOP 6 -> TOP 7 (one
+	// text pixels (grey < 140) that differ between samples. measured
+	// 2026-09-29 at 720p: at most 2 within one top, 13 for top 6 -> top 7 (one
 	// digit), 77 for 7 -> 10.
 	labelChange = 6
-	// re-read even without a change, in case two labels mask alike
+	// labels can mask alike
 	labelReread = 300.0
 )
 

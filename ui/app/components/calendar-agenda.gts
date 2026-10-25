@@ -27,7 +27,6 @@ interface Signature {
   };
 }
 
-// Meetings grouped by day, one button per meeting.
 export default class CalendarAgenda extends Component<Signature> {
   get days() {
     const now = iso(new Date());

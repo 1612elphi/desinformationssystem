@@ -9,7 +9,6 @@ import type MapEngine from 'ui/map/engine';
 import type { Colours, MapState } from 'ui/map/engine';
 import './map-view.css';
 
-// one probe per colour the map draws; map-view.css maps each to a token
 const KEYS = [
   'bg',
   'earth',
@@ -44,7 +43,7 @@ const KEYS = [
   'kind-transit',
 ];
 
-// MapLibre parses only rgb/hsl/hex; a canvas pixel resolves color-mix() and color()
+// maplibre: rgb/hsl/hex only
 function probe(root: HTMLElement): Colours {
   const ctx = document.createElement('canvas').getContext('2d', {
     willReadFrequently: true,
@@ -98,7 +97,7 @@ export default class MapView extends Component<Signature> {
     const retheme = () => (this.colours = probe(probes));
     const media = matchMedia('(prefers-color-scheme: dark)');
     media.addEventListener('change', retheme);
-    // the shell can force a theme with a class on <html>
+    // shell sets theme class
     const observer = new MutationObserver(retheme);
     observer.observe(document.documentElement, {
       attributes: true,
@@ -136,7 +135,7 @@ export default class MapView extends Component<Signature> {
     this.engine.update(state);
     if (state.selected && state.selected !== this.#flown) {
       const p = state.places.find((x) => x.id === state.selected);
-      // the place panel covers the map's trailing edge in the wide layout
+      // panel covers trailing edge
       const panel =
         el.parentElement?.querySelector<HTMLElement>('.dis-place-panel');
       const pad =

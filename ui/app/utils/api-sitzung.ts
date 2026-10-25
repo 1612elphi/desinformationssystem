@@ -5,7 +5,6 @@ export interface Neighbours {
   next?: Meeting;
 }
 
-// The meetings of the same body right before and after this one.
 // ponytail: two meetings of one body on the same day can show up as both prev and next
 export async function getNeighbours(m: Meeting): Promise<Neighbours> {
   if (!m.body_id || !m.date) return {};

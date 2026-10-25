@@ -162,7 +162,7 @@ func TestPySum(t *testing.T) {
 	for _, x := range []float64{0.1, 0.2, 0.3} {
 		p.add(x)
 	}
-	// Python 3.12: sum([0.1, 0.2, 0.3]) == 0.6; plain addition gives 0.6000000000000001
+	// python sum gives 0.6
 	if p.total() != 0.6 {
 		t.Fatalf("got %v", p.total())
 	}

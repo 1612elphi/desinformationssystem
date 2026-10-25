@@ -14,8 +14,7 @@ set -uo pipefail
 APP=/home/ruby/desinformationssystem
 YTDLP="${YTDLP:-/home/ruby/.local/bin/yt-dlp}"
 CHANNEL=https://www.youtube.com/channel/UCi-k4SVGHlSigCtILwczY-Q/streams
-# Council streams can be unlisted: 2026-09-29's session (WX3lONmWuJA) never appeared on the
-# channel's /streams, /videos or /live tabs, only as an embed on the city's livestream page.
+# streams can be unlisted
 EMBED_PAGE=https://www.karlsruhe.de/livestream
 OUT="$APP/data/vod"
 

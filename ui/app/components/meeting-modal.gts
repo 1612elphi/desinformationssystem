@@ -367,7 +367,7 @@ export default class MeetingModal extends Component<Signature> {
             {{#if this.date}}
               <time class="dis-mdate" datetime={{this.date.iso}}>
                 <span class="dis-mdate-wd">{{this.date.weekday}}</span>
-                {{! static branches, so J/K and the filter do not redraw the mark }}
+                {{! static: j/k keep mark }}
                 {{#if this.live}}
                   <span
                     class="dis-mdate-day"

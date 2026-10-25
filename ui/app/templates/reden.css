@@ -1,4 +1,4 @@
-/* dis-main scrolls and holds the footer below the page */
+/* dis-main owns scroll, footer */
 .dis-reden.canon-page {
   block-size: auto;
   overflow: visible;

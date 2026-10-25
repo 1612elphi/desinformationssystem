@@ -58,7 +58,7 @@ export const searchSpeeches = (p: Page) =>
 
 export const searchVotes = (p: Page) => hits<VoteHit>('/api/votes', p);
 
-// with no query, the newest past meetings rather than placeholder dates years ahead
+// skip placeholder future dates
 export async function searchMeetings(p: Page): Promise<Hits<Meeting>> {
   const { meetings, total } = await getMeetings({
     ...p,
@@ -70,7 +70,6 @@ export async function searchMeetings(p: Page): Promise<Hits<Meeting>> {
 export const fold = (s: string) =>
   s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
-// every whitespace-separated term occurs in one of the fields
 export function matches(q: string, fields: (string | null | undefined)[]) {
   const hay = fold(fields.filter(Boolean).join(' '));
   return fold(q)
@@ -81,7 +80,7 @@ export function matches(q: string, fields: (string | null | undefined)[]) {
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// wraps each query term in the \x01…\x02 delimiters the Snippet component highlights
+// snippet \x01…\x02 delimiters
 export function highlight(text: string | null | undefined, q: string) {
   const terms = q.split(/\s+/).filter((t) => t.length > 1);
   if (!text || !terms.length) return text ?? '';

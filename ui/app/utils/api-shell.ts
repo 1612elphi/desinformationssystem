@@ -8,7 +8,6 @@ import {
 
 export type PersonListItem = Omit<Member, 'role' | 'since'>;
 
-// shared by the palette and Statistik
 export const getPeople = once(() => getJSON<PersonListItem[]>('/api/people'));
 
 export const getCommitteeList = once<CommitteeListItem[]>(getCommittees);

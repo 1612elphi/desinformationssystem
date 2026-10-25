@@ -33,7 +33,7 @@ func TestSearchFacetCounts(t *testing.T) {
 		t.Fatalf("category filter: total %v", res["total"])
 	}
 	fc := res["facet_counts"].(Row)
-	// the category counts ignore the category filter; NULL is left out
+	// own filter ignored
 	cats := fc["category"].([]Row)
 	if len(cats) != 2 || cats[0]["value"] != "Verkehr" || cats[0]["n"] != int64(2) {
 		t.Fatalf("category counts: %v", cats)

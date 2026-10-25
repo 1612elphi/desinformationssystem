@@ -1,6 +1,6 @@
-// Bürgersaal seating of the Gemeinderat 2024-2029, from the city's plan
-// "Sitzungsplan GR 2024 bis 2029", Stand Juli 2026 (Vorlage 26-0364).
-// Row 0 is the row nearest the dais; columns run left to right as drawn on the plan, dais at the top.
+// bürgersaal seating of the gemeinderat 2024-2029, from the city's plan
+// "sitzungsplan gr 2024 bis 2029", stand juli 2026 (vorlage 26-0364).
+// row 0 is the row nearest the dais; columns run left to right as drawn on the plan, dais at the top.
 
 export interface ChamberSeat {
   row: number;
@@ -452,6 +452,5 @@ const PHOTOS = new Set(
     .map((s) => s.person_id),
 );
 
-// Portrait URL for a person, when the seating plan had a photo of them.
 export const portrait = (personId?: string | null) =>
   personId && PHOTOS.has(personId) ? `/portraits/${personId}.jpg` : undefined;

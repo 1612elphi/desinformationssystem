@@ -22,7 +22,7 @@ export default class SitzungenController extends Controller {
   queryParams = ['view', 'day', 'kind', 'upcoming', 'committee', 'page'];
 
   @tracked view: View = 'monat';
-  // focused day, ISO; '' is today
+  // iso; '' is today
   @tracked day = '';
   @tracked kind = '';
   @tracked upcoming = true;
@@ -49,7 +49,6 @@ export default class SitzungenController extends Controller {
 
   setPage = (p: number) => (this.page = p);
 
-  // first and last day the calendar view shows
   get span(): [Date, Date] {
     if (this.view === 'woche') {
       const s = weekStart(this.focus);
@@ -61,7 +60,7 @@ export default class SitzungenController extends Controller {
 
   private memo: { key: string; load?: Load<Range> } = { key: '' };
 
-  // Moving the focus inside the shown span keeps the loaded meetings.
+  // in-span moves keep data
   get range(): Load<Range> {
     const [from, to] = this.span.map(iso) as [string, string];
     const key = [from, to, this.committee].join('|');

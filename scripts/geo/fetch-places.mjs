@@ -1,9 +1,4 @@
-// Exports named features inside Stadtkreis Karlsruhe from the Overpass API
-// to geo/places-ka.json, one point per (name, kind).
-//
-//	node scripts/geo/fetch-places.mjs [--raw saved-overpass.json]
-//
-// --raw reuses a saved Overpass response instead of querying again.
+// overpass to places-ka.json
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,9 +6,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const out = join(here, '..', '..', 'geo', 'places-ka.json');
 
-// overpass returns whole geometries of features that cross the city
-// boundary (the Rhine relation spans four countries); points outside this
-// box around the Stadtkreis are dropped before a centre is computed
+// crossing geometries span countries
 const box = { s: 48.93, w: 8.27, n: 49.1, e: 8.55 };
 const inBox = (p) => p && p.lat >= box.s && p.lat <= box.n && p.lon >= box.w && p.lon <= box.e;
 
@@ -60,7 +53,7 @@ const midpoint = (pts) => {
 	return pts[0];
 };
 
-// shoelace centroid; area is in squared degrees and only compared
+// shoelace; area only compared
 const polygon = (pts) => {
 	let a = 0, x = 0, y = 0;
 	for (let i = 0; i < pts.length - 1; i++) {
@@ -78,7 +71,7 @@ const mean = (pts) => ({
 	lon: pts.reduce((s, p) => s + p.lon, 0) / pts.length,
 });
 
-// rank orders candidates for one (name, kind): relation > area > line > node
+// relation > area > line > node
 const locate = (el) => {
 	if (el.type === 'node') return inBox(el) ? { rank: 0, size: 0, pt: el } : null;
 	if (el.type === 'way') {

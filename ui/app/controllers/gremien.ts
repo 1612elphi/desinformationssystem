@@ -17,7 +17,6 @@ export default class GremienController extends Controller {
 
   select = (id: string) => (this.selectedId = id);
 
-  // with no gremium in the URL the view opens on the Gemeinderat
   get currentId() {
     return (
       this.selectedId ||
@@ -55,7 +54,6 @@ export default class GremienController extends Controller {
     return this.groups.flatMap((g) => g.items);
   }
 
-  // Members of the selected body in seat order; the person sheet steps through them.
   @cached
   get members() {
     return byChamber(this.selected?.value?.members ?? []);

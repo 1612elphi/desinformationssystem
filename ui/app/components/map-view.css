@@ -15,7 +15,6 @@
   outline-offset: -2px;
 }
 
-/* Enter picks the place under this mark */
 .dis-map-cross {
   position: absolute;
   inset-block-start: 50%;
@@ -149,7 +148,7 @@
   background: var(--dis-fill);
 }
 
-/* Stadtteil steps; a foreground boundary keeps 3:1 against the lightest */
+/* boundary keeps 3:1 contrast */
 .dis-step-0 {
   --dis-fill: var(--canon-muted);
 }

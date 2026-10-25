@@ -1,4 +1,4 @@
-/* dis-main scrolls and holds the footer below the page */
+/* dis-main owns scroll, footer */
 .dis-statistik.canon-page {
   block-size: auto;
   overflow: visible;
@@ -49,7 +49,7 @@
   block-size: 8px;
 }
 
-/* rough marks are absolute siblings of the marked element; they need a positioned parent inside the scroller */
+/* rough needs positioned parent */
 .dis-bar-value,
 .dis-matrix td,
 .dis-dissent td,

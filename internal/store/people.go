@@ -185,8 +185,6 @@ func (s *Store) personVotes(full string) ([]Row, error) {
 	return out, nil
 }
 
-// addPartyLine sets party_code, party_tally and party_line (the majority of
-// the cast votes, as in VoteAnalytics) for the party rollName is attributed to.
 func addPartyLine(r Row, roll []map[string]any, lookup map[string]map[string][]partyCand, body, rollName string) {
 	code := entryParty(lookup, body, rollName)
 	if code == "" {
@@ -210,7 +208,7 @@ func addPartyLine(r Row, roll []map[string]any, lookup map[string]map[string][]p
 	}
 }
 
-// partyLine is the most cast vote; ties go to ja, then nein.
+// ties: ja, then nein
 func partyLine(c map[string]int) string {
 	line := "ja"
 	for _, k := range castKinds[1:] {
@@ -410,8 +408,6 @@ func entryParty(lookup map[string]map[string][]partyCand, body, rollName string)
 	return party
 }
 
-// entryMatch attributes a roll-call name to a party, and to a person when
-// exactly one member matches; ambiguous parties give "".
 func entryMatch(lookup map[string]map[string][]partyCand, body, rollName string) (party, person string) {
 	sn, ini := parseRollName(rollName)
 	cands := lookup[body][sn]
@@ -442,7 +438,7 @@ func entryMatch(lookup map[string]map[string][]partyCand, body, rollName string)
 	for _, c := range cands {
 		persons[c.person] = true
 	}
-	// "Müller" and "Dr. Müller" in one party: the title tells the two apart
+	// title disambiguates same surname
 	if len(persons) > 1 {
 		doctor := doctorRE.MatchString(rollName)
 		var f []partyCand

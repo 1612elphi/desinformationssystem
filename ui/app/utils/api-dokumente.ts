@@ -25,7 +25,7 @@ export interface FacetedResult extends SearchResult {
   facet_counts?: FacetCounts;
 }
 
-// search() sends every set key, so the newer category and facets params pass through.
+// search() forwards every key
 export const searchFaceted = (
   p: SearchParams & { category?: string; facets?: boolean },
 ) => search(p) as Promise<FacetedResult>;
@@ -34,7 +34,7 @@ export interface RecentDoc extends Doc {
   downloaded_at?: string;
 }
 
-// The newest documents, one per agenda item: attachments arrive in batches.
+// attachments arrive in batches
 export async function getRecent(limit: number): Promise<RecentDoc[]> {
   const docs = await getJSON<RecentDoc[]>(`/api/recent?limit=${limit * 4}`);
   const seen = new Set<string>();
@@ -46,7 +46,6 @@ export async function getRecent(limit: number): Promise<RecentDoc[]> {
     .slice(0, limit);
 }
 
-// Monday to Sunday of the week that holds `today`.
 export function weekDays(today: Date): string[] {
   const monday = weekStart(today);
   return Array.from({ length: 7 }, (_, i) => iso(addDays(monday, i)));
@@ -54,7 +53,6 @@ export function weekDays(today: Date): string[] {
 
 const rtf = new Intl.RelativeTimeFormat('de-DE', { numeric: 'auto' });
 
-// "heute", "vor 3 Tagen", "in 2 Wochen" for a YYYY-MM-DD date.
 export function relDate(s?: string, today = new Date()): string {
   if (!s) return '';
   const [y, m, d] = s.slice(0, 10).split('-').map(Number);
@@ -79,7 +77,6 @@ export interface ContestedVote extends Vote {
   meeting_id: string;
 }
 
-// Votes with both Ja and Nein, closest margin first.
 export function contested(m: Meeting, limit: number): ContestedVote[] {
   const titles = new Map(
     (m.agenda_items ?? []).map((a) => [a.anchor, a.title]),

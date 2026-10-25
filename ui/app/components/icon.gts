@@ -1,7 +1,7 @@
 import type { TOC } from '@ember/component/template-only';
 import { htmlSafe } from '@ember/template';
 
-// every file in utils/icons/ is a name -> lucide SVG map; one file per area avoids merge clashes
+// split avoids merge clashes
 const SVGS: Record<string, string> = {};
 for (const icons of Object.values(
   import.meta.glob<Record<string, string>>('../utils/icons/*.ts', {

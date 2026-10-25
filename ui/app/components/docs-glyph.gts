@@ -22,7 +22,6 @@ const GLYPHS: Record<string, [string, string]> = {
 const abbr = (t?: string) => GLYPHS[t ?? '']?.[0] ?? (t ?? '?').slice(0, 2);
 const group = (t?: string) => GLYPHS[t ?? '']?.[1] ?? 'file';
 
-// Two-letter square per document type, coloured by kind: decision, motion, record, file.
 const DocsGlyph: TOC<{ Element: HTMLSpanElement; Args: { type?: string } }> =
   <template>
     <span

@@ -131,7 +131,6 @@ export default class PersonModal extends Component<Signature> {
     ];
   }
 
-  // stepping through the committee the sheet was opened from
   get roster() {
     if (this.router.currentRouteName !== 'gremien') return undefined;
     const c = getOwner(this)?.lookup('controller:gremien') as

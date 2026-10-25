@@ -20,9 +20,7 @@ import (
 	"github.com/1612elphi/desinformationssystem/internal/store"
 )
 
-// Vote tallies come off the XPanel diagram in a council VOD. 720p is too
-// low to read names, so each seat's colour is read at a fixed position and
-// the name comes from seatmaps/seatmap.json, valid for the meeting date.
+// names unreadable at 720p
 
 var (
 	SwitchboardBase = strings.TrimRight(envStr("SWITCHBOARD_BASE", "http://127.0.0.1:3990/v1"), "/")
@@ -124,7 +122,7 @@ type region struct {
 
 func clampInt(v, lo, hi int) int { return max(lo, min(v, hi)) }
 
-// pyRound is Python's round(): half to even.
+// python round: half-even
 func pyRound(f float64) int { return int(math.RoundToEven(f)) }
 
 func (f *Frame) crop(xa, ya, xb, yb int) region {
@@ -138,7 +136,6 @@ func (f *Frame) box(b Box, r Rect, inset float64) region {
 	return f.crop(xa, ya, max(xb, xa+1), max(yb, ya+1))
 }
 
-// share is the fraction of pixels for which ok holds.
 func (g region) share(ok func(r, gr, b int) bool) float64 {
 	n, hit := 0, 0
 	for y := g.y0; y < g.y1; y++ {
@@ -186,9 +183,7 @@ func (g region) frame() Frame {
 	return out
 }
 
-// Median tile colours measured on the 2026-07-28 ticker images. White is
-// Enthaltung and grey is "did not vote": TOP 15 reads 44/0/4 with four
-// white AfD tiles and Schnell grey; TOP 6 reads 46/2/0 with Schnell grey.
+// white enthaltung, grey absent
 var tileColours = []struct {
 	vote string
 	rgb  [3]float64
@@ -337,9 +332,7 @@ type scannedVote struct {
 	Tally
 }
 
-// scanVotes gives one tally per stretch where the counters are on screen,
-// read from its last frame: the counters jump to their final value before
-// the tiles finish colouring in, so a mid-stretch frame undercounts.
+// last frame: tiles lag
 func scanVotes(video string, lay Layout, names map[string]string, r Rect) ([]scannedVote, error) {
 	const minLen = 3.0
 	var votes []scannedVote
@@ -357,7 +350,7 @@ func scanVotes(video string, lay Layout, names map[string]string, r Rect) ([]sca
 			if !inside {
 				start, inside = t, true
 			}
-			// tally now: the frame buffer is reused
+			// frame buffer is reused
 			tl := TallyFrame(f, lay, r, names)
 			lastT, last = t, &tl
 			return nil
@@ -391,8 +384,6 @@ func pngScaled(f Frame, scale int) ([]byte, error) {
 	return cmd.Output()
 }
 
-// switchboardChat posts one chat completion to the switchboard proxy, which
-// holds the provider keys.
 func switchboardChat(payload any, title string, timeout time.Duration) (string, error) {
 	return chatCompletion(SwitchboardBase, payload, map[string]string{"Content-Type": "application/json", "X-Title": title}, timeout)
 }
@@ -402,7 +393,7 @@ func parsePanel(text string) (Panel, error) {
 	if err != nil {
 		return Panel{}, err
 	}
-	// Unmarshal matches "Top" or "TOP" too
+	// unmarshal ignores key case
 	b, err := json.Marshal(m)
 	if err != nil {
 		return Panel{}, err
@@ -514,10 +505,7 @@ func ProcessVODVotes(st *store.Store, video, meetingID, date string, apply bool)
 			return nil, err
 		}
 		tiles := [3]int{v.Ja, v.Nein, v.Enthaltung}
-		// Tiles are revealed left to right, then Die PARTEI/FÜR, then OB. The
-		// next vote can clear the panel first (TOP 4 on 2026-09-29: 43 of 47
-		// shown); an unrevealed tile is grey like a member who did not vote, so
-		// only coloured tiles are kept and the counters carry the tally.
+		// unrevealed tiles look absent
 		complete := tiles == [3]int{p.Ja, p.Nein, p.Enthaltung}
 		members := v.Members
 		if !complete {

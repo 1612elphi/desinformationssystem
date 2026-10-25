@@ -23,15 +23,12 @@ interface Signature {
   };
 }
 
-// pane widths in px: the newest at its own width, earlier ones beside it narrower
 const SPINE = 40;
 const SIDE = 520;
 const own = (p?: Pane) => (p?.kind === 'meeting' ? 1120 : 720);
-// element that had focus before the stack opened, to return it on close
 const openers = new WeakMap<HTMLDialogElement, Element | null>();
 
-// Open while the stack has panes: the browser traps focus and makes the page
-// inert; Escape pops one pane, a click on the backdrop closes them all.
+// browser traps focus
 const stackDialog = modifier(
   (
     el: HTMLDialogElement,
@@ -78,7 +75,7 @@ export default class PaneStack extends Component<Signature> {
     return this.args.stack.length > 0;
   }
 
-  // a string key per pane, so a pane keeps its component and data as others push and pop
+  // stable key keeps components
   get items() {
     return this.args.stack.map((p) => ({ ...p, key: `${p.kind}:${p.id}` }));
   }
@@ -87,7 +84,6 @@ export default class PaneStack extends Component<Signature> {
     return this.viewport < 640 ? this.viewport : this.viewport - 24;
   }
 
-  // index of the first full pane: as many as fit next to the newest, spines before
   get firstFull() {
     const n = this.args.stack.length;
     let first = n - 1;
@@ -110,7 +106,7 @@ export default class PaneStack extends Component<Signature> {
   popTop = () => this.args.onPopTo(this.args.stack.length - 2);
   closeAll = () => this.args.onPopTo(-1);
 
-  // the pane a click or focus came from; opening from it replaces the panes to its right
+  // opening replaces right panes
   noteOrigin = (e: Event) => {
     const el = (e.target as Element | null)?.closest('[data-pane-index]');
     this.nav.origin = el

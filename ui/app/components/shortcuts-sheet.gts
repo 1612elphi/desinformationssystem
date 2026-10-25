@@ -11,7 +11,6 @@ import './shortcuts-sheet.css';
 
 export const MOD = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Strg';
 
-// each entry: alternatives, each a key sequence; edit freely, the sheet renders this list
 export const SHORTCUTS: {
   group: string;
   icon: string;
@@ -105,7 +104,6 @@ const GO = Object.fromEntries(VIEWS.map((v) => [v.key, v.route]));
 const GO_TIMEOUT = 1500;
 const isLast = (list: unknown[], i: number) => i === list.length - 1;
 
-// Owns the global keys: ? opens this sheet, g then a view letter switches view.
 export default class ShortcutsSheet extends Component {
   @service declare router: RouterService;
 
@@ -121,7 +119,7 @@ export default class ShortcutsSheet extends Component {
     this.armed = false;
   };
 
-  // capture phase, so the second key never reaches a view's own binding
+  // capture beats view bindings
   sequence = modifier(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;

@@ -18,8 +18,7 @@ var fractions = []struct {
 	{"VOL", res(`\bVolt\b`)},
 	{"PAR", res(`Die\s+PARTEI`, `\bPARTEI\b`)},
 	{"HEI", res(`Die\s+Heimat`)},
-	// labels write it in capitals ("FÜR Ka Investitionsliste"); lower-case "für Karlsruhe"
-	// is ordinary German and must not match
+	// lower-case für is german
 	{"FÜR", res(`\bFÜR\b`)},
 }
 

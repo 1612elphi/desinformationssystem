@@ -13,7 +13,6 @@ const label = (
   enth?: number | null,
 ) => `Ja ${num(ja)}, Nein ${num(nein)}, Enthaltung ${num(enth)}`;
 
-// Ja, Nein and Enthaltung as one stacked bar; @compact drops the numbers.
 const VoteBar: TOC<{
   Element: HTMLDivElement;
   Args: {

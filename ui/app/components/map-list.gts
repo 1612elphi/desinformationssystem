@@ -37,7 +37,6 @@ export default class MapList extends Component<Signature> {
     document.getElementById(FIELD)?.focus();
   };
 
-  // Enter in the field picks the first hit
   fieldKey = (e: KeyboardEvent) => {
     const first = this.rows[0];
     if (e.key === 'Enter' && first) this.args.onPick(first.id);

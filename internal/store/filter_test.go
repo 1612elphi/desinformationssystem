@@ -35,10 +35,10 @@ func filterStore(t *testing.T) *Store {
 func TestMeetingQueryFolds(t *testing.T) {
 	s := filterStore(t)
 	for q, want := range map[string]int64{
-		"öffentliche": 1, // body_name, non-ASCII case
+		"öffentliche": 1, // non-ascii case
 		"STRASSE":     1, // ß folds to ss
-		"sitzung":     2, // title
-		"gemeinderat": 1, // title and body_name match the same row once
+		"sitzung":     2,
+		"gemeinderat": 1, // one row, two fields
 		"nichts":      0,
 	} {
 		n, err := s.CountMeetings(MeetingFilter{Query: q})

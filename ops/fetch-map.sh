@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# rerun to refresh tiles
 set -euo pipefail
 
 APP=/home/ruby/desinformationssystem

@@ -15,28 +15,20 @@ import (
 	"github.com/1612elphi/desinformationssystem/internal/store"
 )
 
-// Turns a council VOD's whisper transcript into readable speeches per TOP.
-// Each whisper segment takes the speaker and TOP on screen at its midpoint;
-// consecutive segments with the same pair form one speech. The cleanup
-// model then, per TOP, fixes punctuation, drops fillers, corrects names
-// against a glossary from the DB and drops the chair's procedural lines.
+// speaker by segment midpoint
 
 var (
 	CleanupModel = envStr("CLEANUP_MODEL", "TERRA")
-	// The model's own thinking counts against max_tokens and switchboard does
-	// not relay it: a 2378-word chunk used all 32000 output tokens and
-	// returned 8 KB of cut-off JSON.
+	// thinking eats max_tokens
 	CleanupChunkWords = envInt("CLEANUP_CHUNK_WORDS", 1500)
 	CleanupTimeout    = envSeconds("CLEANUP_TIMEOUT", 600)
 )
 
 const (
-	// s; without it, unnamed fragments across a whole session became one row
+	// seconds; caps fragment merging
 	mergeGap = 30.0
-	// cleaned/raw word ratio below which the raw text is kept (a summary;
-	// dropping the chair's lines from a mixed speech removes far less)
-	minKept = 0.5
-	// an unnamed stretch this short between one speaker's parts is theirs
+	// below: summary, keep raw
+	minKept   = 0.5
 	fillWords = 20
 )
 
@@ -79,7 +71,6 @@ func endsSentence(s string) bool {
 	return strings.HasSuffix(s, ".") || strings.HasSuffix(s, "?") || strings.HasSuffix(s, "!")
 }
 
-// joinSpeakers assigns each segment the span on screen at its midpoint.
 func joinSpeakers(segments []Segment, spans []SpeakerSpan) []Speech {
 	var out []Speech
 	var parts []string
@@ -102,12 +93,7 @@ func joinSpeakers(segments []Segment, spans []SpeakerSpan) []Speech {
 	return out
 }
 
-// fillGaps gives an unnamed stretch between two parts by the same speaker
-// under the same TOP to that speaker, when it is short or the sentence runs
-// across the boundary (the chair's tile border drops out mid-answer:
-// 2026-09-29 TOP 20). A longer one that opens a new sentence may be someone
-// without a tile (a Bürgermeister), so it stays unnamed for the model.
-// Then adjacent same-speaker parts are joined.
+// chair border drops mid-answer
 func fillGaps(sp []Speech) []Speech {
 	for i := 1; i < len(sp)-1; i++ {
 		a, s, b := sp[i-1], &sp[i], sp[i+1]
@@ -116,9 +102,7 @@ func fillGaps(sp []Speech) []Speech {
 			s.Speaker, s.PanelSpeaker = a.Speaker, a.Speaker
 		}
 	}
-	// An unnamed stretch right after a named part whose sentence is unfinished
-	// continues it. Jev was tried for this on 2026-09-29 and scored such pairs
-	// 0.3-0.6, no better than the new-speaker ones.
+	// jev tried: no better
 	for i := 1; i < len(sp); i++ {
 		a, s := sp[i-1], &sp[i]
 		if s.Speaker == "" && a.Speaker != "" && a.Top == s.Top && !endsSentence(a.Text) {
@@ -139,7 +123,7 @@ func fillGaps(sp []Speech) []Speech {
 
 func cleanupGlossary(st *store.Store, members []store.Row, meetingID, anchor string) (string, error) {
 	lines := []string{"Mitglieder des Gemeinderats (Name, Fraktion, Funktion):"}
-	// SQLite's ORDER BY name: NULL first, then bytewise
+	// sqlite order: null first
 	sorted := slices.Clone(members)
 	slices.SortStableFunc(sorted, func(a, b store.Row) int {
 		if (a["name"] == nil) != (b["name"] == nil) {
@@ -202,7 +186,6 @@ func cleanupGlossary(st *store.Store, members []store.Row, meetingID, anchor str
 	return strings.Join(lines, "\n"), nil
 }
 
-// sqlText turns a scanned TEXT column into a string, keeping NULL as nil.
 func sqlText(v any) any {
 	if b, ok := v.([]byte); ok {
 		return string(b)
@@ -257,8 +240,6 @@ func cleanupUser(chunk []*Speech, gloss string) string {
 	return "Glossar:\n" + gloss + "\n\nReden:\n\n" + strings.Join(parts, "\n\n")
 }
 
-// callCleanup returns the answers by index, nil for an unreadable (usually
-// cut-off) reply.
 func callCleanup(chunk []*Speech, gloss string) (map[int]cleanedSpeech, error) {
 	text, err := CleanupCall(cleanupPrompt, cleanupUser(chunk, gloss))
 	if err != nil {
@@ -295,19 +276,18 @@ func cleanChunk(chunk []*Speech, gloss string) error {
 	}
 	for i, s := range chunk {
 		o, ok := byI[i]
-		// a speech missing from the answer is kept raw rather than lost
 		s.Failed, s.Keep, s.Clean = !ok, true, s.Text
 		if ok {
 			s.Keep = *o.Keep
 			if o.Text != nil && *o.Text != "" {
 				s.Clean = *o.Text
 			}
-			// the tile border is ground truth; the model only names speakers the panel did not mark
+			// tile border is truth
 			if s.Speaker == "" {
 				s.Speaker = deref(o.Speaker)
 			}
 		}
-		// The pass must not summarise: fillers and false starts are a few percent, not 30.
+		// fillers are few percent
 		s.Shortened = s.Keep && float64(words(s.Clean)) < minKept*float64(words(s.Text))
 		if s.Shortened {
 			s.Clean = s.Text
@@ -316,8 +296,7 @@ func cleanChunk(chunk []*Speech, gloss string) error {
 	return nil
 }
 
-// mergeKept joins adjacent kept speeches by one speaker under one TOP (the
-// chair's border flickers, which splits his answers into fragments).
+// chair border flickers
 func mergeKept(sp []*Speech) []Speech {
 	var out []Speech
 	for _, s := range sp {
@@ -351,10 +330,7 @@ func bareName(n string) string {
 	return strings.TrimSpace(n)
 }
 
-// canonicalNames gives one spelling per person: titles stripped, and a name
-// whose surname is a prefix of a roster name or of a longer name elsewhere
-// in the meeting takes that name ('Bürgermeister Flur' -> 'Daniel Flurer',
-// 2026-09-29: whisper cut the surname short).
+// whisper truncates surnames
 func canonicalNames(sp []Speech, roster []string) {
 	var known []string
 	for _, n := range roster {
@@ -374,9 +350,7 @@ func canonicalNames(sp []Speech, roster []string) {
 		}
 		n := bareName(sp[i].Speaker)
 		last := store.LastField(n)
-		// A fuller name with the same surname ('Noé' -> 'Dr. Stefan Noé'), or a
-		// longer surname starting with it ('Flur' -> 'Flurer'); only when exactly
-		// one fits, since Katrin and Nicolas Schütz are two people.
+		// exactly one fit required
 		var fits []string
 		for _, k := range known {
 			kl := store.LastField(k)
@@ -404,7 +378,7 @@ func loadSpeakerInputs(video string) ([]Segment, []SpeakerSpan, error) {
 	return segs, spans, nil
 }
 
-// videoID is the YouTube id in "<date>_<id>.<ext>".
+// id from <date>_<id>.<ext>
 func videoID(video string) string {
 	b := filepath.Base(video)
 	if _, after, ok := strings.Cut(b, "_"); ok {
@@ -428,10 +402,7 @@ func ProcessCleanup(st *store.Store, video, meetingID, only string, apply bool) 
 	if err != nil {
 		return nil, err
 	}
-	// The panel label is the primary source. Where it shows none (panel off
-	// screen, or a TOP called and voted within seconds), the chair's last call
-	// in the transcript decides. Panel wins on conflict: it tells "TOP 14.1"
-	// and "TOP 21" apart where a combined call does not.
+	// panel label beats call
 	type call struct {
 		t float64
 		a string
@@ -485,7 +456,7 @@ func ProcessCleanup(st *store.Store, video, meetingID, only string, apply bool) 
 		}
 		done = append(done, mergeKept(group)...)
 	}
-	// the panel's seat decides who spoke; the model only names speeches with no marked tile
+	// panel seat decides speaker
 	for i := range done {
 		if p := done[i].PanelSpeaker; p != "" {
 			done[i].Speaker = p
@@ -503,7 +474,7 @@ func ProcessCleanup(st *store.Store, video, meetingID, only string, apply bool) 
 		return done, nil
 	}
 	vid := videoID(video)
-	// members.party is empty for some members (Petra Lorenz); the seat map has the group
+	// party from seat map
 	sm, err := LoadSeatmap()
 	if err != nil {
 		return nil, err
@@ -521,7 +492,7 @@ func ProcessCleanup(st *store.Store, video, meetingID, only string, apply bool) 
 		if only != "" {
 			_, err = tx.Exec("DELETE FROM speeches WHERE meeting_id=? AND video_id=? AND agenda_anchor IS ?", meetingID, vid, only)
 		} else {
-			// per video: a meeting can span several recordings (2023 budget speeches)
+			// meetings span several recordings
 			_, err = tx.Exec("DELETE FROM speeches WHERE meeting_id=? AND video_id=?", meetingID, vid)
 		}
 		if err != nil {

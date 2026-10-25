@@ -12,8 +12,7 @@ import (
 	"github.com/1612elphi/desinformationssystem/internal/typesafe"
 )
 
-// speechStore is testStore plus the speeches tables, verbatim from
-// isosceles/main db.py until schema.sql carries them.
+// tables verbatim from db.py
 func speechStore(t *testing.T) *store.Store {
 	st := testStore(t)
 	mustExec(t, st, `CREATE TABLE IF NOT EXISTS speeches (
@@ -116,7 +115,7 @@ func TestProcessCleanup(t *testing.T) {
 	t.Cleanup(func() { CleanupCall = old })
 	CleanupCall = func(system, user string) (string, error) {
 		users = append(users, user)
-		// first answer is cut off, so the chunk is split
+		// first answer cut off
 		if len(users) == 1 {
 			return `{"speeches": [`, nil
 		}
@@ -162,9 +161,9 @@ func TestProcessCleanup(t *testing.T) {
 	}
 	want := [][5]string{
 		{"termin-1:VID:20", "top6", "Jorinda Fahringer", "GRÜNE", "Wir wollen mehr Radwege."},
-		// named by the model, canonicalised to the roster
+		// model-named, roster canonicalised
 		{"termin-1:VID:30", "top6", "Petra Lorenz", "", "Danke."},
-		// members.party is empty; the seat map gives the group
+		// party from seat map
 		{"termin-1:VID:50", "top6", "Petra Lorenz", "FDP/FW", "Ich sehe das anders"},
 	}
 	if !reflect.DeepEqual(out, want) {
@@ -264,7 +263,7 @@ func TestRunVODPipeline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// a failed votes step skips the steps after it; judging still runs
+	// votes failure skips later
 	want := []string{"speeches a.mkv", "votes b.mkv 2026-10-20", "judge termin-1", "judge termin-2"}
 	if !reflect.DeepEqual(steps, want) {
 		t.Errorf("steps %q", steps)

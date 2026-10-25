@@ -68,8 +68,7 @@ func searchFrom(p SearchParams, w where) string {
 	return " FROM files f LEFT JOIN meetings m ON m.id = f.meeting_id" + agendaJoin + w.sql()
 }
 
-// searchFacet counts the matches per value of col, ignoring the filter on col
-// itself so the other values stay selectable.
+// ignores own column filter
 func (s *Store) searchFacet(p SearchParams, col string) ([]Row, error) {
 	w := searchWhere(p)
 	return s.rows("SELECT f."+col+" AS value, COUNT(*) AS n"+searchFrom(p, w)+
@@ -174,7 +173,7 @@ type MeetingFilter struct {
 	Query string
 }
 
-// foldSQL is fold for a column; SQLite's lower() only folds ASCII.
+// sqlite lower() ascii-only
 func foldSQL(col string) string {
 	return "replace(replace(replace(replace(lower(COALESCE(" + col +
 		",'')),'Ä','ä'),'Ö','ö'),'Ü','ü'),'ß','ss')"
@@ -288,8 +287,6 @@ func (s *Store) GetMeeting(id string) (Row, error) {
 	return m, nil
 }
 
-// attributeRollCalls adds party_code and person_id to roll-call entries
-// where the members roster identifies them.
 func (s *Store) attributeRollCalls(votes []Row, body string) error {
 	lookup, err := s.partyLookup()
 	if err != nil {

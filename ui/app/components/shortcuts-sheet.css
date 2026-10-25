@@ -15,7 +15,6 @@
   line-height: 1;
 }
 
-/* the pending g of a g-sequence */
 .dis-go {
   position: fixed;
   inset-block-end: var(--canon-panel-padding);

@@ -10,7 +10,6 @@ import rough from 'ui/modifiers/rough';
 import type NavService from 'ui/services/nav';
 import './live-banner.css';
 
-// Polls /api/live for a session happening right now, while the tab is visible.
 export default class LiveBanner extends Component {
   @service declare nav: NavService;
   @tracked live: Meeting[] = [];

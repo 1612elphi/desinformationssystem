@@ -46,7 +46,6 @@ const EntityRow: TOC<{
   {{/if}}
 </template>;
 
-// a new document starts at the top of the sheet
 const scrollTop = modifier((el: HTMLElement, [id]: [string]) => {
   void id;
   for (let n: HTMLElement | null = el; n; n = n.parentElement) {
@@ -83,7 +82,6 @@ export default class DocModal extends Component<Signature> {
     return this.load?.value;
   }
 
-  // previous and next through the result list on the Dokumente page
   get list() {
     if (this.router.currentRouteName !== 'suche') return undefined;
     const c = getOwner(this)?.lookup('controller:suche') as

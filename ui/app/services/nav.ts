@@ -16,7 +16,7 @@ export interface Pane {
 
 const KINDS: Overlay[] = ['doc', 'meeting', 'person', 'vorlage'];
 
-// "meeting:termin-10574,person:65290"; ids contain no comma or colon
+// ids lack comma, colon
 export function parseStack(s: string): Pane[] {
   return s
     .split(',')
@@ -32,18 +32,16 @@ export const formatStack = (panes: Pane[]) =>
 
 const NO_PANES = { stack: '' };
 
-// Open panes and filters live in the query string, so every link is shareable.
 export default class NavService extends Service {
   @service declare router: RouterService;
 
-  // panes pushed in this tab, so closing can step back through history
+  // lets close use history
   private pushed = 0;
-  // the stack this service last navigated to
   private expected = '';
 
   constructor(...args: ConstructorParameters<typeof Service>) {
     super(...args);
-    // back/forward or a direct transition: history no longer mirrors the count
+    // history no longer mirrors
     this.router.on('routeDidChange', () => {
       if (formatStack(this.stack) !== this.expected) this.pushed = 0;
     });
@@ -54,7 +52,6 @@ export default class NavService extends Service {
     return { queryParams: { stack: this.expected } };
   }
 
-  // index of the pane the last click or focus was in; set by the pane stack
   origin?: number;
 
   get stack(): Pane[] {
@@ -63,7 +60,6 @@ export default class NavService extends Service {
     return parseStack(app?.stack ?? '');
   }
 
-  // push a pane; one already in the stack comes back to the top instead
   open(modals: Modals) {
     const kind = KINDS.find((k) => modals[k]);
     if (!kind) return;
@@ -71,10 +67,10 @@ export default class NavService extends Service {
     let stack = this.stack;
     const at = stack.findIndex((p) => p.kind === pane.kind && p.id === pane.id);
     if (at >= 0) return this.popTo(at);
-    // opened from an earlier visible pane: it replaces the panes to that pane's right
+    // replaces panes to right
     if (this.origin !== undefined && this.origin < stack.length - 1) {
       stack = stack.slice(0, this.origin + 1);
-      // history no longer mirrors the stack depth, so pops replace from here on
+      // history out of sync
       this.pushed = 0;
     } else {
       this.pushed++;
@@ -82,7 +78,6 @@ export default class NavService extends Service {
     this.router.transitionTo(this.to([...stack, pane]));
   }
 
-  // stepping inside a pane (next document, next meeting) keeps the depth
   replaceTop(kind: Overlay, id: string) {
     const stack = this.stack.slice(0, -1);
     this.router.replaceWith(this.to([...stack, { kind, id }]));
@@ -96,7 +91,6 @@ export default class NavService extends Service {
     this.popTo(-1);
   }
 
-  // keep panes 0..index
   popTo(index: number) {
     const drop = this.stack.length - 1 - index;
     if (drop <= 0) return;
@@ -110,7 +104,6 @@ export default class NavService extends Service {
     }
   }
 
-  // leave every pane for another view
   go(route: string, queryParams: Record<string, unknown> = {}) {
     this.pushed = 0;
     this.router.transitionTo(route, {

@@ -2,7 +2,6 @@ package geo
 
 import "testing"
 
-// names as the extraction wrote them for this year's Gemeinderat documents
 func TestResolve(t *testing.T) {
 	g := Karlsruhe()
 	for _, c := range []struct{ name, kind, want, wantKind string }{
@@ -38,7 +37,7 @@ func TestResolve(t *testing.T) {
 	for _, c := range [][2]string{
 		{"Umfahrung Hagsfeld", "street"},
 		{"Innenstadt", "district"},
-		// two cemeteries in Durlach
+		// two durlach cemeteries
 		{"Friedhof Durlach", "park"},
 		{"Grundschule Daxlanden", "school"},
 		{"Hallenbad Durlach", "building"},

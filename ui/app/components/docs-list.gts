@@ -21,7 +21,6 @@ const sub = (d: Doc) =>
     .filter(Boolean)
     .join(' · ');
 
-// Dense result rows; each row is one button (the title) stretched over the row.
 const DocsList: TOC<{
   Args: {
     docs: Doc[];

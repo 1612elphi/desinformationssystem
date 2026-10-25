@@ -22,8 +22,6 @@ interface Signature {
   Args: { votes: PartyVote[]; onOpen: (meetingId: string) => void };
 }
 
-// One block per meeting, oldest first, one square per vote coloured by the vote;
-// squares against the own party are ringed.
 export default class PersonTimeline extends Component<Signature> {
   @cached
   get years() {

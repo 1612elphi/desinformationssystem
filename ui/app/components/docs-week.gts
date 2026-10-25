@@ -27,7 +27,6 @@ const longDate = new Intl.DateTimeFormat('de-DE', {
   month: 'long',
 });
 
-// scroll today's card into the strip when the week starts off-screen
 const reveal = modifier((el: HTMLElement, [on]: [boolean]) => {
   const strip = el.parentElement;
   if (!on || !strip) return;
@@ -48,7 +47,6 @@ interface Day {
   meetings: (Meeting & { live: boolean })[];
 }
 
-// The front page band: this week's sessions and the newest documents.
 export default class DocsWeek extends Component {
   @service declare nav: NavService;
 

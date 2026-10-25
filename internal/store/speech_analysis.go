@@ -13,14 +13,11 @@ import (
 	"unicode/utf8"
 )
 
-// Aggregation of the speeches table for the "Reden" tab and MCP: floor time
-// vs seats, said-vs-voted, tone, who-talks-about-whom, distinctive words,
-// readability. Map iteration orders, float summation orders and tie-breaks
-// follow speech_analysis.py, so the output equals the Python one.
+// mirrors speech_analysis.py orders
 
 const pySpaceClass = `[\pZ\t\n\v\f\r\x1c-\x1f\x85]`
 
-// Python's \w, which decides where \b sits; Go's \b is ASCII-only.
+// go \b is ascii-only
 func isWordRune(r rune) bool { return unicode.IsLetter(r) || unicode.IsNumber(r) || r == '_' }
 
 func runeBefore(s string, i int) rune {
@@ -44,15 +41,14 @@ func boundary(s string, i int) bool {
 	return (b >= 0 && isWordRune(b)) != (a >= 0 && isWordRune(a))
 }
 
-// matcher is a Python pattern split into an RE2 body and the assertions RE2
-// lacks, checked on the full text around each candidate.
+// re2 lacks lookaround assertions
 type matcher struct {
 	re     *regexp.Regexp
-	lb, rb bool // \b before / after
+	lb, rb bool // \b before/after
 	ok     func(s string, start, end int) bool
 }
 
-// findAll is re.findall: a rejected candidate is retried one rune later.
+// re.findall: retry next rune
 func (m matcher) findAll(s string) []string {
 	var out []string
 	for pos := 0; pos <= len(s); {
@@ -74,7 +70,7 @@ func (m matcher) findAll(s string) []string {
 
 func word(p string) matcher { return matcher{re: regexp.MustCompile(p), lb: true, rb: true} }
 
-// notBeforeLower is (?!\s+[a-zäöü]): "Grüne" the fraction, not "grüne Wiese".
+// python (?!\s+[a-zäöü])
 func notBeforeLower(p string) matcher {
 	m := word(p)
 	m.ok = func(s string, _, end int) bool {
@@ -92,7 +88,7 @@ type partyRx struct {
 	rxs  []matcher
 }
 
-// Case-sensitive on purpose: "grüne Wiese" and "für Karlsruhe" are ordinary German.
+// case-sensitive on purpose
 var partyPatterns = []partyRx{
 	{"B90", []matcher{word(`Grünen`), word(`GRÜNEN?`), notBeforeLower(`Grüne`)}},
 	{"CDU", []matcher{word(`CDU`)}},
@@ -109,7 +105,7 @@ var partyPatterns = []partyRx{
 
 var partyOrder = []string{"B90", "CDU", "SPD", "AFD", "FDP", "VOL", "LIN", "KAL", "PAR", "FÜR"}
 
-// member roles carry "Herr/Frau (Dr.) Stadtrat X"; a bare surname is too ambiguous (Müller)
+// bare surnames too ambiguous
 const addressPrefix = `(?:Herr|Frau|Kollege|Kollegin)` + pySpaceClass + `+(?:Stadtrat|Stadträtin|Dr\.` +
 	pySpaceClass + `+)?` + pySpaceClass + `*`
 
@@ -124,7 +120,7 @@ func addressRx(surname string) matcher {
 	return m
 }
 
-// ordered is a dict with Python's insertion order.
+// python dict insertion order
 type ordered[V int | float64] struct {
 	keys []string
 	n    map[string]V
@@ -139,8 +135,7 @@ func (o *ordered[V]) add(k string, v V) {
 	o.n[k] += v
 }
 
-// pySum is Python 3.12's sum() over floats, which compensates rounding
-// (Neumaier); plain += differs in the last bits.
+// python 3.12 neumaier sum
 type pySum struct{ s, c float64 }
 
 func (p *pySum) add(x float64) {
@@ -256,7 +251,6 @@ gibt geben sehen gesehen reden sprechen dafür deutlich daher bereits wirklich r
 irgendwie nämlich eigentlich zumindest letztendlich übrigens selbstverständlich einer
 `)
 
-// salutations and chairing vocabulary every speech shares
 var boilerplate = setOf(`
 oberbürgermeister oberbürgermeisterin bürgermeister bürgermeisterin kolleginnen kollegen
 kollege kollegin damen herren geehrte geehrter geehrten liebe lieben vielen dank danke
@@ -273,9 +267,7 @@ ihre ihrer ihren ihrem ich wir
 
 var wordRE = regexp.MustCompile(`[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß-]+`)
 
-// German capitalises nouns, so a capitalised word that does not open a
-// sentence is a noun or a name; counting only those drops the verbs and
-// fillers that topped the per-party lists on 2026-09-29.
+// capitalised non-initial = nouns
 var nounRx = matcher{re: regexp.MustCompile(`[A-ZÄÖÜ][a-zäöüß][A-Za-zÄÖÜäöüß-]+`), lb: true,
 	ok: func(s string, start, _ int) bool {
 		if start == 0 {
@@ -302,8 +294,7 @@ var (
 	sentenceRE = regexp.MustCompile(`[.!?]+` + pySpaceClass)
 )
 
-// readability is Amstad's German Flesch reading ease and the mean words per
-// sentence.
+// amstad flesch, words/sentence
 func readability(text string) (float64, float64) {
 	sentences := 0
 	for _, s := range sentenceRE.Split(text, -1) {
@@ -331,9 +322,7 @@ type scoredWord struct {
 	keep bool
 }
 
-// distinctive is the log-odds ratio with an informative Dirichlet prior
-// (Monroe, Colaresi & Quinn 2008, "Fightin' Words"): per group the words most
-// over-used against all other groups, ranked by z-score.
+// fightin' words (monroe 2008)
 func distinctive(groups []string, counts map[string]*ordered[int], top, minCount int) map[string][]Row {
 	prior := newOrdered[int]()
 	for _, g := range groups {
@@ -349,7 +338,7 @@ func distinctive(groups []string, counts map[string]*ordered[int], top, minCount
 	for _, g := range groups {
 		c := counts[g]
 		nI := c.sum()
-		// Counter subtraction keeps positive counts only
+		// counter subtraction drops non-positive
 		nJ := 0
 		for _, w := range prior.keys {
 			nJ += max(0, prior.n[w]-c.n[w])
@@ -387,7 +376,7 @@ func distinctive(groups []string, counts map[string]*ordered[int], top, minCount
 	return out
 }
 
-// pyRound is Python's round(x, n): the correctly rounded decimal, ties to even.
+// python round(x, n) parity
 func pyRound(x float64, n int) float64 {
 	v, _ := strconv.ParseFloat(strconv.FormatFloat(x, 'f', n, 64), 64)
 	return v
@@ -405,7 +394,7 @@ func numf(v any) float64 {
 	return 0
 }
 
-// probs is one question's {choice: probability} in JSON order.
+// keeps json order
 type probs struct {
 	keys []string
 	p    map[string]float64
@@ -413,7 +402,7 @@ type probs struct {
 
 func (p probs) get(k string) float64 { return p.p[k] }
 
-// answer is one speech judgement: question -> probs, in JSON order.
+// question order from json
 type answer struct {
 	keys []string
 	q    map[string]probs
@@ -426,7 +415,6 @@ func (a *answer) get(k string) probs {
 	return a.q[k]
 }
 
-// objectKeys decodes a JSON object keeping its key order.
 func objectKeys(raw []byte) ([]string, map[string]json.RawMessage, bool) {
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	if t, err := dec.Token(); err != nil || t != json.Delim('{') {
@@ -471,7 +459,6 @@ func parseAnswer(s string) *answer {
 	return a
 }
 
-// stanceMin is the stance probability a said-vs-voted comparison needs to count.
 const stanceMin = 0.6
 
 const defaultBody = "organisation-gr-32130"
@@ -481,9 +468,7 @@ func (s *Store) SpeechRoster(meetingID any) ([]Row, error) {
 		WHERE m.body_id = COALESCE((SELECT body_id FROM meetings WHERE id = ?), '`+defaultBody+`')`, meetingID)
 }
 
-// seatCounts is seats per group from the fullest roll-call of the meeting,
-// else of the latest meeting with one. The roster is no good for this: it
-// keeps former members without marking all of them.
+// roster keeps former members
 func (s *Store) seatCounts(meetingID string) (*ordered[int], error) {
 	seats := newOrdered[int]()
 	mid := ""
@@ -723,7 +708,6 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		}
 	}
 
-	// said vs voted: each (meeting, TOP, speaker)'s word-weighted stance against their vote
 	vrows, err := s.rows(`SELECT meeting_id, agenda_anchor, members, ja, nein, enthaltung
 		FROM votes WHERE members IS NOT NULL AND (? = '' OR meeting_id = ?)`, meetingID, meetingID)
 	if err != nil {
@@ -745,8 +729,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 	var stanceKeys []stanceKey
 	amendRE := regexp.MustCompile(`(?i)antrag`)
 	for _, r := range named {
-		// a speech under an amendment label ("TOP 6 Änderungsantrag Grüne") argues the
-		// amendment, whose vote is not stored; comparing it with the main vote is wrong
+		// amendment votes not stored
 		if lr := []rune(r.topLabel); len(lr) > 5 && amendRE.MatchString(string(lr[5:])) {
 			continue
 		}
@@ -796,8 +779,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		if !ok || k.party == "OB" {
 			continue
 		}
-		// roll-calls use the panel's short names ("Schütz, K."); resolve those to the
-		// roster, since the other direction cannot tell Katrin from Nicolas Schütz
+		// short names to roster
 		var vote any
 		for _, x := range rec.roll {
 			name := str(x["name"])
@@ -829,7 +811,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		if k.anchor != nil {
 			anchor = str(k.anchor)
 		}
-		// SQL was: anchor LIKE '<anchor>.%' OR '<k.anchor>' LIKE anchor || '.%'
+		// sql was: anchor like '<anchor>.%' or '<k.anchor>' like anchor || '.%'
 		joint := false
 		for _, a := range agendaAnchors[k.mid] {
 			as, ok := a.(string)
@@ -838,8 +820,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 				break
 			}
 		}
-		// below stanceMin the model is guessing; a jointly debated TOP leaves open which
-		// item a sentence argues, so those rows are shown but not counted either
+		// low confidence: shown, uncounted
 		var match any
 		vs, _ := vote.(string)
 		if (vs == "ja" || vs == "nein") && (stance == "dafuer" || stance == "dagegen") && best >= stanceMin && !joint {
@@ -861,7 +842,6 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		return saidVoted[i]["p"].(float64) > saidVoted[j]["p"].(float64)
 	})
 
-	// who talks about whom: mention counts and the judged attitude, party x party
 	type edge struct {
 		from, to string
 		n        int
@@ -897,7 +877,6 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		matrix = append(matrix, Row{"from": e.from, "to": e.to, "n": e.n, "attitude": att})
 	}
 
-	// distinctive words per party, and overall frequency
 	counts := map[string]*ordered[int]{}
 	var groups []string
 	for _, r := range named {
@@ -929,7 +908,6 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		}
 	}
 
-	// debate length per TOP next to its vote
 	type topAcc struct {
 		row     Row
 		secs    float64
@@ -1016,8 +994,7 @@ func asciiLower(s string) string {
 	}, s)
 }
 
-// sqlLike is SQLite's default LIKE: % and _ wildcards, ASCII-only case
-// folding, no escape character.
+// sqlite like: ascii case-fold
 func sqlLike(s, pattern string) bool {
 	t, p := []rune(asciiLower(s)), []rune(asciiLower(pattern))
 	i, j, star, mark := 0, 0, -1, 0

@@ -18,7 +18,7 @@ export const getSpeeches = (id: string) =>
   getJSON<Speech[]>(`/api/meeting/${id}/speeches`);
 
 export interface SpeechParty {
-  // party code, or OB for the chair
+  // or OB for chair
   code: string;
   seats: number;
   seat_share: number | null;
@@ -108,7 +108,7 @@ export const getLastCouncil = once(async (): Promise<Meeting | undefined> => {
   return r.meetings[0];
 });
 
-// speeches and analytics carry the speaker's name only; it matches /api/people exactly
+// names match /api/people exactly
 export async function getPersonIds(): Promise<Map<string, string>> {
   const people = await getPeople();
   return new Map(people.map((p) => [p.name, p.person_id]));

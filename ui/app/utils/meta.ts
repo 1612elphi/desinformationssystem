@@ -10,8 +10,6 @@ export const PUBLIC_OPTS = [
   { id: 'nonpublic', label: 'Nur nicht öffentlich' },
 ];
 
-// Submitter code: chip mark colour (party colour where one is established) and
-// full name (chip tooltip, filter list).
 export const SUBMITTERS: Record<string, { mark?: string; name: string }> = {
   SVK: { name: 'Stadtverwaltung Karlsruhe' },
   CDU: {
@@ -31,7 +29,6 @@ export const SUBMITTERS: Record<string, { mark?: string; name: string }> = {
   FÜR: { mark: '#82cfff', name: 'FÜR Karlsruhe' },
 };
 
-// Seat order in the chamber charts, left to right.
 export const SEAT_ORDER = [
   'LIN',
   'PAR',

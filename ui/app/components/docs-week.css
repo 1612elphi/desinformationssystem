@@ -45,7 +45,6 @@
   text-transform: uppercase;
 }
 
-/* days and documents scroll inside the band, never the page */
 .dis-week-days,
 .dis-week-strip {
   display: grid;

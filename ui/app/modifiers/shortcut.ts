@@ -1,11 +1,9 @@
 import { modifier } from 'ember-modifier';
 
-// Keys typed into a field are text, not commands.
 export const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement &&
   (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
-// The topmost open modal dialog, or null when none is open.
 export const topDialog = () => {
   const open = [
     ...document.querySelectorAll<HTMLDialogElement>('dialog[open]'),
@@ -31,7 +29,6 @@ export default modifier(
       const top = topDialog();
       const own = el.closest('dialog');
       if (top ? own !== top : own !== null) return;
-      // in the pane stack only the newest pane takes keys
       const pane = el.closest('.dis-pane');
       if (pane && !pane.classList.contains('dis-pane--active')) return;
       e.preventDefault();

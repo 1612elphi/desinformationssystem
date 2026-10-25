@@ -22,7 +22,6 @@ export const LoadError: TOC<{ Args: { error: string } }> = <template>
   </div>
 </template>;
 
-// Loader until the first value, the error if the request failed, else the value.
 export const LoadState: TOC<{
   Args: { load: Load<unknown> | undefined; text?: string };
   Blocks: { default: [] };

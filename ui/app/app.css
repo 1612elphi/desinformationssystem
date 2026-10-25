@@ -15,7 +15,7 @@
   font-display: swap;
 }
 
-/* beats the kit's later :root; iOS sizes, the kit scaled its own for quattro */
+/* outranks the kit's :root */
 html:root {
   --canon-font: "Open Sans Condensed", system-ui, sans-serif;
   --canon-text-title2: 22px;
@@ -26,7 +26,7 @@ html:root {
   --canon-text-footnote: 13px;
   --canon-text-caption: 12px;
 
-  /* karlsruhe red and gold on grey; html: raises these over the kit's own theme blocks */
+  /* html: outranks kit themes */
   --canon-background: #f3f3f1;
   --canon-foreground: #1c1c1e;
   --canon-card: #fbfbfa;
@@ -136,7 +136,6 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-/* one viewport tall; the main pane scrolls inside the window */
 .dis-window.canon-window {
   block-size: 100dvh;
 }
@@ -164,7 +163,7 @@ button:focus-visible {
   font-size: var(--canon-text-footnote);
 }
 
-/* view shortcut letters (g then the letter); ::after is the kit's selected fill, neutral rows leave ::before free */
+/* ::after is kit fill */
 .dis-window .canon-sidebar-row[data-keys]::before {
   content: attr(data-keys);
   position: absolute;

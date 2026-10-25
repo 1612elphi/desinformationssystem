@@ -74,7 +74,7 @@ const publicText = (p?: number | null) => publicLabel(p).text;
 const rowLabel = (m: Meeting) =>
   [m.date, m.time, m.body_name].filter(Boolean).join(' ');
 
-// The grid re-renders its roving tab stop first; focus it on the next frame.
+// after roving re-render
 const focusDay = (d: Date) =>
   requestAnimationFrame(() =>
     document.querySelector<HTMLElement>(`[data-day="${iso(d)}"]`)?.focus(),
@@ -133,7 +133,7 @@ export default class SitzungenTemplate extends Component<Signature> {
     return `KW ${isoWeek(f)} · ${RANGE.formatRange(s, addDays(s, 6))}`;
   }
 
-  // a one-item list keyed by the title re-renders the heading, so its mark is redrawn
+  // key change redraws mark
   get titles() {
     return [this.title];
   }
@@ -164,7 +164,6 @@ export default class SitzungenTemplate extends Component<Signature> {
     return map;
   }
 
-  // shown days, for the month only those inside it
   get shownDays(): Date[] {
     if (this.isWeek) return this.weekDays;
     return this.weeks.flat().filter((d) => d.getMonth() === this.month);

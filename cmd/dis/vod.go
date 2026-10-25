@@ -17,7 +17,7 @@ import (
 
 func vodDir() string { return env("VOD_DIR", filepath.Join(filepath.Dir(dbPath), "vod")) }
 
-// parseVideoArgs accepts the video before or after the flags, as argparse does.
+// argparse parity: any order
 func parseVideoArgs(fs *flag.FlagSet, args []string) string {
 	fs.Parse(args)
 	video := fs.Arg(0)

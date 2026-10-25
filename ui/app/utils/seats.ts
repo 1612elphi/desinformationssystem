@@ -1,4 +1,3 @@
-// Seat positions of a half circle chamber, ordered left to right.
 export function arc(n: number): { x: number; y: number }[] {
   if (n <= 0) return [];
   const rows = Math.max(1, Math.min(8, Math.round(Math.sqrt(n / 2.6))));
@@ -7,7 +6,7 @@ export function arc(n: number): { x: number; y: number }[] {
   );
   const total = radii.reduce((a, r) => a + r, 0);
   const counts = radii.map((r) => Math.floor((n * r) / total));
-  // seats lost to rounding go to the rows from the outside in
+  // rounding leftovers outside in
   for (
     let left = n - counts.reduce((a, c) => a + c, 0), i = rows - 1;
     left > 0;

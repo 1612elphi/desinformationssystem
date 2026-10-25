@@ -8,7 +8,6 @@ export default async function (defaults) {
     // Add options here
   });
 
-  // app/map is imported dynamically by the Karte view; left out of the entry
-  // so MapLibre stays in its own chunk
+  // keeps maplibre chunk separate
   return compatBuild(app, buildOnce, { staticAppPaths: ['map'] });
 }

@@ -22,7 +22,6 @@
   }
 }
 
-/* an earlier pane still in view, beside the newest one */
 .dis-pane--side {
   flex: 0 0 520px;
 }
@@ -88,17 +87,16 @@
   overscroll-behavior: contain;
 }
 
-/* a pane below the top: a tab edge with its title running up the spine */
 .dis-pane-spine {
   display: flex;
   flex: none;
 
-  /* row follows the vertical text line, so kind and title read as one line */
+  /* row follows vertical text */
   flex-direction: row;
   gap: 8px;
   align-items: baseline;
 
-  /* physical sizes: in vertical writing mode inline-size is the height */
+  /* inline-size is height here */
   width: 40px;
   height: 100%;
   margin: 0;

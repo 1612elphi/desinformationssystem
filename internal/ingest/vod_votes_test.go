@@ -33,7 +33,7 @@ func rgbFrame(img image.Image) Frame {
 	return f
 }
 
-// nearest-neighbour, as vod_votes._resize
+// as vod_votes._resize
 func resized(f Frame, w, h int) Frame {
 	out := Frame{w, h, make([]byte, 0, w*h*3)}
 	for y := range h {
@@ -94,7 +94,6 @@ func TestTallyReference(t *testing.T) {
 		}
 	}
 	check(&ref, ident)
-	// the reference scaled into the right half of a 1280x720 frame, as the stream shows it
 	frame := Frame{1280, 720, make([]byte, 1280*720*3)}
 	for i := range frame.Pix {
 		frame.Pix[i] = 40
@@ -140,11 +139,10 @@ func TestSpeakerSeat(t *testing.T) {
 	sm, _ := LoadSeatmap()
 	lay, _ := sm.LayoutFor("2026-07-28")
 	f := referenceFrame(t, lay)
-	// the 2026-07-28 reference shows the chair speaking
+	// reference: chair speaking
 	if got := speakerSeat(&f, lay, Rect{0, 0, 1}); got != "ob" {
 		t.Errorf("speaker on the reference: %q", got)
 	}
-	// green border around c2r1
 	b := lay.Seats[slicesIndex(lay, "c2r1")].Box
 	for y := int(b[1]) - 4; y < int(b[3])+4; y++ {
 		for x := int(b[0]) - 4; x < int(b[2])+4; x++ {

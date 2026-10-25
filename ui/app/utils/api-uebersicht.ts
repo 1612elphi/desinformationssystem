@@ -32,7 +32,7 @@ export interface LastSession {
   speakers: Speaker[];
 }
 
-// wrapped so "no session" is a value; Load treats undefined as still loading
+// load: undefined is loading
 export async function getLastSession(): Promise<{ last?: LastSession }> {
   const id = (await getLastCouncil())?.id;
   if (!id) return {};
@@ -45,7 +45,7 @@ export async function getLastSession(): Promise<{ last?: LastSession }> {
     (a, n) => a + n,
     0,
   );
-  // OB is the chair: it opens every item and would top the list each time
+  // chair opens every item
   const speakers = (talk?.speakers ?? [])
     .filter((s) => s.party !== 'OB')
     .slice(0, 5)
@@ -65,7 +65,6 @@ export interface NextSessions {
   later: Meeting[];
 }
 
-// the next session in full (for its agenda), the three after it from the list
 export async function getNextSessions(today: Date): Promise<NextSessions> {
   const { meetings } = await getMeetings({
     committee: COUNCIL,

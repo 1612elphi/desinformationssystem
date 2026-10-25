@@ -62,7 +62,6 @@ const n0 = (n?: number) => n ?? 0;
 const pageOf = <T,>(list: T[], page: number) =>
   list.slice((page - 1) * LIST_SIZE, page * LIST_SIZE);
 
-// hits per kind under Alles
 const TOP = 5;
 const TOP_SPEECHES = 3;
 const head = <T,>(list: T[] | undefined, n = TOP) => (list ?? []).slice(0, n);
@@ -70,7 +69,7 @@ const head = <T,>(list: T[] | undefined, n = TOP) => (list ?? []).slice(0, n);
 const HITS =
   '.dis-suche-results :is(.dis-dlist-open, .dis-table-open, .dis-hit-open)';
 
-// a touch keyboard would cover the results it was opened for
+// touch keyboard covers results
 const autofocus = modifier((el: HTMLElement) => {
   if (!topDialog() && matchMedia('(hover: hover)').matches)
     el.focus({ preventScroll: true });
@@ -106,7 +105,6 @@ const Group: TOC<{
   </section>
 </template>;
 
-// one scope's full list: its error, a loader, an empty row, or the rows and pages
 const Listing: TOC<{
   Args: {
     load: Load<unknown>;
@@ -192,7 +190,7 @@ export default class SucheTemplate extends Component<Signature> {
     return !s.pending && !s.error && !this.args.controller.results.length;
   }
 
-  // Alles: names only match a query, so people and bodies wait for one
+  // names need a query
   get named() {
     return this.args.controller.q.trim() !== '';
   }
@@ -268,7 +266,7 @@ export default class SucheTemplate extends Component<Signature> {
     else (e.target as HTMLElement).blur();
   };
 
-  // j/k move real focus through the hits of every group, so Enter opens the row
+  // real focus for enter
   move = (step: number) => {
     const c = this.args.controller;
     const rows = [...document.querySelectorAll<HTMLElement>(HITS)];

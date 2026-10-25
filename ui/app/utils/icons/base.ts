@@ -1,4 +1,3 @@
-// Lucide icons by the name the app uses; other files in this folder add more.
 import calendar from 'lucide-static/icons/calendar.svg?raw';
 import chartColumn from 'lucide-static/icons/chart-column.svg?raw';
 import check from 'lucide-static/icons/check.svg?raw';

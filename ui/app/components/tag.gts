@@ -6,7 +6,6 @@ import './tag.css';
 const markStyle = (mark?: string) =>
   mark ? htmlSafe(`--dis-tag-mark: ${mark}`) : undefined;
 
-// A hairline label; @mark (a CSS colour, the party colour) draws a square before it.
 const Tag: TOC<{
   Element: HTMLElement;
   Args: { mark?: string; onClick?: () => void };

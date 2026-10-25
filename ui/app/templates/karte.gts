@@ -65,7 +65,6 @@ export default class KarteTemplate extends Component<Signature> {
     return this.load.value?.places ?? [];
   }
 
-  // most documents first, so the list reads as a ranking
   @cached
   get places() {
     return this.all
@@ -94,7 +93,7 @@ export default class KarteTemplate extends Component<Signature> {
     return Math.max(1, ...Object.values(this.counts));
   }
 
-  // upper bound of a step; square-root scale, matches the map's fill steps
+  // sqrt, matches map steps
   bound = (k: number) => Math.floor((this.max * k * k) / (STEPS * STEPS));
 
   get legend() {

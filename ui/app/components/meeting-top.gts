@@ -35,7 +35,6 @@ export interface TopItem {
 const headId = (item: TopItem) => `${item.dom}-head`;
 const bodyId = (item: TopItem) => `${item.dom}-body`;
 
-// One agenda item on the meeting timeline; the head toggles the body.
 const MeetingTop: TOC<{
   Args: {
     item: TopItem;

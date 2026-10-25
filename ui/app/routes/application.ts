@@ -6,8 +6,7 @@ import { getFacets, getStats } from 'ui/api';
 import Load from 'ui/utils/load';
 import { formatStack, parseStack, type Overlay } from 'ui/services/nav';
 
-// Links from the React UI select the tab with ?tab=<slug> and one overlay
-// with ?doc= and the like; both become the current URL shape.
+// legacy react ui links
 const SEARCH_PARAMS = [
   'q',
   'committee',
@@ -29,7 +28,7 @@ export default class ApplicationRoute extends Route {
   @service declare router: RouterService;
 
   beforeModel(transition: Transition) {
-    // application query params are not on transition.to; old links only arrive on page load
+    // old links: page load only
     if (transition.from) return;
     const q = new URLSearchParams(window.location.search);
     const get = (k: string) => q.get(k) ?? '';
@@ -44,13 +43,12 @@ export default class ApplicationRoute extends Route {
     const panes = (Object.keys(legacy) as Overlay[])
       .filter((k) => legacy[k])
       .map((kind) => ({ kind, id: legacy[kind] }));
-    // document search lived at / until it got its own view
+    // legacy search at /
     const oldSearch =
       location.pathname === '/' && SEARCH_PARAMS.some((k) => q.has(k));
     if (!panes.length && !(tab && LEGACY_TABS.includes(tab)) && !oldSearch)
       return;
-    // after the boot transition: redirecting inside it fails in the router
-    // (_queryParamsFor reads an undefined route)
+    // router fails mid-boot redirect
     q.delete('tab');
     for (const k of Object.keys(legacy)) q.delete(k);
     q.set('stack', formatStack([...parseStack(stack), ...panes]));

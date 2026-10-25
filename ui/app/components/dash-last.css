@@ -96,7 +96,7 @@
   font-weight: 400;
 }
 
-/* wrapping flex: a short last row stretches instead of leaving a grey hole */
+/* stretch short last row */
 .dis-dlast-votes,
 .dis-dlast-speakers {
   display: flex;

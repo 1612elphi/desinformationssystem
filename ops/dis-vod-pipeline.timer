@@ -2,8 +2,7 @@
 Description=Nightly VOD pipeline, after the hourly transcription has caught up
 
 [Timer]
-# 01:15: sessions end by ~21:00, capture and transcription run hourly, and the scraper's
-# 03:30 run (PDF votes, which outrank vod ones) comes after
+# before the 03:30 scraper
 OnCalendar=*-*-* 01:15:00
 Persistent=true
 Unit=dis-vod-pipeline.service

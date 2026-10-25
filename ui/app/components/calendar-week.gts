@@ -31,13 +31,11 @@ interface Signature {
   };
 }
 
-// Week as a time grid: meetings placed by their window, untimed ones on top.
 export default class CalendarWeek extends Component<Signature> {
   get all() {
     return this.args.days.flatMap((d) => this.args.byDay.get(iso(d)) ?? []);
   }
 
-  // whole hours the grid shows
   get hours(): [number, number] {
     const ws = this.all
       .map((m) => timeWindow(m.time))
@@ -122,7 +120,7 @@ export default class CalendarWeek extends Component<Signature> {
             data-today={{if c.today "true"}}
             {{on "focusin" (fn @onFocus c.date)}}
           >
-            {{! a static branch, so moving the focus does not redraw the mark }}
+            {{! static: focus keeps mark }}
             {{#if c.today}}
               <span
                 class="dis-cal-week-head"

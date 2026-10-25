@@ -42,7 +42,6 @@ interface Signature {
   };
 }
 
-// Month grid, Monday first; one tab stop, arrows move between days.
 export default class CalendarMonth extends Component<Signature> {
   get rows(): Cell[][] {
     const focus = iso(this.args.focus);
@@ -98,7 +97,7 @@ export default class CalendarMonth extends Component<Signature> {
               data-today={{if c.today "true"}}
               {{on "focusin" (fn @onFocus c.date)}}
             >
-              {{! a static branch, so moving the focus does not redraw the mark }}
+              {{! static: focus keeps mark }}
               {{#if c.today}}
                 <span
                   class="dis-cal-date"

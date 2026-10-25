@@ -3,7 +3,6 @@ import { initials } from 'ui/utils/api-menschen';
 import { portrait } from 'ui/utils/chamber';
 import './avatar.css';
 
-// The seating plan's portrait where one exists, else the initials.
 const Avatar: TOC<{
   Element: HTMLSpanElement;
   Args: { personId?: string | null; name?: string };

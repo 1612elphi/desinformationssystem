@@ -27,7 +27,6 @@ const label = (parts?: Part[]) =>
     .map((p) => `${p.code || '–'} ${num(p.n)}`)
     .join(', ');
 
-// Party shares of one body as one stacked bar in chamber order, with a legend.
 const GremiumShare: TOC<{
   Element: HTMLDivElement;
   Args: { parts?: Part[] };

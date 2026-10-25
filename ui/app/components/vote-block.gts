@@ -28,7 +28,7 @@ export interface Outcome {
   close: boolean;
 }
 
-// margin in votes, out of 49 seats in the Gemeinderat
+// margin of 49 seats
 const CLOSE = 3;
 
 export function outcome(v?: Vote): Outcome | undefined {
@@ -78,7 +78,7 @@ export function parties(seats: Seat[]): Party[] {
       }
       const top = Math.max(0, ...CAST.map((v) => n[v] ?? 0));
       const leaders = CAST.filter((v) => (n[v] ?? 0) === top);
-      // a tie has no party line, so nobody deviates from it
+      // tie: no party line
       const line = top > 0 && leaders.length === 1 ? leaders[0] : undefined;
       const dissent = line
         ? members.filter(

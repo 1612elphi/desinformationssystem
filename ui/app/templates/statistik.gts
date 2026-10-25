@@ -46,7 +46,6 @@ interface Signature {
 export default class StatistikTemplate extends Component<Signature> {
   @service declare nav: NavService;
 
-  // a party under the pointer or focus, and the one picked by click
   @tracked hover = '';
   @tracked selected = '';
   @tracked cellRow = '';
@@ -91,7 +90,6 @@ export default class StatistikTemplate extends Component<Signature> {
     );
   }
 
-  // stacked bar segments share one scale: the party with the most votes fills the track
   segment = (n: number) => basis(n / this.maxCast);
 
   cohesion = (p: AnalyticsParty) => p.cohesion ?? 0;
@@ -103,7 +101,6 @@ export default class StatistikTemplate extends Component<Signature> {
       .code;
   }
 
-  // one cell of the symmetric pair, the one above the diagonal
   @cached
   get closest() {
     let best: { a: string; b: string; agree: number } | undefined;
@@ -158,14 +155,12 @@ export default class StatistikTemplate extends Component<Signature> {
     };
   };
 
-  // the hovered cell lights its row and column; otherwise the focused party lights both
   rowLit = (code: string) => code === (this.cellRow || this.focus);
   colLit = (code: string) => code === (this.cellCol || this.focus);
   cellLit = (row: string, col: string) => this.rowLit(row) || this.colLit(col);
   isHot = (code: string) => code === this.focus;
   dim = (code: string) => !!this.focus && code !== this.focus;
 
-  // the matrix row of one party as a ranking: who votes with it most
   get allyParty() {
     return this.focus || this.codes[0] || '';
   }
@@ -236,7 +231,7 @@ export default class StatistikTemplate extends Component<Signature> {
   sortMark = (key: SortKey) =>
     this.sortKey === key ? (this.sortAsc ? '↑' : '↓') : '';
 
-  // the panel records surnames only; a unique surname within the party names the person
+  // panel records surnames only
   personFor = (d: Dissenter) => {
     const hits = (this.people.value ?? []).filter(
       (p) => p.party_code === d.party && p.name.split(' ').at(-1) === d.name,
