@@ -2,15 +2,8 @@ import Route from '@ember/routing/route';
 import { service } from '@ember/service';
 import type RouterService from '@ember/routing/router-service';
 import type Transition from '@ember/routing/transition';
-import { getFacets, getStats, type Facets } from 'ui/api';
+import { getFacets, getStats } from 'ui/api';
 import Load from 'ui/utils/load';
-
-const EMPTY_FACETS: Facets = {
-  committees: [],
-  doc_types: [],
-  submitters: [],
-  districts: [],
-};
 
 // Links from the React UI select the tab with ?tab=<slug>.
 const LEGACY_TABS = ['sitzungen', 'gremien', 'statistik', 'karte'];
@@ -31,7 +24,7 @@ export default class ApplicationRoute extends Route {
 
   model() {
     return {
-      facets: new Load(getFacets().catch(() => EMPTY_FACETS)),
+      facets: new Load(getFacets()),
       stats: new Load(getStats()),
     };
   }

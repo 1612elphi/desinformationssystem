@@ -34,6 +34,7 @@ export default class NavService extends Service {
         meeting: '',
         person: '',
         vorlage: '',
+        page: 1,
         ...queryParams,
       },
     });

@@ -147,6 +147,9 @@ export default class DokumenteTemplate extends Component<Signature> {
             </CanonRow>
           </div>
 
+          {{#if @model.facets.error}}
+            <LoadError @error={{@model.facets.error}} />
+          {{/if}}
           <div class="dis-docs-filters">
             <SelectField
               @label="Gremium"
@@ -279,7 +282,7 @@ export default class DokumenteTemplate extends Component<Signature> {
             {{/if}}
           </DataTable>
           <Pagination
-            @page={{c.currentPage}}
+            @page={{c.page}}
             @pageSize={{PAGE_SIZE}}
             @total={{c.total}}
             @onChange={{c.setPage}}

@@ -143,21 +143,10 @@ export default class IndexController extends Controller {
     };
   }
 
-  get filterKey() {
-    return JSON.stringify(this.params);
-  }
-
   @tracked page = 1;
-  // filters the URL page belongs to; nav.filter() changes filters without resetting the page
-  @tracked pageKey = '';
-
-  get currentPage() {
-    return this.pageKey === this.filterKey ? this.page : 1;
-  }
 
   setPage = (page: number) => {
     this.page = page;
-    this.pageKey = this.filterKey;
   };
 
   #lastSearch?: Load<SearchResult>;
@@ -167,7 +156,7 @@ export default class IndexController extends Controller {
     const req = search({
       ...this.params,
       limit: PAGE_SIZE,
-      offset: (this.currentPage - 1) * PAGE_SIZE,
+      offset: (this.page - 1) * PAGE_SIZE,
     });
     // untracked handle on the previous request, read by the new Load only
     // eslint-disable-next-line ember/no-side-effects
