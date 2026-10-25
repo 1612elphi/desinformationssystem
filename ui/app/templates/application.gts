@@ -30,6 +30,9 @@ import './application.css';
 //   sample: "Porträts: Stadt Karlsruhe, Müller-Gmelin, Fränkle"
 const PHOTO_CREDIT = '∑CG';
 
+const NO_NAZIS =
+  'Nazis sind hier unerwünscht und damit meinen wir explizit die AfD ihr Faschos jaja';
+
 const MCP_HREF =
   window.location.hostname === 'dis.delphi.tools'
     ? '/mcp'
@@ -122,6 +125,10 @@ export default class ApplicationTemplate extends Component<Signature> {
               data-keys={{concat "G " v.key}}
             />
           {{/each}}
+          <aside class="dis-sidebar-card" title={{NO_NAZIS}}>
+            <Icon @name="shield-x" @size={{20}} />
+            <p>{{NO_NAZIS}}</p>
+          </aside>
         </CanonSidebar>
       </:sidebar>
       <:main>

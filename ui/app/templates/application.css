@@ -13,3 +13,65 @@
     white-space: nowrap;
   }
 }
+
+/* the rows fill the sidebar so the card can sit at its bottom */
+.dis-window .canon-sidebar-rows {
+  min-block-size: 100%;
+}
+
+.dis-sidebar-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: auto var(--canon-sidebar-inset) var(--canon-sidebar-inset);
+  padding: 12px;
+  border: var(--canon-hairline) solid var(--canon-border);
+  border-block-start: var(--canon-frame) solid var(--canon-primary);
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font-size: var(--canon-text-footnote);
+  line-height: 1.35;
+}
+
+.dis-sidebar-card .dis-icon {
+  color: var(--canon-primary);
+}
+
+.dis-sidebar-card p {
+  margin: 0;
+}
+
+/* in the icon rail only the shield shows; the text stays its title */
+.canon-sidebar--collapsed .dis-sidebar-card {
+  justify-content: center;
+  margin-inline: 0;
+  padding-inline: 0;
+  border-inline: 0;
+}
+
+.canon-sidebar--collapsed .dis-sidebar-card p {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@container canon-window (width < 640px) {
+  .canon-sidebar:not(.canon-sidebar--expanded) .dis-sidebar-card {
+    justify-content: center;
+    margin-inline: 0;
+    padding-inline: 0;
+    border-inline: 0;
+  }
+
+  .canon-sidebar:not(.canon-sidebar--expanded) .dis-sidebar-card p {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
