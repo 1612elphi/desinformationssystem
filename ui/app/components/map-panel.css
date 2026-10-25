@@ -1,0 +1,118 @@
+.dis-place-panel {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  border-block-start: var(--canon-frame) solid var(--canon-foreground);
+  background: var(--canon-card);
+}
+
+.dis-place-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-inline-start: var(--canon-panel-padding);
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-place-kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border: var(--canon-hairline) solid var(--canon-foreground);
+  background: var(--dis-fill);
+  color: var(--canon-background);
+}
+
+.dis-place-titles {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-inline-size: 0;
+  padding-block: 8px;
+}
+
+.dis-place-title {
+  margin: 0;
+  font-size: var(--canon-text-title3);
+  font-weight: var(--canon-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.dis-place-meta {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-place-docs {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+.dis-place-doc + .dis-place-doc {
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-place-open,
+.dis-place-meeting {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  inline-size: 100%;
+  margin: 0;
+  padding: 8px var(--canon-panel-padding);
+  border: 0;
+  background: var(--canon-card);
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-subheadline);
+  text-align: start;
+  cursor: pointer;
+}
+
+.dis-place-open {
+  min-block-size: var(--canon-control-height);
+}
+
+.dis-place-meeting {
+  align-items: center;
+  gap: 6px;
+  padding-block: 0 8px;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-place-open:focus-visible,
+.dis-place-meeting:focus-visible {
+  outline-offset: -2px;
+}
+
+@media (hover: hover) {
+  .dis-place-open:hover,
+  .dis-place-meeting:hover {
+    background: var(--canon-accent-bg);
+  }
+}
+
+.dis-place-date {
+  flex: 0 0 5.5rem;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-place-label {
+  flex: 1 1 10rem;
+  min-inline-size: 0;
+}
+
+.dis-place-quote {
+  flex: 1 1 100%;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-style: italic;
+}

@@ -15,6 +15,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:3650',
       '/health': 'http://localhost:3650',
+      '/map/karlsruhe.pmtiles': 'http://localhost:3650',
     },
   },
 });
