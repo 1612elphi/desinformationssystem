@@ -1,0 +1,54 @@
+.dis-dstats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+.dis-dstats-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--canon-hairline);
+  margin: 0;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-border);
+}
+
+.dis-dstat {
+  flex: 1 1 8.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-inline-size: 0;
+  padding: 10px 12px;
+  background: var(--canon-card);
+}
+
+.dis-dstat dt {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-dstat dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: var(--canon-text-title3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+
+.dis-dstat dd > span:last-child {
+  position: relative;
+}
+
+.dis-dstat-bar.canon-bar {
+  block-size: 4px;
+  margin-block-start: auto;
+}
