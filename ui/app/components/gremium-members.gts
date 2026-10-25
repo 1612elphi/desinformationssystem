@@ -3,7 +3,8 @@ import { fn } from '@ember/helper';
 import { on } from '@ember/modifier';
 import { htmlSafe } from '@ember/template';
 import type { Member } from 'ui/api';
-import { initials, isChair, partyMark, roleTitle } from 'ui/utils/api-menschen';
+import Avatar from 'ui/components/avatar';
+import { isChair, partyMark, roleTitle } from 'ui/utils/api-menschen';
 import { SUBMITTERS } from 'ui/utils/meta';
 import './gremium-members.css';
 
@@ -26,9 +27,11 @@ const GremiumMembers: TOC<{
           style={{markStyle m}}
           {{on "click" (fn @onOpen m.person_id)}}
         >
-          <span class="dis-member-avatar" aria-hidden="true">{{initials
-              m.name
-            }}</span>
+          <Avatar
+            class="dis-member-avatar"
+            @personId={{m.person_id}}
+            @name={{m.name}}
+          />
           <span class="dis-member-text">
             <span class="dis-member-name">{{m.name}}</span>
             <span class="dis-member-meta">

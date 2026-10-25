@@ -26,3 +26,17 @@
     stroke-opacity: 1;
   }
 }
+
+.dis-seats--hall {
+  max-inline-size: 520px;
+}
+
+.dis-seats--hall .dis-seat {
+  stroke-width: 0.03;
+}
+
+.dis-seat--empty {
+  fill: transparent;
+  stroke: var(--canon-border);
+  stroke-opacity: 1;
+}

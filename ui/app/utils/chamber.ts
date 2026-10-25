@@ -1,0 +1,458 @@
+// Bürgersaal seating of the Gemeinderat 2024-2029, from the city's plan
+// "Sitzungsplan GR 2024 bis 2029", Stand Juli 2026 (Vorlage 26-0364).
+// Row 0 is the row nearest the dais; columns run left to right as drawn on the plan, dais at the top.
+
+export interface ChamberSeat {
+  row: number;
+  col: number;
+  name: string;
+  party: string;
+  person_id: string | null;
+  photo: boolean;
+}
+
+export interface DaisSeat {
+  role: string;
+  name: string;
+  person_id: string | null;
+  photo: boolean;
+}
+
+export const CHAMBER_ROWS = 6;
+export const CHAMBER_COLS = 10;
+
+export const CHAMBER: ChamberSeat[] = [
+  {
+    row: 0,
+    col: 0,
+    name: 'Jorinda Fahringer',
+    party: 'B90',
+    person_id: '62103',
+    photo: true,
+  },
+  {
+    row: 0,
+    col: 1,
+    name: 'Ivo Dujmović',
+    party: 'B90',
+    person_id: '65292',
+    photo: true,
+  },
+  {
+    row: 0,
+    col: 2,
+    name: 'Detlef Hofmann',
+    party: 'CDU',
+    person_id: '122',
+    photo: true,
+  },
+  {
+    row: 0,
+    col: 3,
+    name: 'Dirk Müller',
+    party: 'CDU',
+    person_id: '452',
+    photo: true,
+  },
+  {
+    row: 0,
+    col: 4,
+    name: 'Dr. Anton Huber',
+    party: 'SPD',
+    person_id: '457',
+    photo: true,
+  },
+  {
+    row: 0,
+    col: 5,
+    name: 'Dr. Paul Schmidt',
+    party: 'AFD',
+    person_id: '61492',
+    photo: true,
+  },
+  {
+    row: 0,
+    col: 6,
+    name: 'Dr. Stefan Noé',
+    party: 'FDP',
+    person_id: '62145',
+    photo: true,
+  },
+  {
+    row: 0,
+    col: 7,
+    name: 'Fabian Gaukel',
+    party: 'VOL',
+    person_id: '65293',
+    photo: true,
+  },
+  {
+    row: 0,
+    col: 8,
+    name: 'Anne-Kathrin Berghoff',
+    party: 'LIN',
+    person_id: '65304',
+    photo: true,
+  },
+  {
+    row: 0,
+    col: 9,
+    name: 'Lüppo Cramer',
+    party: 'KAL',
+    person_id: '9',
+    photo: true,
+  },
+  {
+    row: 1,
+    col: 0,
+    name: 'Aljoscha Löffler',
+    party: 'B90',
+    person_id: '62102',
+    photo: true,
+  },
+  {
+    row: 1,
+    col: 1,
+    name: 'Dr. Susanne Heynen',
+    party: 'B90',
+    person_id: '65295',
+    photo: true,
+  },
+  {
+    row: 1,
+    col: 2,
+    name: 'Tobias Bunk-Merkel',
+    party: 'CDU',
+    person_id: '62207',
+    photo: true,
+  },
+  {
+    row: 1,
+    col: 3,
+    name: 'Dr. Thomas Müller',
+    party: 'CDU',
+    person_id: '29',
+    photo: true,
+  },
+  {
+    row: 1,
+    col: 4,
+    name: 'Elke Ernemann',
+    party: 'SPD',
+    person_id: '120',
+    photo: true,
+  },
+  {
+    row: 1,
+    col: 5,
+    name: 'Oliver Schnell',
+    party: 'AFD',
+    person_id: '62117',
+    photo: true,
+  },
+  {
+    row: 1,
+    col: 6,
+    name: 'Annette Böringer',
+    party: 'FDP',
+    person_id: '62111',
+    photo: true,
+  },
+  {
+    row: 1,
+    col: 7,
+    name: 'Adina Geißinger',
+    party: 'VOL',
+    person_id: '65294',
+    photo: true,
+  },
+  {
+    row: 1,
+    col: 8,
+    name: 'Leyla Duran',
+    party: 'LIN',
+    person_id: '65735',
+    photo: false,
+  },
+  {
+    row: 1,
+    col: 9,
+    name: 'Sonja Döring',
+    party: 'KAL',
+    person_id: '65305',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 0,
+    name: 'Ceren Akbaba',
+    party: 'B90',
+    person_id: '65290',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 1,
+    name: 'Dr. Sonja Klingert',
+    party: 'B90',
+    person_id: '62139',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 2,
+    name: 'Dr. Rahsan Dogan',
+    party: 'CDU',
+    person_id: '61482',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 3,
+    name: 'Tilman Pfannkuch',
+    party: 'CDU',
+    person_id: '128',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 4,
+    name: 'Dr. Raphael Fechler',
+    party: 'SPD',
+    person_id: '61483',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 5,
+    name: 'Andreas Seidler',
+    party: 'AFD',
+    person_id: '65310',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 6,
+    name: 'Thomas H. Hock',
+    party: 'FDP',
+    person_id: '300',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 7,
+    name: 'Kiên Nguyen',
+    party: 'VOL',
+    person_id: '65297',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 8,
+    name: 'Tanja Kaufmann',
+    party: 'LIN',
+    person_id: '65361',
+    photo: true,
+  },
+  {
+    row: 2,
+    col: 9,
+    name: 'Michael Haug',
+    party: 'KAL',
+    person_id: '350',
+    photo: true,
+  },
+  {
+    row: 3,
+    col: 0,
+    name: 'Verena Anlauf',
+    party: 'B90',
+    person_id: '61706',
+    photo: true,
+  },
+  {
+    row: 3,
+    col: 1,
+    name: 'Christian Klinkhardt',
+    party: 'B90',
+    person_id: '65363',
+    photo: true,
+  },
+  {
+    row: 3,
+    col: 2,
+    name: 'Andreas Kehrle',
+    party: 'CDU',
+    person_id: '61498',
+    photo: true,
+  },
+  {
+    row: 3,
+    col: 3,
+    name: 'Katrin Schütz',
+    party: 'CDU',
+    person_id: '65298',
+    photo: true,
+  },
+  {
+    row: 3,
+    col: 4,
+    name: 'Melis Schmid',
+    party: 'SPD',
+    person_id: '65642',
+    photo: true,
+  },
+  {
+    row: 3,
+    col: 5,
+    name: 'Rouven Stolz',
+    party: 'AFD',
+    person_id: '62125',
+    photo: true,
+  },
+  {
+    row: 3,
+    col: 6,
+    name: 'Petra Lorenz',
+    party: 'FDP',
+    person_id: '62116',
+    photo: true,
+  },
+  {
+    row: 4,
+    col: 0,
+    name: 'Bernd Belschner',
+    party: 'B90',
+    person_id: '53',
+    photo: true,
+  },
+  {
+    row: 4,
+    col: 1,
+    name: 'Dr. Iris Sardarabady',
+    party: 'B90',
+    person_id: '62110',
+    photo: true,
+  },
+  {
+    row: 4,
+    col: 2,
+    name: 'Bettina Meier-Augenstein',
+    party: 'CDU',
+    person_id: '1',
+    photo: true,
+  },
+  {
+    row: 4,
+    col: 3,
+    name: 'Nicolas Schütz',
+    party: 'CDU',
+    person_id: '65299',
+    photo: true,
+  },
+  {
+    row: 4,
+    col: 4,
+    name: 'Mathias Tröndle',
+    party: 'SPD',
+    person_id: '65300',
+    photo: true,
+  },
+  {
+    row: 4,
+    col: 5,
+    name: 'Uwe Winkler',
+    party: 'AFD',
+    person_id: '62203',
+    photo: false,
+  },
+  {
+    row: 4,
+    col: 7,
+    name: 'Max Braun',
+    party: 'PAR',
+    person_id: '61481',
+    photo: true,
+  },
+  {
+    row: 4,
+    col: 8,
+    name: 'Friedemann Kalmbach',
+    party: 'FÜR',
+    person_id: '303',
+    photo: true,
+  },
+  {
+    row: 5,
+    col: 0,
+    name: 'Dr. Clemens Cremer',
+    party: 'B90',
+    person_id: '62108',
+    photo: true,
+  },
+  {
+    row: 5,
+    col: 1,
+    name: 'Leonie Wolf',
+    party: 'B90',
+    person_id: '63698',
+    photo: true,
+  },
+  {
+    row: 5,
+    col: 4,
+    name: 'Sibel Uysal',
+    party: 'SPD',
+    person_id: '409',
+    photo: true,
+  },
+];
+
+export const DAIS: DaisSeat[] = [
+  {
+    role: 'BM',
+    name: 'Daniel Fluhrer',
+    person_id: '61967',
+    photo: true,
+  },
+  {
+    role: 'BM',
+    name: 'Dr. Albert Käuflein',
+    person_id: '191',
+    photo: true,
+  },
+  {
+    role: 'EB',
+    name: 'Bettina Lisbach',
+    person_id: '62047',
+    photo: true,
+  },
+  {
+    role: 'OB',
+    name: 'Dr. Frank Mentrup',
+    person_id: '449',
+    photo: true,
+  },
+  {
+    role: 'BM',
+    name: 'Gabriele Luczak-Schwarz',
+    person_id: '25',
+    photo: true,
+  },
+  {
+    role: 'BM',
+    name: 'Yvette Melchien',
+    person_id: '306',
+    photo: true,
+  },
+];
+
+const PHOTOS = new Set(
+  [...CHAMBER, ...DAIS]
+    .filter((s) => s.photo && s.person_id)
+    .map((s) => s.person_id),
+);
+
+// Portrait URL for a person, when the seating plan had a photo of them.
+export const portrait = (personId?: string | null) =>
+  personId && PHOTOS.has(personId) ? `/portraits/${personId}.jpg` : undefined;

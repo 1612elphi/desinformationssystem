@@ -10,6 +10,7 @@ import CanonButton from 'delphicanon/components/canon-button';
 import CanonTiles from 'delphicanon/components/canon-tiles';
 import 'delphicanon/components/canon-heading.css';
 import { getPerson } from 'ui/api';
+import Avatar from 'ui/components/avatar';
 import type GremienController from 'ui/controllers/gremien';
 import DataTable, { type Column } from 'ui/components/data-table';
 import Icon from 'ui/components/icon';
@@ -24,7 +25,6 @@ import type NavService from 'ui/services/nav';
 import {
   againstParty,
   deDate,
-  initials,
   isChair,
   partyMark,
   roleTitle,
@@ -180,9 +180,11 @@ export default class PersonModal extends Component<Signature> {
               {{shortcut "]" this.stepNext}}
             >
               <header class="dis-person-head">
-                <span class="dis-person-avatar" aria-hidden="true">{{initials
-                    person.name
-                  }}</span>
+                <Avatar
+                  class="dis-person-avatar"
+                  @personId={{person.person_id}}
+                  @name={{person.name}}
+                />
                 <div class="dis-person-id">
                   <div class="dis-person-party">
                     <PartyChip

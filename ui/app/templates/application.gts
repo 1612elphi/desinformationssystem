@@ -25,6 +25,11 @@ import { RIS_START, scrapeTime } from 'ui/utils/meta';
 
 // The same path only works behind the path-routing tunnel (dis.delphi.tools);
 // on a direct deployment the MCP server listens on its own port.
+// ∑CG: footer credit for the councillor portraits from the city's seating plan
+//   spec: credit the photographers and the city as the PDF does, one line, under 60 chars, plain
+//   sample: "Porträts: Stadt Karlsruhe, Müller-Gmelin, Fränkle"
+const PHOTO_CREDIT = '∑CG';
+
 const MCP_HREF =
   window.location.hostname === 'dis.delphi.tools'
     ? '/mcp'
@@ -111,6 +116,7 @@ export default class ApplicationTemplate extends Component<Signature> {
               >Sitzungskalender der Stadt Karlsruhe</a>
             </span>
             <span>Open Data (CC BY-ND)</span>
+            <span>{{PHOTO_CREDIT}}</span>
             <span>MCP: <a href={{MCP_HREF}}>/mcp</a></span>
             {{#if this.stats.last_scrape}}
               <span>Stand {{scrapeTime this.stats.last_scrape}}</span>

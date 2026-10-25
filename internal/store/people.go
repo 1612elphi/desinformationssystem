@@ -379,7 +379,12 @@ func (s *Store) LiveMeetings(now time.Time) ([]Row, error) {
 	return out, nil
 }
 
-type partyCand struct{ initial, party, person string }
+var doctorRE = regexp.MustCompile(`(?i)\bdr\.`)
+
+type partyCand struct {
+	initial, party, person string
+	doctor                 bool
+}
 
 // partyLookup maps body_id -> surname -> candidates for roll-call attribution.
 func (s *Store) partyLookup() (map[string]map[string][]partyCand, error) {
@@ -394,7 +399,8 @@ func (s *Store) partyLookup() (map[string]map[string][]partyCand, error) {
 			out[b] = map[string][]partyCand{}
 		}
 		sn := surname(str(r["name"]))
-		out[b][sn] = append(out[b][sn], partyCand{firstInitial(str(r["name"])), str(r["party_code"]), str(r["person_id"])})
+		name := str(r["name"])
+		out[b][sn] = append(out[b][sn], partyCand{firstInitial(name), str(r["party_code"]), str(r["person_id"]), doctorRE.MatchString(name)})
 	}
 	return out, nil
 }
@@ -435,6 +441,23 @@ func entryMatch(lookup map[string]map[string][]partyCand, body, rollName string)
 	persons := map[string]bool{}
 	for _, c := range cands {
 		persons[c.person] = true
+	}
+	// "Müller" and "Dr. Müller" in one party: the title tells the two apart
+	if len(persons) > 1 {
+		doctor := doctorRE.MatchString(rollName)
+		var f []partyCand
+		for _, c := range cands {
+			if c.doctor == doctor {
+				f = append(f, c)
+			}
+		}
+		if len(f) > 0 {
+			cands = f
+			persons = map[string]bool{}
+			for _, c := range cands {
+				persons[c.person] = true
+			}
+		}
 	}
 	if len(persons) == 1 && len(cands) > 0 {
 		person = cands[0].person
