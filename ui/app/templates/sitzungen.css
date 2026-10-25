@@ -39,6 +39,16 @@
   border-block-end: var(--canon-hairline) solid var(--canon-border);
 }
 
+.dis-sitzungen-title-text {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dis-sitzungen td .dis-tag .dis-icon {
+  margin-inline-end: 4px;
+}
+
 .dis-sitzungen-count {
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -113,6 +123,14 @@
   font: inherit;
   font-size: var(--canon-text-footnote);
   cursor: pointer;
+}
+
+.dis-cal-legend-item .dis-icon {
+  color: var(--dis-kind);
+}
+
+.dis-cal-legend-item > .rough-annotation {
+  opacity: 0.45;
 }
 
 .dis-cal-legend-item[aria-pressed="true"] {

@@ -98,6 +98,11 @@
   flex-direction: row-reverse;
 }
 
+.dis-meeting .canon-heading .dis-icon,
+.dis-mhead-facts .dis-tag .dis-icon {
+  margin-inline-end: 6px;
+}
+
 .dis-meeting-msg,
 .dis-meeting-note {
   color: var(--canon-muted-foreground);

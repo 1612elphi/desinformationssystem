@@ -128,6 +128,15 @@ button.dis-mtop-head {
   margin-inline-start: 6px;
 }
 
+.dis-mtop-title > .dis-icon {
+  margin-inline-end: 6px;
+  color: var(--dis-no);
+}
+
+.dis-mtop-title .dis-tag .dis-icon {
+  margin-inline-end: 4px;
+}
+
 .dis-mtop--contested .dis-mtop-title {
   font-weight: 600;
 }
@@ -146,6 +155,10 @@ button.dis-mtop-head {
 }
 
 .dis-mtop-outcome {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+  align-items: center;
   min-inline-size: 6.5rem;
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);

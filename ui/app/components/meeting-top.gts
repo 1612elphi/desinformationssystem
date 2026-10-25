@@ -8,7 +8,8 @@ import { LoadState } from 'ui/components/loading';
 import SpeechList from 'ui/components/speech-list';
 import Tag from 'ui/components/tag';
 import VoteBar from 'ui/components/vote-bar';
-import VoteBlock, { type Outcome } from 'ui/components/vote-block';
+import VoteBlock, { outcomeIcon, type Outcome } from 'ui/components/vote-block';
+import rough from 'ui/modifiers/rough';
 import type { Speech } from 'ui/utils/api-reden';
 import type Load from 'ui/utils/load';
 import { num } from 'ui/utils/meta';
@@ -26,6 +27,7 @@ export interface TopItem {
   speeches: Speech[];
   speechCount: number;
   nonPublic: string;
+  withdrawn: boolean;
   expandable: boolean;
   kind: 'contested' | 'vote' | 'docs' | 'none';
 }
@@ -66,8 +68,21 @@ const MeetingTop: TOC<{
         {{on "focus" @onFocus}}
       >
         <span class="dis-mtop-num">{{if @item.number @item.number "—"}}</span>
-        <span class="dis-mtop-title">{{if @item.title @item.title "—"}}
-          {{#if @item.nonPublic}}<Tag>{{@item.nonPublic}}</Tag>{{/if}}</span>
+        <span class="dis-mtop-title">{{#if @item.withdrawn}}<Icon
+              @name="ban"
+              @size={{14}}
+            />{{/if}}<span
+            {{rough
+              "strike-through"
+              color="--dis-no"
+              show=@item.withdrawn
+              padding=2
+            }}
+          >{{if @item.title @item.title "—"}}</span>
+          {{#if @item.nonPublic}}<Tag><Icon
+                @name="lock"
+                @size={{12}}
+              />{{@item.nonPublic}}</Tag>{{/if}}</span>
         <span class="dis-mtop-meta">
           {{#if @item.outcome}}
             <VoteBar
@@ -80,7 +95,12 @@ const MeetingTop: TOC<{
             <span
               class="dis-mtop-outcome
                 {{if @item.outcome.contested 'dis-mtop-outcome--contested'}}"
-            >{{@item.outcome.label}}</span>
+              title={{if @item.outcome.close "Knapp"}}
+              {{rough "box" show=@item.outcome.close padding=3 iterations=1}}
+            ><Icon
+                @name={{outcomeIcon @item.outcome.key}}
+                @size={{12}}
+              />{{@item.outcome.label}}</span>
           {{/if}}
           {{#if @item.speechCount}}
             <span class="dis-mtop-docs" title="Wortbeiträge"><Icon
@@ -105,8 +125,21 @@ const MeetingTop: TOC<{
         {{on "focus" @onFocus}}
       >
         <span class="dis-mtop-num">{{if @item.number @item.number "—"}}</span>
-        <span class="dis-mtop-title">{{if @item.title @item.title "—"}}
-          {{#if @item.nonPublic}}<Tag>{{@item.nonPublic}}</Tag>{{/if}}</span>
+        <span class="dis-mtop-title">{{#if @item.withdrawn}}<Icon
+              @name="ban"
+              @size={{14}}
+            />{{/if}}<span
+            {{rough
+              "strike-through"
+              color="--dis-no"
+              show=@item.withdrawn
+              padding=2
+            }}
+          >{{if @item.title @item.title "—"}}</span>
+          {{#if @item.nonPublic}}<Tag><Icon
+                @name="lock"
+                @size={{12}}
+              />{{@item.nonPublic}}</Tag>{{/if}}</span>
       </div>
     {{/if}}
     {{#if @open}}

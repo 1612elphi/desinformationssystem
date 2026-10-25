@@ -3,6 +3,7 @@ import { fn } from '@ember/helper';
 import { on } from '@ember/modifier';
 import CanonEmptyRow from 'delphicanon/components/canon-empty-row';
 import Icon from 'ui/components/icon';
+import rough from 'ui/modifiers/rough';
 import {
   DAY_LONG,
   bodyKind,
@@ -44,10 +45,10 @@ export default class CalendarAgenda extends Component<Signature> {
 
   <template>
     <div class="dis-cal-agenda" ...attributes>
-      {{#each this.days as |d|}}
+      {{#each this.days key="key" as |d|}}
         <section class="dis-cal-agenda-day" data-today={{if d.today "true"}}>
           <h3 class="dis-cal-agenda-title">{{d.title}}</h3>
-          {{#each d.meetings as |x|}}
+          {{#each d.meetings key="m.id" as |x|}}
             <button
               type="button"
               class="dis-cal-agenda-item"
@@ -55,7 +56,14 @@ export default class CalendarAgenda extends Component<Signature> {
               {{on "click" (fn @onOpen x.m)}}
             >
               <span class="dis-cal-agenda-time">
-                {{#if x.live}}<span class="dis-cal-pulse"></span> live ·{{/if}}
+                {{#if x.live}}
+                  <span
+                    class="dis-cal-agenda-live"
+                    {{rough "circle" padding=4 delay=300}}
+                  ><span class="dis-cal-pulse"></span> live</span>
+                  ·
+                {{/if}}
+                <Icon @name="time" @size={{12}} />
                 {{if x.m.time x.m.time "—"}}
               </span>
               <span class="dis-cal-agenda-body">{{if
@@ -64,11 +72,16 @@ export default class CalendarAgenda extends Component<Signature> {
                   "—"
                 }}</span>
               {{#if x.m.location}}
-                <span class="dis-cal-agenda-loc">{{x.m.location}}</span>
+                <span class="dis-cal-agenda-loc"><Icon
+                    @name="map-pin"
+                    @size={{12}}
+                  />{{x.m.location}}</span>
               {{/if}}
               <span class="dis-cal-agenda-counts">
                 {{#if x.m.agenda_count}}
-                  <span>{{num x.m.agenda_count}} TOPs</span>
+                  <span><Icon @name="list-ordered" @size={{12}} />
+                    {{num x.m.agenda_count}}
+                    TOPs</span>
                 {{/if}}
                 {{#if x.m.documents}}
                   <span><Icon @name="document" @size={{12}} />

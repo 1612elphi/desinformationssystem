@@ -34,6 +34,9 @@
 }
 
 .dis-outcome {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
   padding: 1px 6px;
   border: var(--canon-hairline) solid var(--canon-border);
   color: var(--canon-muted-foreground);
@@ -85,7 +88,7 @@
 .dis-vote-title {
   display: flex;
   gap: 8px;
-  align-items: baseline;
+  align-items: center;
   margin: 0;
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);
@@ -103,7 +106,10 @@
 }
 
 .dis-vote-dissent-n {
-  border-block-end: var(--canon-frame) solid var(--dis-highlight);
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-inline-start: 6px;
   color: var(--canon-foreground);
 }
 
@@ -145,6 +151,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  justify-self: start;
 }
 
 .dis-vote-closed {

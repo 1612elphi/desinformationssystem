@@ -60,12 +60,23 @@
   font-variant-numeric: tabular-nums;
 }
 
+.dis-cal-agenda-live {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--canon-primary);
+  font-weight: 600;
+}
+
 .dis-cal-agenda-body {
   font-size: var(--canon-text-subheadline);
   font-weight: 600;
 }
 
 .dis-cal-agenda-loc {
+  display: flex;
+  gap: 4px;
+  align-items: center;
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);
 }

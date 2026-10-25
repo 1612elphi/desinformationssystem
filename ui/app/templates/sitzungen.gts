@@ -23,6 +23,7 @@ import Icon from 'ui/components/icon';
 import { LoadState } from 'ui/components/loading';
 import Pagination from 'ui/components/pagination';
 import Tag from 'ui/components/tag';
+import rough from 'ui/modifiers/rough';
 import shortcut from 'ui/modifiers/shortcut';
 import {
   KINDS,
@@ -53,6 +54,13 @@ const COLUMNS: Column[] = [
   { key: 'agenda', label: 'TOPs', width: '4rem', cls: 'dis-num' },
   { key: 'docs', label: 'Dok.', width: '4rem', cls: 'dis-num' },
 ];
+
+const KIND_ICON: Record<string, string> = {
+  rat: 'landmark',
+  aus: 'users-round',
+  ort: 'house',
+  other: 'messages-square',
+};
 
 const STEP: Record<string, number> = {
   ArrowLeft: -1,
@@ -125,6 +133,11 @@ export default class SitzungenTemplate extends Component<Signature> {
     return `KW ${isoWeek(f)} · ${RANGE.formatRange(s, addDays(s, 6))}`;
   }
 
+  // a one-item list keyed by the title re-renders the heading, so its mark is redrawn
+  get titles() {
+    return [this.title];
+  }
+
   get loaded(): CalMeeting[] {
     return this.c.range.value?.meetings ?? [];
   }
@@ -169,6 +182,7 @@ export default class SitzungenTemplate extends Component<Signature> {
     const inSpan = this.loaded.filter((m) => keys.has(m.date ?? ''));
     return KINDS.map((k) => ({
       ...k,
+      icon: KIND_ICON[k.id] ?? 'calendar',
       n: inSpan.filter((m) => bodyKind(m.body_name) === k.id).length,
       on: this.c.kind === k.id,
     }));
@@ -284,7 +298,7 @@ export default class SitzungenTemplate extends Component<Signature> {
               href={{c.icsUrl}}
               title="Sitzungen als Kalender abonnieren (ICS)"
             >
-              <Icon @name="calendar" @size={{14}} />
+              <Icon @name="calendar-plus" @size={{14}} />
               Kalender abonnieren (ICS)
             </a>
           </div>
@@ -299,11 +313,9 @@ export default class SitzungenTemplate extends Component<Signature> {
               id="dis-sitzungen-title"
               class="canon-heading dis-sitzungen-title"
             >
-              <span>{{if
-                  c.upcoming
-                  "Kommende Sitzungen"
-                  "Alle Sitzungen"
-                }}</span>
+              <span class="dis-sitzungen-title-text"><Icon
+                  @name={{if c.upcoming "calendar-clock" "archive"}}
+                />{{if c.upcoming "Kommende Sitzungen" "Alle Sitzungen"}}</span>
               {{#if c.meetings.value}}
                 <span class="dis-sitzungen-count">{{num this.total}}
                   Sitzung(en)</span>
@@ -325,7 +337,10 @@ export default class SitzungenTemplate extends Component<Signature> {
                   {{else if (eq col.key "body")}}
                     {{orDash m.body_name}}
                   {{else if (eq col.key "public")}}
-                    <Tag>{{publicText m.public}}</Tag>
+                    <Tag>{{#if (eq m.public 0)}}<Icon
+                          @name="lock"
+                          @size={{12}}
+                        />{{/if}}{{publicText m.public}}</Tag>
                   {{else if (eq col.key "agenda")}}
                     {{num m.agenda_count}}
                   {{else}}
@@ -372,6 +387,7 @@ export default class SitzungenTemplate extends Component<Signature> {
                 <CanonButton
                   @kind="cell"
                   @text="Heute"
+                  @icon={{component Icon name="locate-fixed"}}
                   @onClick={{this.goToday}}
                 />
                 <CanonButton
@@ -382,7 +398,12 @@ export default class SitzungenTemplate extends Component<Signature> {
                 />
               </div>
               <h2 id="dis-cal-title" class="dis-cal-title" aria-live="polite">
-                {{this.title}}
+                {{#each this.titles key="@identity" as |t|}}
+                  <span
+                    class="dis-cal-title-text"
+                    {{rough "underline" strokeWidth=2 padding=2 delay=200}}
+                  >{{t}}</span>
+                {{/each}}
                 {{#if c.range.value}}
                   <span class="dis-sitzungen-count">{{num this.shownCount}}
                     Sitzung(en)</span>
@@ -398,7 +419,17 @@ export default class SitzungenTemplate extends Component<Signature> {
                     {{on "click" (fn c.setKind k.id)}}
                   >
                     <span class="dis-cal-swatch" aria-hidden="true"></span>
-                    {{k.label}}
+                    <Icon @name={{k.icon}} @size={{14}} />
+                    <span
+                      class="dis-cal-legend-label"
+                      {{rough
+                        "highlight"
+                        color="--dis-highlight"
+                        show=k.on
+                        padding=2
+                        iterations=1
+                      }}
+                    >{{k.label}}</span>
                     <span class="dis-cal-legend-n">{{num k.n}}</span>
                   </button>
                 {{/each}}

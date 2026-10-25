@@ -9,6 +9,7 @@ import Icon from 'ui/components/icon';
 import SeatChart, { type Seat } from 'ui/components/seat-chart';
 import Tag from 'ui/components/tag';
 import VoteBar from 'ui/components/vote-bar';
+import rough from 'ui/modifiers/rough';
 import type NavService from 'ui/services/nav';
 import {
   SEAT_ORDER,
@@ -23,18 +24,23 @@ export interface Outcome {
   key: 'einstimmig' | 'angenommen' | 'abgelehnt';
   label: string;
   contested: boolean;
+  close: boolean;
 }
+
+// margin in votes, out of 49 seats in the Gemeinderat
+const CLOSE = 3;
 
 export function outcome(v?: Vote): Outcome | undefined {
   if (!v || !hasTally(v)) return undefined;
   const ja = v.ja ?? 0;
   const nein = v.nein ?? 0;
   const contested = nein > 0;
+  const close = contested && Math.abs(ja - nein) <= CLOSE;
   if (!contested && !(v.enthaltung ?? 0))
-    return { key: 'einstimmig', label: 'Einstimmig', contested };
+    return { key: 'einstimmig', label: 'Einstimmig', contested, close };
   return ja > nein
-    ? { key: 'angenommen', label: 'Angenommen', contested }
-    : { key: 'abgelehnt', label: 'Abgelehnt', contested };
+    ? { key: 'angenommen', label: 'Angenommen', contested, close }
+    : { key: 'abgelehnt', label: 'Abgelehnt', contested, close };
 }
 
 const CAST = ['ja', 'nein', 'enthaltung'];
@@ -47,6 +53,7 @@ interface Party {
   n: Record<string, number>;
   line?: string;
   dissent: Seat[];
+  split: boolean;
 }
 
 const rank = (code: string) => {
@@ -72,20 +79,29 @@ export function parties(seats: Seat[]): Party[] {
       const leaders = CAST.filter((v) => (n[v] ?? 0) === top);
       // a tie has no party line, so nobody deviates from it
       const line = top > 0 && leaders.length === 1 ? leaders[0] : undefined;
+      const dissent = line
+        ? members.filter(
+            (m) => m.vote && CAST.includes(m.vote) && m.vote !== line,
+          )
+        : [];
       return {
         code,
         mark: SUBMITTERS[code]?.mark,
         name: SUBMITTERS[code]?.name ?? code,
         n,
         line,
-        dissent: line
-          ? members.filter(
-              (m) => m.vote && CAST.includes(m.vote) && m.vote !== line,
-            )
-          : [],
+        dissent,
+        split: dissent.length > 0,
       };
     });
 }
+
+const OUTCOME_ICON: Record<string, string> = {
+  einstimmig: 'check-check',
+  angenommen: 'thumbs-up',
+  abgelehnt: 'thumbs-down',
+};
+export const outcomeIcon = (key: string) => OUTCOME_ICON[key] ?? 'vote';
 
 const voteLabel = (v?: string | null) => VOTE_LABEL[v ?? ''] ?? v ?? '';
 const several = (p: Party) =>
@@ -135,7 +151,18 @@ export default class VoteBlock extends Component<Signature> {
           <span
             class="dis-outcome dis-outcome--{{this.outcome.key}}
               {{if this.outcome.contested 'dis-outcome--contested'}}"
-          >{{this.outcome.label}}</span>
+            title={{if this.outcome.close "Knapp"}}
+            {{rough
+              (if this.outcome.close "box" "underline")
+              color="--dis-no"
+              show=this.outcome.contested
+              padding=4
+              delay=200
+            }}
+          ><Icon
+              @name={{outcomeIcon this.outcome.key}}
+              @size={{12}}
+            />{{this.outcome.label}}</span>
         {{/if}}
         {{#if @vote.result_text}}
           <span class="dis-vote-result">{{@vote.result_text}}</span>
@@ -154,9 +181,10 @@ export default class VoteBlock extends Component<Signature> {
         <div class="dis-vote-roll">
           <div class="dis-vote-chart">
             <div class="dis-vote-chart-head">
-              <h5 class="dis-vote-title">Namentliche Abstimmung ({{num
-                  this.seats.length
-                }})</h5>
+              <h5 class="dis-vote-title"><Icon
+                  @name="vote"
+                  @size={{14}}
+                />Namentliche Abstimmung ({{num this.seats.length}})</h5>
               <CanonSegmented
                 class="dis-vote-mode"
                 @items={{MODES}}
@@ -178,9 +206,20 @@ export default class VoteBlock extends Component<Signature> {
 
           {{#if this.byParty.length}}
             <div class="dis-vote-parties">
-              <h5 class="dis-vote-title">Fraktionen
+              <h5 class="dis-vote-title"><Icon
+                  @name="users"
+                  @size={{14}}
+                />Fraktionen
                 {{#if this.dissenters}}
-                  <span class="dis-vote-dissent-n">{{num this.dissenters}}
+                  <span
+                    class="dis-vote-dissent-n"
+                    {{rough
+                      "circle"
+                      color="--dis-highlight"
+                      padding=5
+                      delay=500
+                    }}
+                  ><Icon @name="git-fork" @size={{12}} />{{num this.dissenters}}
                     abweichend</span>
                 {{/if}}
               </h5>
@@ -203,7 +242,18 @@ export default class VoteBlock extends Component<Signature> {
                       @nein={{p.n.nein}}
                       @enthaltung={{p.n.enthaltung}}
                     />
-                    <span class="dis-vote-party-who">
+                    <span
+                      class="dis-vote-party-who"
+                      {{rough
+                        "bracket"
+                        color="--dis-highlight"
+                        show=p.split
+                        brackets="left"
+                        padding=4
+                        strokeWidth=2
+                        delay=800
+                      }}
+                    >
                       {{#each p.dissent as |m|}}
                         {{#if m.person_id}}
                           <button
