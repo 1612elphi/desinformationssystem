@@ -85,9 +85,11 @@
 .dis-pane-spine {
   display: flex;
   flex: none;
-  flex-direction: column;
+
+  /* row follows the vertical text line, so kind and title read as one line */
+  flex-direction: row;
   gap: 8px;
-  align-items: center;
+  align-items: baseline;
 
   /* physical sizes: in vertical writing mode inline-size is the height */
   width: 40px;
@@ -112,6 +114,7 @@
 }
 
 .dis-pane-spine-title {
+  min-block-size: 0;
   overflow: hidden;
   font-size: var(--canon-text-subheadline);
   text-overflow: ellipsis;
