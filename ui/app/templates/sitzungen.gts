@@ -76,6 +76,7 @@ export default class SitzungenTemplate extends Component<Signature> {
 
   <template>
     {{pageTitle "Sitzungen"}}
+    <h1 class="dis-visually-hidden">Sitzungen</h1>
     {{#let @controller as |c|}}
       <div class="dis-sitzungen">
         <CanonRows @framed={{true}} class="dis-sitzungen-filters">

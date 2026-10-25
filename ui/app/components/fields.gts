@@ -62,7 +62,6 @@ export const DateField: TOC<{
 }> = <template>
   <CanonRow class="dis-field" @title={{@label}} @form="stacked" as |titleId|>
     <input
-      id={{@id}}
       type="date"
       class="dis-date"
       aria-labelledby={{titleId}}

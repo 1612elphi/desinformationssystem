@@ -66,6 +66,7 @@ export default class GremienTemplate extends Component<Signature> {
 
   <template>
     {{pageTitle "Gremien"}}
+    <h1 class="dis-visually-hidden">Gremien</h1>
     {{#let @controller as |c|}}
       <CanonSplit class="dis-gremien" @sidebarWidth={{380}}>
         <:sidebar>

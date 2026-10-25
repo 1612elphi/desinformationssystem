@@ -60,6 +60,8 @@ export default class ColumnPicker extends Component<Signature> {
         <CanonRows>
           {{#each @columns as |c i|}}
             <CanonRow @title={{c.label}} as |titleId|>
+              {{! popover focus goes to its autofocus element on open }}
+              {{! template-lint-disable no-autofocus-attribute }}
               <CanonSwitch
                 aria-labelledby={{titleId}}
                 autofocus={{isFirst i}}
@@ -67,6 +69,7 @@ export default class ColumnPicker extends Component<Signature> {
                 @disabled={{this.isLast c.key}}
                 @onChange={{fn this.toggle c.key}}
               />
+              {{! template-lint-enable no-autofocus-attribute }}
             </CanonRow>
           {{/each}}
           <CanonButton
