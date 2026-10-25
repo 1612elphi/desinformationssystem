@@ -1,0 +1,4 @@
+.dis-palette .canon-command-list {
+  max-block-size: min(60dvh, 520px);
+  overflow-y: auto;
+}

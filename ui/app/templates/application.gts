@@ -1,8 +1,10 @@
 import Component from '@glimmer/component';
 import { service } from '@ember/service';
-import { fn } from '@ember/helper';
+import { tracked } from '@glimmer/tracking';
+import { concat, fn } from '@ember/helper';
 import type RouterService from '@ember/routing/router-service';
 import { pageTitle } from 'ember-page-title';
+import CanonButton from 'delphicanon/components/canon-button';
 import CanonSidebar from 'delphicanon/components/canon-sidebar';
 import CanonSidebarRow from 'delphicanon/components/canon-sidebar-row';
 import CanonWindow from 'delphicanon/components/canon-window';
@@ -16,15 +18,10 @@ import DocModal from 'ui/components/doc-modal';
 import MeetingModal from 'ui/components/meeting-modal';
 import PersonModal from 'ui/components/person-modal';
 import VorlageModal from 'ui/components/vorlage-modal';
+import PaletteDialog, { VIEWS } from 'ui/components/palette-dialog';
+import ShortcutsSheet, { MOD } from 'ui/components/shortcuts-sheet';
+import shortcut from 'ui/modifiers/shortcut';
 import { RIS_START, scrapeTime } from 'ui/utils/meta';
-
-const VIEWS = [
-  { route: 'index', label: 'Dokumente', icon: 'document' },
-  { route: 'sitzungen', label: 'Sitzungen', icon: 'calendar' },
-  { route: 'gremien', label: 'Gremien', icon: 'users' },
-  { route: 'statistik', label: 'Statistik', icon: 'chart' },
-  { route: 'karte', label: 'Karte', icon: 'map' },
-];
 
 // The same path only works behind the path-routing tunnel (dis.delphi.tools);
 // on a direct deployment the MCP server listens on its own port.
@@ -42,6 +39,11 @@ interface Signature {
 export default class ApplicationTemplate extends Component<Signature> {
   @service declare router: RouterService;
   @service declare nav: NavService;
+
+  @tracked palette = false;
+
+  openPalette = () => (this.palette = true);
+  closePalette = () => (this.palette = false);
 
   isView = (route: string) => this.router.currentRouteName === route;
   href = (route: string) => this.router.urlFor(route);
@@ -65,6 +67,16 @@ export default class ApplicationTemplate extends Component<Signature> {
     <CanonWindow class="dis-window" @title="Desinformationssystem">
       <:toolbar>
         <div class="dis-toolbar">
+          <CanonButton
+            class="dis-toolbar-search"
+            @kind="cell"
+            @text="Suchen"
+            @icon={{component Icon name="search"}}
+            @onClick={{this.openPalette}}
+            aria-keyshortcuts="Meta+K Control+K"
+            data-keys={{concat MOD " K"}}
+            {{shortcut "mod+k" this.openPalette}}
+          />
           <a href={{RIS_START}} target="_blank" rel="noopener noreferrer">
             Original-RIS
             <Icon @name="launch" @size={{14}} />
@@ -80,6 +92,7 @@ export default class ApplicationTemplate extends Component<Signature> {
               @href={{this.href v.route}}
               @selected={{this.isView v.route}}
               @onClick={{fn this.go v.route}}
+              data-keys={{concat "G " v.key}}
             />
           {{/each}}
         </CanonSidebar>
@@ -107,6 +120,8 @@ export default class ApplicationTemplate extends Component<Signature> {
       </:main>
     </CanonWindow>
 
+    <PaletteDialog @open={{this.palette}} @onClose={{this.closePalette}} />
+    <ShortcutsSheet />
     <MeetingModal
       @id={{@controller.meeting}}
       @open={{bool @controller.meeting}}

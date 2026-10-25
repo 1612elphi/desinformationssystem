@@ -1,12 +1,21 @@
 import Component from '@glimmer/component';
+import { cached, tracked } from '@glimmer/tracking';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
 import { fn } from '@ember/helper';
+import { htmlSafe } from '@ember/template';
 import type RouterService from '@ember/routing/router-service';
 import { pageTitle } from 'ember-page-title';
+import CanonButton from 'delphicanon/components/canon-button';
+import CanonEmptyRow from 'delphicanon/components/canon-empty-row';
 import CanonPage from 'delphicanon/components/canon-page';
-import DataTable from 'ui/components/data-table';
-import { InlineLoading, LoadError } from 'ui/components/loading';
+import CanonRows from 'delphicanon/components/canon-rows';
+import { search, type SearchResult } from 'ui/api';
+import Icon from 'ui/components/icon';
+import { InlineLoading, LoadError, LoadState } from 'ui/components/loading';
+import Tag from 'ui/components/tag';
+import shortcut from 'ui/modifiers/shortcut';
+import Load from 'ui/utils/load';
 import type { ApplicationModel } from 'ui/routes/application';
 import type NavService from 'ui/services/nav';
 import stadtteile from 'ui/stadtteile.json';
@@ -106,10 +115,10 @@ const LABELS = [...SHAPES]
 
 const VIEWBOX = `0 0 ${W} ${H.toFixed(0)}`;
 const STEPS = 4;
-const COLUMNS = [
-  { key: 'name', label: 'Stadtteil' },
-  { key: 'count', label: 'Dokumente', width: '8rem', cls: 'dis-num' },
-];
+const LATEST = 5;
+const dateDe = (iso?: string) =>
+  iso ? iso.split('-').reverse().join('.') : '';
+const rowId = (name: string) => `dis-district-${name.replace(/\W+/g, '-')}`;
 
 // ∑CG: error row when the district document counts did not load
 //   spec: one short sentence, plain German, says the counts per district are unavailable; shown after "Fehler: "
@@ -123,6 +132,10 @@ interface Signature {
 export default class KarteTemplate extends Component<Signature> {
   @service declare nav: NavService;
   @service declare router: RouterService;
+
+  // the district under the pointer or focus, on the map or in the list
+  @tracked hot = '';
+  @tracked selected = '';
 
   get facets() {
     return this.args.model.facets;
@@ -170,85 +183,185 @@ export default class KarteTemplate extends Component<Signature> {
     return items;
   }
 
+  // ranked by count, so the list reads as a bar chart
   get rows() {
     return SHAPES.map((s) => ({
       name: s.name,
+      id: rowId(s.name),
       count: this.count(s.name),
-    })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
+      bar: htmlSafe(`inline-size: ${(this.count(s.name) / this.max) * 100}%`),
+    })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'de'));
   }
 
   label = (name: string) => `${name}: ${num(this.count(name))} Dokumente`;
-  rowLabel = (row: { name: string }) => this.label(row.name);
 
   href = (name: string) =>
     this.router.urlFor('index', { queryParams: { district: name } });
 
-  filter = (name: string) => this.nav.filter({ district: name });
-  openRow = (row: { name: string }) => this.filter(row.name);
+  stateOf = (name: string) =>
+    [
+      name === this.hot ? 'dis-teil--hot' : '',
+      name === this.selected ? 'dis-teil--selected' : '',
+    ].join(' ');
+
+  enter = (name: string) => (this.hot = name);
+  leave = () => (this.hot = '');
+
+  // from the map the list row also scrolls into view inside its pane
+  enterMap = (name: string) => {
+    this.hot = name;
+    document.getElementById(rowId(name))?.scrollIntoView({ block: 'nearest' });
+  };
+
+  select = (name: string) =>
+    (this.selected = this.selected === name ? '' : name);
+  unselect = () => (this.selected = '');
+
+  #lastLatest?: Load<SearchResult>;
+
+  @cached
+  get latest() {
+    if (!this.selected) return undefined;
+    // untracked handle on the previous request, read by the new Load only
+    // eslint-disable-next-line ember/no-side-effects
+    return (this.#lastLatest = new Load(
+      search({ district: this.selected, limit: LATEST }),
+      this.#lastLatest,
+    ));
+  }
+
+  filter = () => this.nav.filter({ district: this.selected });
+  openDoc = (id: string) => this.nav.open({ doc: id });
 
   // modified clicks keep the browser's own link handling (new tab, window)
   click = (name: string, event: MouseEvent) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
       return;
     event.preventDefault();
-    this.filter(name);
+    this.select(name);
   };
 
   <template>
     {{pageTitle "Karte"}}
-    <CanonPage class="dis-karte" @maxWidth={{1080}}>
+    <CanonPage class="dis-karte" @maxWidth={{1280}}>
       <h1 class="dis-visually-hidden">Karte</h1>
       {{#if this.error}}
         <LoadError @error={{this.error}} />
       {{else if this.counts}}
-        <div class="dis-map">
-          <svg
-            viewBox={{VIEWBOX}}
-            class="dis-map-svg"
-            role="group"
-            aria-label="Karte der Stadtteile nach Dokumentanzahl"
-          >
-            {{#each SHAPES as |s|}}
-              <a
-                href={{this.href s.name}}
-                class="dis-teil dis-step-{{this.step s.name}}"
-                aria-label={{this.label s.name}}
-                {{on "click" (fn this.click s.name)}}
-              ><path d={{s.d}} /></a>
-            {{/each}}
-            {{#each LABELS as |s|}}
-              <text
-                x={{s.cx}}
-                y={{s.cy}}
-                class="dis-teil-lbl"
-                aria-hidden="true"
-              >{{s.name}}</text>
-            {{/each}}
-          </svg>
-          <div class="dis-legend" aria-hidden="true">
-            <span class="dis-legend-title">Dokumente</span>
-            {{#each this.legend as |l|}}
-              <span class="dis-legend-item">
-                <span class="dis-swatch dis-step-{{l.step}}"></span>
-                {{l.text}}
-              </span>
-            {{/each}}
+        <div class="dis-karte-body">
+          <div class="dis-map">
+            <svg
+              viewBox={{VIEWBOX}}
+              class="dis-map-svg"
+              role="group"
+              aria-label="Karte der Stadtteile nach Dokumentanzahl"
+            >
+              {{#each SHAPES as |s|}}
+                <a
+                  href={{this.href s.name}}
+                  class="dis-teil dis-step-{{this.step s.name}}
+                    {{this.stateOf s.name}}"
+                  aria-label={{this.label s.name}}
+                  {{on "click" (fn this.click s.name)}}
+                  {{on "mouseenter" (fn this.enterMap s.name)}}
+                  {{on "mouseleave" this.leave}}
+                  {{on "focus" (fn this.enterMap s.name)}}
+                  {{on "blur" this.leave}}
+                ><path d={{s.d}} /></a>
+              {{/each}}
+              {{#each LABELS as |s|}}
+                <text
+                  x={{s.cx}}
+                  y={{s.cy}}
+                  class="dis-teil-lbl"
+                  aria-hidden="true"
+                >{{s.name}}</text>
+              {{/each}}
+            </svg>
+            <div class="dis-legend" aria-hidden="true">
+              <span class="dis-legend-title">Dokumente</span>
+              {{#each this.legend as |l|}}
+                <span class="dis-legend-item">
+                  <span class="dis-swatch dis-step-{{l.step}}"></span>
+                  {{l.text}}
+                </span>
+              {{/each}}
+            </div>
+
+            {{#if this.selected}}
+              <section
+                class="dis-district-panel"
+                aria-label={{this.selected}}
+                {{shortcut "Escape" this.unselect}}
+              >
+                <CanonRows @framed={{true}}>
+                  <div class="dis-district-head">
+                    <h2 class="dis-district-title">{{this.selected}}</h2>
+                    <span class="dis-district-count">{{num
+                        (this.count this.selected)
+                      }}
+                      Dokumente</span>
+                    <CanonButton
+                      @kind="cell"
+                      @icon={{component Icon name="close"}}
+                      @label="Schließen"
+                      @onClick={{this.unselect}}
+                    />
+                  </div>
+                  <LoadState @load={{this.latest}}>
+                    {{#each this.latest.value.results key="id" as |d|}}
+                      <button
+                        type="button"
+                        class="dis-latest"
+                        {{on "click" (fn this.openDoc d.id)}}
+                      >
+                        <span class="dis-latest-date">{{dateDe
+                            d.meeting_date
+                          }}</span>
+                        <span class="dis-latest-label">{{d.label}}</span>
+                        {{#if d.doc_type}}<Tag>{{d.doc_type}}</Tag>{{/if}}
+                      </button>
+                    {{else}}
+                      <CanonEmptyRow @text="Keine Dokumente" />
+                    {{/each}}
+                  </LoadState>
+                  <CanonButton
+                    @kind="primary"
+                    @text="Alle Dokumente"
+                    @icon={{component Icon name="chevron-right"}}
+                    @onClick={{this.filter}}
+                  />
+                </CanonRows>
+              </section>
+            {{/if}}
           </div>
+
+          <ul class="dis-districts" aria-label="Stadtteile">
+            {{#each this.rows key="name" as |row|}}
+              <li>
+                <button
+                  type="button"
+                  id={{row.id}}
+                  class="dis-district {{this.stateOf row.name}}"
+                  aria-label={{this.label row.name}}
+                  aria-pressed={{if (eq this.selected row.name) "true" "false"}}
+                  {{on "click" (fn this.select row.name)}}
+                  {{on "mouseenter" (fn this.enter row.name)}}
+                  {{on "mouseleave" this.leave}}
+                  {{on "focus" (fn this.enter row.name)}}
+                  {{on "blur" this.leave}}
+                >
+                  <span class="dis-district-name">{{row.name}}</span>
+                  <span class="dis-district-track" aria-hidden="true"><span
+                      class="dis-district-bar dis-step-{{this.step row.name}}"
+                      style={{row.bar}}
+                    ></span></span>
+                  <span class="dis-district-n">{{num row.count}}</span>
+                </button>
+              </li>
+            {{/each}}
+          </ul>
         </div>
-        <DataTable
-          @columns={{COLUMNS}}
-          @rows={{this.rows}}
-          @caption="Stadtteile"
-          @onOpen={{this.openRow}}
-          @rowLabel={{this.rowLabel}}
-          as |row col|
-        >
-          {{#if (eq col.key "name")}}
-            {{row.name}}
-          {{else}}
-            {{num row.count}}
-          {{/if}}
-        </DataTable>
       {{else}}
         <InlineLoading @text="Lädt…" />
       {{/if}}

@@ -1,5 +1,8 @@
 import Component from '@glimmer/component';
-import { cached } from '@glimmer/tracking';
+import { cached, tracked } from '@glimmer/tracking';
+import { fn } from '@ember/helper';
+import { on } from '@ember/modifier';
+import { service } from '@ember/service';
 import { htmlSafe } from '@ember/template';
 import { pageTitle } from 'ember-page-title';
 import CanonBar from 'delphicanon/components/canon-bar';
@@ -8,30 +11,56 @@ import CanonPage from 'delphicanon/components/canon-page';
 import CanonRows from 'delphicanon/components/canon-rows';
 import CanonTiles from 'delphicanon/components/canon-tiles';
 import type { Analytics, AnalyticsParty } from 'ui/api';
-import DataTable from 'ui/components/data-table';
 import { LoadState } from 'ui/components/loading';
 import PartyChip from 'ui/components/party-chip';
-import type Load from 'ui/utils/load';
-import { eq, num, pct } from 'ui/utils/meta';
+import Icon from 'ui/components/icon';
+import type NavService from 'ui/services/nav';
+import { getPeople } from 'ui/utils/api-shell';
+import Load from 'ui/utils/load';
+import { eq, num, pct, SEAT_ORDER } from 'ui/utils/meta';
 import './statistik.css';
 
-const DISSENTER_COLUMNS = [
+type Dissenter = Analytics['dissenters'][number] & { rate: number };
+type SortKey = 'name' | 'party' | 'dissents' | 'votes' | 'rate';
+
+const DISSENTER_COLUMNS: { key: SortKey; label: string; num?: boolean }[] = [
   { key: 'name', label: 'Name (Panel)' },
-  { key: 'party', label: 'Fraktion', width: '7rem' },
-  { key: 'dissents', label: 'Abweichungen', width: '8rem', cls: 'dis-num' },
-  { key: 'votes', label: 'Stimmen', width: '6rem', cls: 'dis-num' },
+  { key: 'party', label: 'Fraktion' },
+  { key: 'dissents', label: 'Abweichungen', num: true },
+  { key: 'votes', label: 'Stimmen', num: true },
+  { key: 'rate', label: 'Quote', num: true },
 ];
 
 const basis = (n: number | null | undefined) =>
   htmlSafe(`flex-basis: ${(n ?? 0) * 100}%`);
+const seat = (code: string) => {
+  const i = SEAT_ORDER.indexOf(code);
+  return i < 0 ? SEAT_ORDER.length : i;
+};
 
 interface Signature {
   Args: { model: Load<Analytics> };
 }
 
 export default class StatistikTemplate extends Component<Signature> {
+  @service declare nav: NavService;
+
+  // a party under the pointer or focus, and the one picked by click
+  @tracked hover = '';
+  @tracked selected = '';
+  @tracked cellRow = '';
+  @tracked cellCol = '';
+  @tracked sortKey: SortKey = 'dissents';
+  @tracked sortAsc = false;
+
+  people = new Load(getPeople());
+
   get data() {
     return this.args.model.value;
+  }
+
+  get focus() {
+    return this.hover || this.selected;
   }
 
   get tiles() {
@@ -47,10 +76,17 @@ export default class StatistikTemplate extends Component<Signature> {
 
   share = (part: number, whole: number) => (whole ? pct(part / whole) : '—');
 
+  @cached
+  get parties() {
+    return [...(this.data?.parties ?? [])].sort(
+      (a, b) => seat(a.code) - seat(b.code),
+    );
+  }
+
   get maxCast() {
     return Math.max(
       1,
-      ...(this.data?.parties ?? []).map((p) => p.ja + p.nein + p.enthaltung),
+      ...this.parties.map((p) => p.ja + p.nein + p.enthaltung),
     );
   }
 
@@ -60,7 +96,7 @@ export default class StatistikTemplate extends Component<Signature> {
   cohesion = (p: AnalyticsParty) => p.cohesion ?? 0;
 
   get codes() {
-    return (this.data?.parties ?? []).map((p) => p.code);
+    return this.parties.map((p) => p.code);
   }
 
   get showMatrix() {
@@ -89,10 +125,98 @@ export default class StatistikTemplate extends Component<Signature> {
       title: `${row} & ${col}: ${pct(c.agree)} (${num(c.n)} gemeinsame Abstimmungen)`,
       text: String(Math.round(c.agree * 100)),
       style: htmlSafe(
-        `background: color-mix(in srgb, var(--canon-primary) ${Math.round(5 + c.agree * 50)}%, var(--canon-card))`,
+        `--dis-agree: color-mix(in srgb, var(--canon-primary) ${Math.round(5 + c.agree * 50)}%, var(--canon-card))`,
       ),
     };
   };
+
+  // the hovered cell lights its row and column; otherwise the focused party lights both
+  rowLit = (code: string) => code === (this.cellRow || this.focus);
+  colLit = (code: string) => code === (this.cellCol || this.focus);
+  cellLit = (row: string, col: string) => this.rowLit(row) || this.colLit(col);
+  isHot = (code: string) => code === this.focus;
+  dim = (code: string) => !!this.focus && code !== this.focus;
+
+  // the matrix row of one party as a ranking: who votes with it most
+  get allyParty() {
+    return this.focus || this.codes[0] || '';
+  }
+
+  get allies() {
+    const p = this.allyParty;
+    return this.codes
+      .filter((c) => c !== p)
+      .map((c) => ({ code: c, agree: this.agreement.get(`${p}|${c}`) }))
+      .filter((x) => x.agree)
+      .sort((a, b) => (b.agree?.agree ?? 0) - (a.agree?.agree ?? 0))
+      .map((x) => ({
+        code: x.code,
+        share: x.agree?.agree ?? 0,
+        n: x.agree?.n ?? 0,
+      }));
+  }
+
+  enter = (code: string) => (this.hover = code);
+  leave = () => (this.hover = '');
+  enterCell = (row: string, col: string) => {
+    this.cellRow = row;
+    this.cellCol = col;
+  };
+  leaveCell = () => {
+    this.cellRow = '';
+    this.cellCol = '';
+  };
+  toggle = (code: string) =>
+    (this.selected = this.selected === code ? '' : code);
+  clear = () => (this.selected = '');
+
+  @cached
+  get dissenters(): Dissenter[] {
+    const rows = (this.data?.dissenters ?? [])
+      .filter((d) => !this.selected || d.party === this.selected)
+      .map((d) => ({ ...d, rate: d.votes ? d.dissents / d.votes : 0 }));
+    const k = this.sortKey;
+    const dir = this.sortAsc ? 1 : -1;
+    return rows.sort((a, b) => {
+      const x = a[k];
+      const y = b[k];
+      return (
+        dir *
+        (typeof x === 'string'
+          ? x.localeCompare(y as string, 'de')
+          : x - (y as number))
+      );
+    });
+  }
+
+  get maxRate() {
+    return Math.max(0.01, ...this.dissenters.map((d) => d.rate));
+  }
+
+  rateShare = (d: Dissenter) => d.rate / this.maxRate;
+
+  sortBy = (key: SortKey) => {
+    if (this.sortKey === key) this.sortAsc = !this.sortAsc;
+    else {
+      this.sortKey = key;
+      this.sortAsc = key === 'name' || key === 'party';
+    }
+  };
+
+  ariaSort = (key: SortKey) =>
+    this.sortKey === key ? (this.sortAsc ? 'ascending' : 'descending') : 'none';
+  sortMark = (key: SortKey) =>
+    this.sortKey === key ? (this.sortAsc ? '↑' : '↓') : '';
+
+  // the panel records surnames only; a unique surname within the party names the person
+  personFor = (d: Dissenter) => {
+    const hits = (this.people.value ?? []).filter(
+      (p) => p.party_code === d.party && p.name.split(' ').at(-1) === d.name,
+    );
+    return hits.length === 1 ? hits[0]?.person_id : undefined;
+  };
+
+  openPerson = (id: string) => this.nav.open({ person: id });
 
   <template>
     {{pageTitle "Statistik"}}
@@ -113,8 +237,23 @@ export default class StatistikTemplate extends Component<Signature> {
                   eigenen Fraktion folgen.
                 </p>
                 <CanonRows @framed={{true}}>
-                  {{#each data.parties key="code" as |p|}}
-                    <div class="dis-bar-row">
+                  {{#each this.parties key="code" as |p|}}
+                    <button
+                      type="button"
+                      class="dis-bar-row dis-party-row
+                        {{if (this.isHot p.code) 'dis-hot'}}
+                        {{if (this.dim p.code) 'dis-dim'}}"
+                      aria-pressed={{if
+                        (eq this.selected p.code)
+                        "true"
+                        "false"
+                      }}
+                      {{on "click" (fn this.toggle p.code)}}
+                      {{on "mouseenter" (fn this.enter p.code)}}
+                      {{on "mouseleave" this.leave}}
+                      {{on "focus" (fn this.enter p.code)}}
+                      {{on "blur" this.leave}}
+                    >
                       <span class="dis-bar-label"><PartyChip
                           @code={{p.code}}
                           @party={{p.code}}
@@ -129,7 +268,7 @@ export default class StatistikTemplate extends Component<Signature> {
                         Abst. ·
                         {{num p.members_cast}}
                         Stimmen</span>
-                    </div>
+                    </button>
                   {{/each}}
                 </CanonRows>
               </section>
@@ -141,8 +280,16 @@ export default class StatistikTemplate extends Component<Signature> {
                   Nein, Grau = Enthaltung — wie auf dem Abstimmungspanel).
                 </p>
                 <CanonRows @framed={{true}}>
-                  {{#each data.parties key="code" as |p|}}
-                    <div class="dis-bar-row">
+                  {{#each this.parties key="code" as |p|}}
+                    {{! template-lint-disable no-invalid-interactive }}
+                    <div
+                      class="dis-bar-row
+                        {{if (this.isHot p.code) 'dis-hot'}}
+                        {{if (this.dim p.code) 'dis-dim'}}"
+                      {{on "mouseenter" (fn this.enter p.code)}}
+                      {{on "mouseleave" this.leave}}
+                      {{on "click" (fn this.toggle p.code)}}
+                    >
                       <span class="dis-bar-label"><PartyChip
                           @code={{p.code}}
                           @party={{p.code}}
@@ -181,62 +328,204 @@ export default class StatistikTemplate extends Component<Signature> {
                     Wie oft zwei Fraktionen bei derselben Abstimmung dieselbe
                     Mehrheitslinie hatten.
                   </p>
-                  <div class="dis-matrix-wrap">
-                    <table class="dis-matrix">
-                      <thead>
-                        <tr>
-                          <td></td>
-                          {{#each this.codes as |code|}}
-                            <th scope="col">{{code}}</th>
-                          {{/each}}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {{#each this.codes as |row|}}
+                  <div class="dis-agree">
+                    <div class="dis-matrix-wrap">
+                      <table
+                        class="dis-matrix"
+                        {{on "mouseleave" this.leaveCell}}
+                      >
+                        <thead>
                           <tr>
-                            <th scope="row">{{row}}</th>
-                            {{#each this.codes as |col|}}
-                              {{#if (eq row col)}}
-                                <td class="dis-matrix-self"></td>
-                              {{else}}
-                                {{#let (this.cell row col) as |x|}}
-                                  <td
-                                    title={{x.title}}
-                                    style={{x.style}}
-                                  >{{x.text}}</td>
-                                {{/let}}
-                              {{/if}}
+                            <td></td>
+                            {{#each this.codes as |code|}}
+                              <th
+                                scope="col"
+                                class={{if (this.colLit code) "dis-lit"}}
+                              >
+                                <button
+                                  type="button"
+                                  class="dis-matrix-party"
+                                  aria-pressed={{if
+                                    (eq this.selected code)
+                                    "true"
+                                    "false"
+                                  }}
+                                  {{on "click" (fn this.toggle code)}}
+                                  {{on "mouseenter" (fn this.enter code)}}
+                                  {{on "mouseleave" this.leave}}
+                                >{{code}}</button>
+                              </th>
                             {{/each}}
                           </tr>
+                        </thead>
+                        <tbody>
+                          {{#each this.codes as |row|}}
+                            <tr>
+                              <th
+                                scope="row"
+                                class={{if (this.rowLit row) "dis-lit"}}
+                              >
+                                <button
+                                  type="button"
+                                  class="dis-matrix-party"
+                                  tabindex="-1"
+                                  {{on "click" (fn this.toggle row)}}
+                                  {{on "mouseenter" (fn this.enter row)}}
+                                  {{on "mouseleave" this.leave}}
+                                >{{row}}</button>
+                              </th>
+                              {{#each this.codes as |col|}}
+                                {{#if (eq row col)}}
+                                  <td
+                                    class="dis-matrix-self
+                                      {{if (this.cellLit row col) 'dis-lit'}}"
+                                  ></td>
+                                {{else}}
+                                  {{#let (this.cell row col) as |x|}}
+                                    <td
+                                      class={{if
+                                        (this.cellLit row col)
+                                        "dis-lit"
+                                      }}
+                                      title={{x.title}}
+                                      style={{x.style}}
+                                      {{on
+                                        "mouseenter"
+                                        (fn this.enterCell row col)
+                                      }}
+                                    >{{x.text}}</td>
+                                  {{/let}}
+                                {{/if}}
+                              {{/each}}
+                            </tr>
+                          {{/each}}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="dis-allies">
+                      <h3 class="dis-allies-heading">Übereinstimmung mit
+                        <PartyChip
+                          @code={{this.allyParty}}
+                          @party={{this.allyParty}}
+                        /></h3>
+                      <CanonRows @framed={{true}}>
+                        {{#each this.allies key="code" as |a|}}
+                          {{! template-lint-disable no-invalid-interactive }}
+                          <div
+                            class="dis-bar-row dis-ally"
+                            title="{{num a.n}} gemeinsame Abstimmungen"
+                            {{on "click" (fn this.toggle a.code)}}
+                          >
+                            <span class="dis-bar-label"><PartyChip
+                                @code={{a.code}}
+                                @party={{a.code}}
+                              /></span>
+                            <CanonBar
+                              class="dis-bar"
+                              aria-hidden="true"
+                              @share={{a.share}}
+                            />
+                            <span class="dis-bar-value">{{pct a.share}}</span>
+                          </div>
                         {{/each}}
-                      </tbody>
-                    </table>
+                      </CanonRows>
+                    </div>
                   </div>
                 </section>
               {{/if}}
 
               {{#if data.dissenters.length}}
                 <section class="dis-stat-section">
-                  <h2 class="dis-stat-heading">Abweichler</h2>
+                  <div class="dis-stat-headrow">
+                    <h2 class="dis-stat-heading">Abweichler</h2>
+                    {{#if this.selected}}
+                      <button
+                        type="button"
+                        class="dis-filter-chip"
+                        aria-label="Alle Fraktionen"
+                        {{on "click" this.clear}}
+                      >
+                        <PartyChip
+                          @code={{this.selected}}
+                          @party={{this.selected}}
+                        />
+                        <Icon @name="close" @size={{14}} />
+                      </button>
+                    {{/if}}
+                  </div>
                   <p class="dis-stat-note">
                     Mitglieder, die am häufigsten gegen die Mehrheitslinie ihrer
                     Fraktion gestimmt haben.
                   </p>
-                  <DataTable
-                    @columns={{DISSENTER_COLUMNS}}
-                    @rows={{data.dissenters}}
-                    as |d col|
-                  >
-                    {{#if (eq col.key "name")}}
-                      {{d.name}}
-                    {{else if (eq col.key "party")}}
-                      <PartyChip @code={{d.party}} @party={{d.party}} />
-                    {{else if (eq col.key "dissents")}}
-                      {{num d.dissents}}
-                    {{else}}
-                      {{num d.votes}}
-                    {{/if}}
-                  </DataTable>
+                  <div class="dis-dissent-wrap">
+                    <table class="dis-dissent">
+                      <thead>
+                        <tr>
+                          {{#each DISSENTER_COLUMNS as |c|}}
+                            <th
+                              scope="col"
+                              class={{if c.num "dis-num"}}
+                              aria-sort={{this.ariaSort c.key}}
+                            >
+                              <button
+                                type="button"
+                                {{on "click" (fn this.sortBy c.key)}}
+                              >{{c.label}}
+                                <span
+                                  class="dis-sort"
+                                  aria-hidden="true"
+                                >{{this.sortMark c.key}}</span></button>
+                            </th>
+                          {{/each}}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {{#each this.dissenters as |d|}}
+                          <tr
+                            class="{{if (this.isHot d.party) 'dis-hot'}}
+                              {{if (this.dim d.party) 'dis-dim'}}"
+                          >
+                            <td data-label="Name">
+                              {{#let (this.personFor d) as |id|}}
+                                {{#if id}}
+                                  <button
+                                    type="button"
+                                    class="dis-link"
+                                    {{on "click" (fn this.openPerson id)}}
+                                  >{{d.name}}</button>
+                                {{else}}
+                                  {{d.name}}
+                                {{/if}}
+                              {{/let}}
+                            </td>
+                            <td data-label="Fraktion">
+                              <PartyChip @code={{d.party}} @party={{d.party}} />
+                            </td>
+                            <td class="dis-num" data-label="Abweichungen">{{num
+                                d.dissents
+                              }}</td>
+                            <td class="dis-num" data-label="Stimmen">{{num
+                                d.votes
+                              }}</td>
+                            <td class="dis-num dis-rate" data-label="Quote">
+                              <CanonBar
+                                class="dis-rate-bar"
+                                aria-hidden="true"
+                                @share={{this.rateShare d}}
+                              />
+                              {{pct d.rate}}
+                            </td>
+                          </tr>
+                        {{else}}
+                          <tr>
+                            <td colspan="5">
+                              <CanonEmptyRow @text="Keine Abweichler" />
+                            </td>
+                          </tr>
+                        {{/each}}
+                      </tbody>
+                    </table>
+                  </div>
                 </section>
               {{/if}}
 

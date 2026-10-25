@@ -163,3 +163,44 @@ button:focus-visible {
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);
 }
+
+/* view shortcut letters (g then the letter); ::after is the kit's selected fill, neutral rows leave ::before free */
+.dis-window .canon-sidebar-row[data-keys]::before {
+  content: attr(data-keys);
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 12px;
+  z-index: 1;
+  translate: 0 -50%;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-caption);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dis-window .canon-sidebar-row[aria-current="page"]::before {
+  color: var(--canon-primary-foreground);
+  opacity: 0.75;
+}
+
+.dis-window .canon-sidebar--collapsed .canon-sidebar-row::before {
+  display: none;
+}
+
+@container canon-window (width < 640px) {
+  .dis-window
+    .canon-sidebar:not(.canon-sidebar--expanded)
+    .canon-sidebar-row::before {
+    display: none;
+  }
+}
+
+.dis-toolbar-search[data-keys]::after {
+  content: attr(data-keys);
+  margin-inline-start: 8px;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-caption);
+  letter-spacing: 0.05em;
+}

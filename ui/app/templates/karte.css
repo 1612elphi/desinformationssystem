@@ -110,7 +110,161 @@
   background: var(--dis-fill);
 }
 
-.dis-karte .dis-num {
+.dis-karte-body {
+  container-type: inline-size;
+  display: grid;
+  gap: var(--canon-panel-padding);
+}
+
+@container (inline-size >= 860px) {
+  .dis-karte-body {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    align-items: start;
+  }
+
+  /* the list scrolls beside the map, so a hovered district's row stays in reach */
+  .dis-districts {
+    position: sticky;
+    inset-block-start: 0;
+    max-block-size: calc(100dvh - 120px);
+    overflow-y: auto;
+  }
+}
+
+.dis-teil--hot path,
+.dis-teil--selected path {
+  stroke-width: 3;
+}
+
+.dis-teil--hot:not(.dis-teil--selected) path {
+  fill: color-mix(in srgb, var(--dis-highlight) 55%, var(--dis-fill));
+}
+
+.dis-teil--selected path {
+  stroke: var(--dis-highlight);
+  stroke-width: 4;
+}
+
+.dis-districts {
+  margin: 0;
+  padding: 0;
+  border: var(--canon-frame) solid var(--canon-foreground);
+  list-style: none;
+}
+
+.dis-districts li + li {
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-district {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(3rem, 6rem) 3.5rem;
+  gap: 12px;
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: var(--canon-control-height);
+  margin: 0;
+  padding: 4px var(--canon-panel-padding);
+  border: 0;
+  background: var(--canon-card);
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-subheadline);
+  text-align: start;
+  cursor: pointer;
+}
+
+.dis-district:focus-visible {
+  outline-offset: -2px;
+}
+
+.dis-district.dis-teil--hot {
+  background: color-mix(in srgb, var(--dis-highlight) 22%, var(--canon-card));
+}
+
+.dis-district[aria-pressed="true"] {
+  background: var(--canon-primary);
+  color: var(--canon-primary-foreground);
+}
+
+.dis-district-track {
+  block-size: 8px;
+  background: var(--canon-muted);
+}
+
+.dis-district-bar {
+  display: block;
+  block-size: 100%;
+  background: var(--dis-fill);
+}
+
+.dis-district[aria-pressed="true"] .dis-district-bar {
+  background: var(--canon-primary-foreground);
+}
+
+.dis-district-n {
   text-align: end;
   font-variant-numeric: tabular-nums;
+}
+
+.dis-district-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-inline-start: var(--canon-panel-padding);
+  background: var(--canon-card);
+}
+
+.dis-district-title {
+  margin: 0;
+  font-size: var(--canon-text-title3);
+  font-weight: var(--canon-weight-semibold);
+}
+
+.dis-district-count {
+  margin-inline-end: auto;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-latest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  inline-size: 100%;
+  min-block-size: var(--canon-control-height);
+  margin: 0;
+  padding: 8px var(--canon-panel-padding);
+  border: 0;
+  background: var(--canon-card);
+  color: inherit;
+  font: inherit;
+  font-size: var(--canon-text-subheadline);
+  text-align: start;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .dis-latest:hover,
+  .dis-district:not([aria-pressed="true"]):hover {
+    background: var(--canon-accent-bg);
+  }
+}
+
+.dis-latest:focus-visible {
+  outline-offset: -2px;
+}
+
+.dis-latest-date {
+  flex: 0 0 5.5rem;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-latest-label {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
 }
