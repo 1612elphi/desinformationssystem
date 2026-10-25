@@ -30,6 +30,22 @@ export const SUBMITTERS: Record<string, { mark?: string; name: string }> = {
   HEI: { name: 'Die Heimat' },
 };
 
+// Seat order in the chamber charts, left to right.
+export const SEAT_ORDER = [
+  'LIN',
+  'PAR',
+  'B90',
+  'VOL',
+  'SPD',
+  'KAL',
+  'FÜR',
+  'FDP',
+  'FWV',
+  'CDU',
+  'AFD',
+  'HEI',
+];
+
 // Display order for the originator filter (SVK first, AfD near the end).
 export const SUBMITTER_ORDER = [
   'SVK',

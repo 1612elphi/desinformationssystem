@@ -1,0 +1,64 @@
+.dis-votebar {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-inline-size: 7rem;
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-votebar-track {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 1px;
+  min-inline-size: 4rem;
+  block-size: 8px;
+  background: var(--canon-muted);
+}
+
+.dis-votebar--compact .dis-votebar-track {
+  block-size: 6px;
+}
+
+.dis-votebar-seg {
+  flex-basis: 0;
+  min-inline-size: 0;
+}
+
+.dis-votebar-ja {
+  background: var(--dis-yes);
+}
+
+.dis-votebar-nein {
+  background: var(--dis-no);
+}
+
+.dis-votebar-enth {
+  background: var(--dis-abstain);
+}
+
+.dis-votebar-nums {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.dis-votebar-n::before {
+  content: "";
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 6px;
+  margin-inline-end: 3px;
+  vertical-align: 1px;
+}
+
+.dis-votebar-ja-n::before {
+  background: var(--dis-yes);
+}
+
+.dis-votebar-nein-n::before {
+  background: var(--dis-no);
+}
+
+.dis-votebar-enth-n::before {
+  background: var(--dis-abstain);
+}

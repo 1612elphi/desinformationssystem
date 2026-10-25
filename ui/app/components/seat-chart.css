@@ -1,0 +1,28 @@
+.dis-seats {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 420px;
+  block-size: auto;
+}
+
+.dis-seat {
+  stroke: var(--canon-foreground);
+  stroke-width: 0.006;
+  stroke-opacity: 0.35;
+}
+
+.dis-seat--absent {
+  stroke-opacity: 0.6;
+  stroke-dasharray: 0.012 0.012;
+}
+
+.dis-seats--pickable .dis-seat {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .dis-seats--pickable .dis-seat:hover {
+    stroke-width: 0.02;
+    stroke-opacity: 1;
+  }
+}
