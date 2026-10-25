@@ -37,6 +37,18 @@ const resolve = (token: string) =>
 export default modifier(
   (el: HTMLElement, [type]: [RoughType], options: Options) => {
     if (options.show === false) return;
+    // the mark is an SVG sibling; inside a table row it would become a stray cell
+    if (/^(TD|TH|TR)$/.test(el.tagName)) {
+      console.warn('rough: mark an element inside the cell, not the cell', el);
+      return;
+    }
+    // the SVG is placed absolutely against the parent; a static parent lets it drift on scroll
+    const parent = el.parentElement;
+    const restore =
+      parent && getComputedStyle(parent).position === 'static'
+        ? parent.style.position
+        : undefined;
+    if (parent && restore !== undefined) parent.style.position = 'relative';
     const token = options.color ?? '--canon-primary';
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const mark = annotate(el, {
@@ -58,6 +70,7 @@ export default modifier(
       clearTimeout(timer);
       scheme.removeEventListener('change', recolour);
       mark.remove();
+      if (parent && restore !== undefined) parent.style.position = restore;
     };
   },
 );
