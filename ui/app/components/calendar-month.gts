@@ -2,6 +2,7 @@ import Component from '@glimmer/component';
 import { fn } from '@ember/helper';
 import { on } from '@ember/modifier';
 import CalendarChip from 'ui/components/calendar-chip';
+import rough from 'ui/modifiers/rough';
 import {
   DAY_LONG,
   WEEKDAYS,
@@ -97,7 +98,16 @@ export default class CalendarMonth extends Component<Signature> {
               data-today={{if c.today "true"}}
               {{on "focusin" (fn @onFocus c.date)}}
             >
-              <span class="dis-cal-date" aria-hidden="true">{{c.day}}</span>
+              {{! a static branch, so moving the focus does not redraw the mark }}
+              {{#if c.today}}
+                <span
+                  class="dis-cal-date"
+                  aria-hidden="true"
+                  {{rough "circle" padding=5 delay=400}}
+                >{{c.day}}</span>
+              {{else}}
+                <span class="dis-cal-date" aria-hidden="true">{{c.day}}</span>
+              {{/if}}
               {{#each c.shown as |m|}}
                 <CalendarChip
                   @meeting={{m}}

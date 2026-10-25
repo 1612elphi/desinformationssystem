@@ -3,6 +3,7 @@ import { fn } from '@ember/helper';
 import { on } from '@ember/modifier';
 import { htmlSafe } from '@ember/template';
 import CalendarChip from 'ui/components/calendar-chip';
+import rough from 'ui/modifiers/rough';
 import {
   DAY_LONG,
   DAY_SHORT,
@@ -121,7 +122,25 @@ export default class CalendarWeek extends Component<Signature> {
             data-today={{if c.today "true"}}
             {{on "focusin" (fn @onFocus c.date)}}
           >
-            <span class="dis-cal-week-head" aria-hidden="true">{{c.head}}</span>
+            {{! a static branch, so moving the focus does not redraw the mark }}
+            {{#if c.today}}
+              <span
+                class="dis-cal-week-head"
+                aria-hidden="true"
+                {{rough
+                  "underline"
+                  color="--dis-highlight"
+                  strokeWidth=3
+                  padding=0
+                  delay=400
+                }}
+              >{{c.head}}</span>
+            {{else}}
+              <span
+                class="dis-cal-week-head"
+                aria-hidden="true"
+              >{{c.head}}</span>
+            {{/if}}
             <div class="dis-cal-week-untimed">
               {{#each c.untimed as |m|}}
                 <CalendarChip

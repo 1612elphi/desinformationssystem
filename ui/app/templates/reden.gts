@@ -21,6 +21,7 @@ import PartyChip from 'ui/components/party-chip';
 import SeatChart, { type Seat } from 'ui/components/seat-chart';
 import Tag from 'ui/components/tag';
 import VoteBar from 'ui/components/vote-bar';
+import rough from 'ui/modifiers/rough';
 import shortcut from 'ui/modifiers/shortcut';
 import type NavService from 'ui/services/nav';
 import {
@@ -196,6 +197,17 @@ export default class RedenTemplate extends Component<Signature> {
     }));
   }
 
+  // the party furthest over its seat share
+  get loudest() {
+    let best = '';
+    let most = 0;
+    for (const f of this.floor) {
+      const d = (f.p.time_share ?? 0) - (f.p.seat_share ?? 0);
+      if (d > most) [best, most] = [f.p.code, d];
+    }
+    return best;
+  }
+
   @cached
   get seats(): Seat[] {
     return (this.data?.speakers ?? [])
@@ -366,13 +378,15 @@ export default class RedenTemplate extends Component<Signature> {
               class="dis-reden-chip"
               aria-label="Alle Fraktionen"
               {{on "click" this.clearParty}}
+              {{rough "circle" color="--dis-highlight" padding=6}}
             >
               <PartyChip @code={{this.party}} @party={{this.party}} />
               <Icon @name="close" @size={{14}} />
             </button>
           {{/if}}
           {{#if this.partial}}
-            <Tag>Jev
+            <Tag><Icon @name="bot" @size={{12}} />
+              Jev
               {{num this.data.totals.judged}}/{{num
                 this.data.totals.speeches
               }}</Tag>
@@ -383,7 +397,10 @@ export default class RedenTemplate extends Component<Signature> {
           </p>
         </div>
       </div>
-      <p class="dis-reden-note">{{METHOD_NOTE}}</p>
+      <p class="dis-reden-note dis-reden-method"><Icon
+          @name="sparkles"
+          @size={{14}}
+        />{{METHOD_NOTE}}</p>
 
       <LoadState @load={{this.c.load}}>
         {{#if this.data.totals.speeches}}
@@ -392,7 +409,8 @@ export default class RedenTemplate extends Component<Signature> {
           </CanonRows>
 
           <section class="dis-reden-section">
-            <h2 class="dis-reden-heading">Redezeit und Sitze</h2>
+            <h2 class="dis-reden-heading"><Icon @name="timer" />Redezeit und
+              Sitze</h2>
             <div class="dis-reden-floor">
               <div>
                 <p class="dis-reden-legend">
@@ -429,7 +447,15 @@ export default class RedenTemplate extends Component<Signature> {
                       </span>
                       <span
                         class="dis-reden-value {{if f.over 'dis-reden-over'}}"
-                      >{{pct f.p.time_share}}</span>
+                      ><span
+                          {{rough
+                            "underline"
+                            strokeWidth=2
+                            padding=1
+                            show=(eq f.p.code this.loudest)
+                            delay=300
+                          }}
+                        >{{pct f.p.time_share}}</span></span>
                       <span class="dis-reden-meta">{{pct f.p.seat_share}}
                         Sitze ·
                         {{mins f.p.secs}}</span>
@@ -451,9 +477,10 @@ export default class RedenTemplate extends Component<Signature> {
           </section>
 
           <section class="dis-reden-section">
-            <h2 class="dis-reden-heading">Wer am meisten redet</h2>
+            <h2 class="dis-reden-heading"><Icon @name="megaphone" />Wer am
+              meisten redet</h2>
             <CanonRows @framed={{true}}>
-              {{#each this.speakers key="s.name" as |x|}}
+              {{#each this.speakers key="s.name" as |x i|}}
                 {{#let (this.personId x.s.name) as |id|}}
                   <button
                     type="button"
@@ -480,7 +507,9 @@ export default class RedenTemplate extends Component<Signature> {
                       @share={{x.share}}
                       @fill={{partyMark x.s.party}}
                     />
-                    <span class="dis-reden-value">{{mins x.s.secs}}</span>
+                    <span class="dis-reden-value"><span
+                        {{rough "circle" show=(eq i 0) padding=5 delay=600}}
+                      >{{mins x.s.secs}}</span></span>
                   </button>
                 {{/let}}
               {{else}}
@@ -491,7 +520,8 @@ export default class RedenTemplate extends Component<Signature> {
 
           {{#if this.sv.n}}
             <section class="dis-reden-section">
-              <h2 class="dis-reden-heading">Gesagt vs. gestimmt</h2>
+              <h2 class="dis-reden-heading"><Icon @name="scale" />Gesagt vs.
+                gestimmt</h2>
               <p class="dis-reden-note">{{SAID_VOTED_NOTE}}</p>
               <CanonRows @framed={{true}}>
                 <CanonTiles @items={{this.svTiles}} />
@@ -554,7 +584,8 @@ export default class RedenTemplate extends Component<Signature> {
 
           {{#if this.toneRows.length}}
             <section class="dis-reden-section">
-              <h2 class="dis-reden-heading">Tonlage und Stimmung</h2>
+              <h2 class="dis-reden-heading"><Icon @name="thermometer" />Tonlage
+                und Stimmung</h2>
               <p class="dis-reden-legend">
                 {{#each TONES as |t|}}
                   <span class="dis-reden-key dis-reden-tone--{{t}}"></span>{{t}}
@@ -598,7 +629,8 @@ export default class RedenTemplate extends Component<Signature> {
 
           {{#if this.data.matrix.length}}
             <section class="dis-reden-section">
-              <h2 class="dis-reden-heading">Wer über wen</h2>
+              <h2 class="dis-reden-heading"><Icon @name="messages-square" />Wer
+                über wen</h2>
               <div class="dis-reden-matrix-wrap">
                 <table class="dis-reden-matrix">
                   <thead>
@@ -643,7 +675,9 @@ export default class RedenTemplate extends Component<Signature> {
 
           {{#if this.cards.length}}
             <section class="dis-reden-section">
-              <h2 class="dis-reden-heading">Typische Wörter</h2>
+              <h2 class="dis-reden-heading"><Icon
+                  @name="message-square-quote"
+                />Typische Wörter</h2>
               <div class="dis-reden-cards">
                 {{#each this.cards key="code" as |card|}}
                   <div class="dis-reden-card">
@@ -668,10 +702,20 @@ export default class RedenTemplate extends Component<Signature> {
 
           {{#if this.cloud.length}}
             <section class="dis-reden-section">
-              <h2 class="dis-reden-heading">Häufigste Wörter</h2>
+              <h2 class="dis-reden-heading"><Icon @name="cloud" />Häufigste
+                Wörter</h2>
               <ul class="dis-reden-cloud">
-                {{#each this.cloud key="word" as |w|}}
-                  <li style={{w.style}} title="{{w.word}}: {{w.n}}×">
+                {{#each this.cloud key="word" as |w i|}}
+                  <li
+                    style={{w.style}}
+                    title="{{w.word}}: {{w.n}}×"
+                    {{rough
+                      "circle"
+                      color="--dis-highlight"
+                      show=(eq i 0)
+                      padding=8
+                    }}
+                  >
                     {{w.word}}<span class="dis-reden-cloud-n">{{num w.n}}</span>
                   </li>
                 {{/each}}
@@ -681,7 +725,9 @@ export default class RedenTemplate extends Component<Signature> {
 
           {{#if this.readable.length}}
             <section class="dis-reden-section">
-              <h2 class="dis-reden-heading">Lesbarkeit</h2>
+              <h2 class="dis-reden-heading"><Icon
+                  @name="book-open"
+                />Lesbarkeit</h2>
               <CanonRows @framed={{true}}>
                 {{#each this.readable key="code" as |p|}}
                   <div
@@ -711,7 +757,8 @@ export default class RedenTemplate extends Component<Signature> {
 
           {{#if this.data.tops.length}}
             <section class="dis-reden-section">
-              <h2 class="dis-reden-heading">Debatten je TOP</h2>
+              <h2 class="dis-reden-heading"><Icon @name="gavel" />Debatten je
+                TOP</h2>
               <DataTable
                 class="dis-reden-tops"
                 @columns={{TOP_COLUMNS}}

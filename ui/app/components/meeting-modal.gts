@@ -24,10 +24,12 @@ import Modal, { type PaneContext } from 'ui/components/modal';
 import SpeechList from 'ui/components/speech-list';
 import Tag from 'ui/components/tag';
 import { outcome } from 'ui/components/vote-block';
+import rough from 'ui/modifiers/rough';
 import shortcut from 'ui/modifiers/shortcut';
 import type NavService from 'ui/services/nav';
 import { getPersonIds, getSpeeches, type Speech } from 'ui/utils/api-reden';
 import { getNeighbours } from 'ui/utils/api-sitzung';
+import { isLive } from 'ui/utils/calendar';
 import Load from 'ui/utils/load';
 import { RIS_BASE, num, publicLabel } from 'ui/utils/meta';
 import './meeting-modal.css';
@@ -164,6 +166,15 @@ export default class MeetingModal extends Component<Signature> {
     return publicLabel(this.meeting?.public).text;
   }
 
+  get publicIcon() {
+    const p = this.meeting?.public;
+    return p === 1 ? 'globe' : p === 0 ? 'lock' : undefined;
+  }
+
+  get live() {
+    return !!this.meeting && isLive(this.meeting);
+  }
+
   get risUrl() {
     return `${RIS_BASE}/${this.args.id}`;
   }
@@ -209,6 +220,7 @@ export default class MeetingModal extends Component<Signature> {
         speeches: speeches.get(a.anchor) ?? [],
         speechCount,
         nonPublic: a.public === 0 ? publicLabel(0).text : '',
+        withdrawn: /abgesetzt/i.test(a.title ?? ''),
         expandable: docs.length > 0 || !!vote || speechCount > 0,
         kind: result?.contested
           ? 'contested'
@@ -357,7 +369,18 @@ export default class MeetingModal extends Component<Signature> {
             {{#if this.date}}
               <time class="dis-mdate" datetime={{this.date.iso}}>
                 <span class="dis-mdate-wd">{{this.date.weekday}}</span>
-                <span class="dis-mdate-day">{{this.date.day}}</span>
+                {{! static branches, so J/K and the filter do not redraw the mark }}
+                {{#if this.live}}
+                  <span
+                    class="dis-mdate-day"
+                    {{rough "circle" padding=2 delay=300}}
+                  >{{this.date.day}}</span>
+                {{else}}
+                  <span
+                    class="dis-mdate-day"
+                    {{rough "underline" strokeWidth=2.5 padding=0 delay=300}}
+                  >{{this.date.day}}</span>
+                {{/if}}
                 <span class="dis-mdate-mon">{{this.date.month}}
                   {{this.date.year}}</span>
               </time>
@@ -379,7 +402,10 @@ export default class MeetingModal extends Component<Signature> {
                       @size={{14}}
                     />{{this.meeting.location}}</span>
                 {{/if}}
-                <Tag>{{this.publicText}}</Tag>
+                <Tag>{{#if this.publicIcon}}<Icon
+                      @name={{this.publicIcon}}
+                      @size={{12}}
+                    />{{/if}}{{this.publicText}}</Tag>
               </p>
               <div class="dis-mhead-actions">
                 <a
@@ -484,9 +510,8 @@ export default class MeetingModal extends Component<Signature> {
           </div>
 
           <section class="dis-meeting-agenda" aria-label="Tagesordnung">
-            <h4 class="canon-heading">Tagesordnung ({{num
-                this.visible.length
-              }})</h4>
+            <h4 class="canon-heading"><Icon @name="list-ordered" />Tagesordnung
+              ({{num this.visible.length}})</h4>
             {{#if this.hasSpeeches}}
               <p class="dis-meeting-note">{{SPEECH_NOTE}}</p>
             {{/if}}
@@ -515,7 +540,7 @@ export default class MeetingModal extends Component<Signature> {
 
           {{#if this.grouped.speeches.length}}
             <section class="dis-meeting-more">
-              <h4 class="canon-heading">Weitere Wortbeiträge</h4>
+              <h4 class="canon-heading"><Icon @name="mic" />Weitere Wortbeiträge</h4>
               <SpeechList
                 @speeches={{this.grouped.speeches}}
                 @personIds={{this.personIds.value}}
@@ -526,9 +551,8 @@ export default class MeetingModal extends Component<Signature> {
 
           {{#if this.grouped.extra.length}}
             <CanonRows @framed={{true}}>
-              <h4 class="canon-heading">Weitere Dokumente ({{num
-                  this.grouped.extra.length
-                }})</h4>
+              <h4 class="canon-heading"><Icon @name="files" />Weitere Dokumente
+                ({{num this.grouped.extra.length}})</h4>
               <div>
                 {{#each this.grouped.extra key="id" as |f|}}
                   <DocRow
@@ -542,7 +566,8 @@ export default class MeetingModal extends Component<Signature> {
           {{/if}}
 
           {{#if this.noFiles}}
-            <p class="dis-meeting-note">Keine Dokumente zu dieser Sitzung.</p>
+            <p class="dis-meeting-note"><Icon @name="file-x" @size={{14}} />
+              Keine Dokumente zu dieser Sitzung.</p>
           {{/if}}
         </div>
       </LoadState>

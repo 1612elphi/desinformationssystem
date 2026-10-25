@@ -5,6 +5,9 @@
 }
 
 .dis-speeches-head {
+  display: flex;
+  gap: 6px;
+  align-items: center;
   margin: 0;
   padding: 8px 12px;
   color: var(--canon-muted-foreground);
@@ -72,6 +75,9 @@
 }
 
 .dis-speech-meta {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
   margin-inline-start: auto;
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-footnote);

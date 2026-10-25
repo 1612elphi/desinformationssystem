@@ -32,9 +32,10 @@ const SpeechList: TOC<{
   {{#if @speeches.length}}
     <section class="dis-speeches">
       {{#if @heading}}
-        <h5 class="dis-speeches-head">Wortbeiträge ({{num
-            @speeches.length
-          }})</h5>
+        <h5 class="dis-speeches-head"><Icon
+            @name="mic"
+            @size={{14}}
+          />Wortbeiträge ({{num @speeches.length}})</h5>
       {{/if}}
       <div class="dis-speeches-strip" aria-hidden="true">
         {{#each @speeches key="id" as |s|}}
@@ -54,7 +55,10 @@ const SpeechList: TOC<{
               {{#if s.party_code}}
                 <PartyChip @code={{s.party_code}} @party={{s.party_code}} />
               {{/if}}
-              <span class="dis-speech-meta">{{clock s.start_s}}
+              <span class="dis-speech-meta"><Icon
+                  @name="time"
+                  @size={{12}}
+                />{{clock s.start_s}}
                 ·
                 {{num (words s)}}
                 Wörter</span>

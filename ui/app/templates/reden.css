@@ -54,6 +54,10 @@
   font-size: var(--canon-text-footnote);
 }
 
+.dis-reden-method .dis-icon {
+  margin-inline-end: 6px;
+}
+
 .dis-reden-section {
   display: flex;
   flex-direction: column;
@@ -61,6 +65,9 @@
 }
 
 .dis-reden-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   margin: 0;
   font-size: var(--canon-text-title3);
   font-weight: var(--canon-weight-semibold);

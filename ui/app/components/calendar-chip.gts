@@ -1,6 +1,7 @@
 import Component from '@glimmer/component';
 import { on } from '@ember/modifier';
 import Icon from 'ui/components/icon';
+import rough from 'ui/modifiers/rough';
 import {
   bodyKind,
   isLive,
@@ -78,6 +79,7 @@ export default class CalendarChip extends Component<Signature> {
       title={{this.label}}
       aria-label={{this.label}}
       {{on "click" this.open}}
+      {{rough "circle" show=this.live padding=3 iterations=1}}
       ...attributes
     >
       {{#if this.live}}<span
