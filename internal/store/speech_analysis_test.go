@@ -10,20 +10,31 @@ func TestMentions(t *testing.T) {
 		{"name": "Katrin Schütz", "party": "CDU", "party_code": "CDU", "role": "Stadträtin"},
 		{"name": "Dr. Frank Mentrup", "party": "SPD", "party_code": "SPD", "role": "Oberbürgermeister Vorsitz"},
 	}
-	codes, found := mentions("Wie die CDU und Frau Stadträtin Schütz sagen, Herr Oberbürgermeister Mentrup, "+
+	codes, found := Mentions("Wie die CDU und Frau Stadträtin Schütz sagen, Herr Oberbürgermeister Mentrup, "+
 		"die Grünen sehen das anders. Eine grüne Wiese für Karlsruhe.", members, "SPD")
 	if !reflect.DeepEqual(codes, []string{"B90", "CDU"}) || len(found["CDU"]) != 2 {
 		t.Fatalf("got %v %v", codes, found)
 	}
-	if codes, _ := mentions("die Grünen", members, "B90"); len(codes) != 0 {
+	if codes, _ := Mentions("die Grünen", members, "B90"); len(codes) != 0 {
 		t.Fatalf("own party counted: %v", codes)
 	}
-	if codes, _ := mentions("die Grüne Fraktion, die Grüne wiese", nil, ""); !reflect.DeepEqual(codes, []string{"B90"}) {
+	if codes, _ := Mentions("die Grüne Fraktion, die Grüne wiese", nil, ""); !reflect.DeepEqual(codes, []string{"B90"}) {
 		t.Fatalf("got %v", codes)
 	}
 	noe := []Row{{"name": "Lüppo Noé", "party_code": "B90"}}
-	if codes, _ := mentions("Herr Stadtrat Noé hat recht", noe, ""); !reflect.DeepEqual(codes, []string{"B90"}) {
+	if codes, _ := Mentions("Herr Stadtrat Noé hat recht", noe, ""); !reflect.DeepEqual(codes, []string{"B90"}) {
 		t.Fatalf("non-ASCII surname end: %v", codes)
+	}
+	for text, n := range map[string]int{"Die Linke.": 1, "Die Linke will": 0, "die linke Spur": 0, "Linken": 1, "Die Grüne Jugend": 1,
+		"die Grüne wiese": 0, "Partei Die PARTEI": 2, "Partei der": 0, "CDUler": 0} {
+		total := 0
+		_, found := Mentions(text, nil, "")
+		for _, v := range found {
+			total += len(v)
+		}
+		if total != n {
+			t.Errorf("%q: %d mentions, want %d", text, total, n)
+		}
 	}
 }
 
@@ -65,6 +76,27 @@ func TestMemberFor(t *testing.T) {
 		got := MemberFor(name, members)
 		if (got == nil && want != nil) || (got != nil && got["name"] != want) {
 			t.Errorf("MemberFor(%q) = %v, want %v", name, got, want)
+		}
+	}
+}
+
+func TestMemberForShortNames(t *testing.T) {
+	var members []Row
+	for _, n := range []string{"Dirk Müller", "Dr. Thomas Müller", "Katrin Schütz", "Nicolas Schütz", "Dr. Anton Huber", "Sonja Klingert"} {
+		members = append(members, Row{"name": n})
+	}
+	for in, want := range map[string]string{
+		"Müller": "Dirk Müller", "Dr. Müller": "Dr. Thomas Müller", "Dr. Thomas Müller": "Dr. Thomas Müller",
+		"Schütz, K.": "Katrin Schütz", "Schütz, N.": "Nicolas Schütz", "Dr. Huber": "Dr. Anton Huber",
+		"Dr.Huber": "Dr. Anton Huber", "Dr. Klingert": "Sonja Klingert",
+		"Bürgermeister Flur": "", "Unbekannt": "", "Schütz": "",
+	} {
+		got := ""
+		if m := MemberFor(in, members); m != nil {
+			got = str(m["name"])
+		}
+		if got != want {
+			t.Errorf("%q: %q, want %q", in, got, want)
 		}
 	}
 }

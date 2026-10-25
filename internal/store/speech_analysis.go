@@ -176,9 +176,9 @@ func (o *ordered[V]) sum() V {
 	return t
 }
 
-// mentions maps a party code to the words that named it (fraction names and
+// Mentions maps a party code to the words that named it (fraction names and
 // addressed members), the speaker's own party left out; codes in Python's order.
-func mentions(text string, members []Row, own string) ([]string, map[string][]string) {
+func Mentions(text string, members []Row, own string) ([]string, map[string][]string) {
 	var keys []string
 	found := map[string][]string{}
 	touch := func(c string, hits []string) {
@@ -196,9 +196,13 @@ func mentions(text string, members []Row, own string) ([]string, map[string][]st
 	}
 	for _, m := range members {
 		code := str(m["party_code"])
-		sn := lastField(str(m["name"]))
+		sn := LastField(str(m["name"]))
 		if code != "" && utf8.RuneCountInString(sn) > 2 && !isChair(m) {
-			touch(code, addressRx(sn).findAll(text))
+			var hits []string
+			if strings.Contains(text, sn) {
+				hits = addressRx(sn).findAll(text)
+			}
+			touch(code, hits)
 		}
 	}
 	var out []string
@@ -210,7 +214,7 @@ func mentions(text string, members []Row, own string) ([]string, map[string][]st
 	return out, found
 }
 
-func partyOf(name string, members []Row) string {
+func PartyOf(name string, members []Row) string {
 	m := MemberFor(name, members)
 	if m == nil {
 		return ""
@@ -472,7 +476,7 @@ const stanceMin = 0.6
 
 const defaultBody = "organisation-gr-32130"
 
-func (s *Store) speechRoster(meetingID any) ([]Row, error) {
+func (s *Store) SpeechRoster(meetingID any) ([]Row, error) {
 	return s.rows(`SELECT DISTINCT m.name, m.party, m.party_code, m.role FROM members m
 		WHERE m.body_id = COALESCE((SELECT body_id FROM meetings WHERE id = ?), '`+defaultBody+`')`, meetingID)
 }
@@ -570,7 +574,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		lastID = meetings[len(meetings)-1]
 		last = lastID
 	}
-	members, err := s.speechRoster(last)
+	members, err := s.SpeechRoster(last)
 	if err != nil {
 		return nil, err
 	}
@@ -586,7 +590,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		if a := str(r["answers"]); a != "" {
 			rows[i].answers = parseAnswer(a)
 		}
-		rows[i].party = partyOf(rows[i].speaker, members)
+		rows[i].party = PartyOf(rows[i].speaker, members)
 		if rows[i].party != "" {
 			named = append(named, &rows[i])
 		}
@@ -612,7 +616,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 	}
 
 	parties := []Row{}
-	for _, code := range append([]string{"OB"}, partyOrder...) {
+	for _, code := range groupOrder {
 		var rs, judged []*speechRow
 		for _, r := range named {
 			if r.party == code {
@@ -844,7 +848,7 @@ func (s *Store) SpeechAnalytics(meetingID string) (Row, error) {
 		if r.party == "OB" {
 			continue
 		}
-		codes, _ := mentions(r.text, members, r.party)
+		codes, _ := Mentions(r.text, members, r.party)
 		for _, c := range codes {
 			e := edges[[2]string{r.party, c}]
 			if e == nil {

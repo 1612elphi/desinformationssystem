@@ -137,30 +137,22 @@ func fillGaps(sp []Speech) []Speech {
 	return out
 }
 
-// nullable maps "" to SQL NULL, so "agenda_anchor IS ?" matches NULL.
-func nullable(s string) any {
-	if s == "" {
-		return nil
-	}
-	return s
-}
-
-func cleanupGlossary(st *store.Store, meetingID, anchor string) (string, error) {
+func cleanupGlossary(st *store.Store, members []store.Row, meetingID, anchor string) (string, error) {
 	lines := []string{"Mitglieder des Gemeinderats (Name, Fraktion, Funktion):"}
-	rows, err := st.DB.Query(`SELECT m.name, m.party, m.role FROM members m JOIN meetings t ON t.body_id = m.body_id
-		WHERE t.id = ? ORDER BY m.name`, meetingID)
-	if err != nil {
-		return "", err
-	}
-	for rows.Next() {
-		var n, p, r any
-		if err := rows.Scan(&n, &p, &r); err != nil {
-			rows.Close()
-			return "", err
+	// SQLite's ORDER BY name: NULL first, then bytewise
+	sorted := slices.Clone(members)
+	slices.SortStableFunc(sorted, func(a, b store.Row) int {
+		if (a["name"] == nil) != (b["name"] == nil) {
+			if a["name"] == nil {
+				return -1
+			}
+			return 1
 		}
-		lines = append(lines, fmt.Sprintf("- %s (%s, %s)", pyStr(sqlText(n)), pyStr(sqlText(p)), pyStr(sqlText(r))))
+		return strings.Compare(str(a["name"]), str(b["name"]))
+	})
+	for _, m := range sorted {
+		lines = append(lines, fmt.Sprintf("- %s (%s, %s)", pyStr(m["name"]), pyStr(m["party"]), pyStr(m["role"])))
 	}
-	rows.Close()
 	if anchor != "" {
 		var num, title any
 		err := st.DB.QueryRow("SELECT number, title FROM agenda_items WHERE meeting_id=? AND anchor=?", meetingID, anchor).Scan(&num, &title)
@@ -178,7 +170,7 @@ func cleanupGlossary(st *store.Store, meetingID, anchor string) (string, error) 
 			terms = append(terms, t)
 		}
 	}
-	ents, err := queryStrings(st, "SELECT entities FROM files WHERE meeting_id=? AND agenda_anchor IS ?", meetingID, nullable(anchor))
+	ents, err := queryStrings(st, "SELECT entities FROM files WHERE meeting_id=? AND agenda_anchor IS ?", meetingID, orNil(anchor))
 	if err != nil {
 		return "", err
 	}
@@ -197,7 +189,7 @@ func cleanupGlossary(st *store.Store, meetingID, anchor string) (string, error) 
 		}
 	}
 	streets, err := queryStrings(st, `SELECT DISTINCT fs.name FROM file_streets fs JOIN files f ON f.id = fs.file_id
-		WHERE f.meeting_id=? AND f.agenda_anchor IS ?`, meetingID, nullable(anchor))
+		WHERE f.meeting_id=? AND f.agenda_anchor IS ?`, meetingID, orNil(anchor))
 	if err != nil {
 		return "", err
 	}
@@ -381,13 +373,13 @@ func canonicalNames(sp []Speech, roster []string) {
 			continue
 		}
 		n := bareName(sp[i].Speaker)
-		last := lastField(n)
+		last := store.LastField(n)
 		// A fuller name with the same surname ('Noé' -> 'Dr. Stefan Noé'), or a
 		// longer surname starting with it ('Flur' -> 'Flurer'); only when exactly
 		// one fits, since Katrin and Nicolas Schütz are two people.
 		var fits []string
 		for _, k := range known {
-			kl := lastField(k)
+			kl := store.LastField(k)
 			if k != n && rl(k) > rl(n) && strings.HasPrefix(kl, last) && (rl(kl) > rl(last) || n == last) {
 				fits = append(fits, k)
 			}
@@ -467,7 +459,7 @@ func ProcessCleanup(st *store.Store, video, meetingID, only string, apply bool) 
 		}
 		groups[s.Anchor] = append(groups[s.Anchor], s)
 	}
-	members, err := meetingRoster(st, meetingID, false)
+	members, err := st.Roster(meetingID)
 	if err != nil {
 		return nil, err
 	}
@@ -482,7 +474,7 @@ func ProcessCleanup(st *store.Store, video, meetingID, only string, apply bool) 
 			n += words(s.Text)
 		}
 		log.Printf("vod-cleanup:   %s: %d speeches, %d words", cmp.Or(anchor, "ohne TOP"), len(group), n)
-		gloss, err := cleanupGlossary(st, meetingID, anchor)
+		gloss, err := cleanupGlossary(st, members, meetingID, anchor)
 		if err != nil {
 			return nil, err
 		}
@@ -497,14 +489,14 @@ func ProcessCleanup(st *store.Store, video, meetingID, only string, apply bool) 
 	for i := range done {
 		if p := done[i].PanelSpeaker; p != "" {
 			done[i].Speaker = p
-			if m := memberFor(p, members); m != nil {
-				done[i].Speaker = m.Name
+			if m := store.MemberFor(p, members); m != nil {
+				done[i].Speaker = str(m["name"])
 			}
 		}
 	}
 	names := make([]string, len(members))
 	for i, m := range members {
-		names[i] = m.Name
+		names[i] = str(m["name"])
 	}
 	canonicalNames(done, names)
 	if !apply {
@@ -536,17 +528,18 @@ func ProcessCleanup(st *store.Store, video, meetingID, only string, apply bool) 
 			return err
 		}
 		for _, s := range done {
-			speaker, party := nullable(s.Speaker), ""
-			if m := memberFor(s.Speaker, members); m != nil {
-				speaker, party = m.Name, m.Party
+			speaker, party := orNil(s.Speaker), ""
+			if m := store.MemberFor(s.Speaker, members); m != nil {
+				name := str(m["name"])
+				speaker, party = &name, str(m["party"])
 			}
 			if party == "" {
 				party = nameParty[cmp.Or(s.PanelSpeaker, s.Speaker)]
 			}
 			if _, err := tx.Exec(`INSERT OR REPLACE INTO speeches(id,meeting_id,agenda_anchor,top_label,speaker,
 				party,video_id,start_s,end_s,text_raw,text) VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
-				fmt.Sprintf("%s:%s:%d", meetingID, vid, int(s.Start)), meetingID, nullable(s.Anchor), nullable(s.Top),
-				speaker, nullable(party), vid, s.Start, s.End, s.Text, s.Clean); err != nil {
+				fmt.Sprintf("%s:%s:%d", meetingID, vid, int(s.Start)), meetingID, orNil(s.Anchor), orNil(s.Top),
+				speaker, orNil(party), vid, s.Start, s.End, s.Text, s.Clean); err != nil {
 				return err
 			}
 		}

@@ -2,6 +2,7 @@ package ingest
 
 import (
 	"crypto/sha1"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"log"
@@ -84,7 +85,7 @@ func JudgeSpeeches(st *store.Store, meetingID string, redo bool) (int, error) {
 	rows, err := st.DB.Query(`SELECT s.id, s.meeting_id, s.agenda_anchor, s.speaker, s.text, ai.title
 		FROM speeches s
 		LEFT JOIN agenda_items ai ON ai.meeting_id = s.meeting_id AND ai.anchor = s.agenda_anchor
-		WHERE (? IS NULL OR s.meeting_id = ?)`, nullable(meetingID), nullable(meetingID))
+		WHERE (? IS NULL OR s.meeting_id = ?)`, orNil(meetingID), orNil(meetingID))
 	if err != nil {
 		return 0, err
 	}
@@ -114,7 +115,7 @@ func JudgeSpeeches(st *store.Store, meetingID string, redo bool) (int, error) {
 		done[id] = sha
 	}
 	rows.Close()
-	rosters := map[string][]RosterMember{}
+	rosters := map[string][]store.Row{}
 	n := 0
 	for _, r := range todo {
 		sum := sha1.Sum([]byte(r.text))
@@ -124,15 +125,12 @@ func JudgeSpeeches(st *store.Store, meetingID string, redo bool) (int, error) {
 		}
 		members, ok := rosters[r.meetingID]
 		if !ok {
-			if members, err = meetingRoster(st, r.meetingID, true); err != nil {
+			if members, err = st.SpeechRoster(r.meetingID); err != nil {
 				return n, err
 			}
 			rosters[r.meetingID] = members
 		}
-		var targets []string
-		for c := range mentions(r.text, members, partyOf(r.speaker, members)) {
-			targets = append(targets, c)
-		}
+		targets, _ := store.Mentions(r.text, members, store.PartyOf(r.speaker, members))
 		sort.Strings(targets)
 		var subs []subItem
 		if r.anchor != "" {
@@ -141,12 +139,13 @@ func JudgeSpeeches(st *store.Store, meetingID string, redo bool) (int, error) {
 				return n, err
 			}
 			for sr.Next() {
-				var a, t *string
+				var a *string
+				var t sql.NullString
 				if err := sr.Scan(&a, &t); err != nil {
 					sr.Close()
 					return n, err
 				}
-				subs = append(subs, subItem{deref(a), pyStr(stringOrNil(t))})
+				subs = append(subs, subItem{deref(a), pyStr(nullStr(t))})
 			}
 			sr.Close()
 		}
@@ -180,11 +179,4 @@ func JudgeSpeeches(st *store.Store, meetingID string, redo bool) (int, error) {
 		n++
 	}
 	return n, nil
-}
-
-func stringOrNil(s *string) any {
-	if s == nil {
-		return nil
-	}
-	return *s
 }
