@@ -82,3 +82,11 @@
   color: var(--canon-muted-foreground);
   font-size: var(--canon-text-caption);
 }
+
+.canon-dialog.canon-sheet.dis-keys-sheet {
+  --canon-sheet-width: 560px;
+}
+
+.dis-keys-sheet .dis-keys {
+  padding: var(--canon-panel-padding);
+}

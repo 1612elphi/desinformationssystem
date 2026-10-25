@@ -11,13 +11,10 @@ import CanonWindow from 'delphicanon/components/canon-window';
 import type ApplicationController from 'ui/controllers/application';
 import type { ApplicationModel } from 'ui/routes/application';
 import type NavService from 'ui/services/nav';
-import type { Overlay } from 'ui/services/nav';
+import { parseStack } from 'ui/services/nav';
 import Icon from 'ui/components/icon';
 import LiveBanner from 'ui/components/live-banner';
-import DocModal from 'ui/components/doc-modal';
-import MeetingModal from 'ui/components/meeting-modal';
-import PersonModal from 'ui/components/person-modal';
-import VorlageModal from 'ui/components/vorlage-modal';
+import PaneStack from 'ui/components/pane-stack';
 import PaletteDialog, { VIEWS } from 'ui/components/palette-dialog';
 import ShortcutsSheet, { MOD } from 'ui/components/shortcuts-sheet';
 import shortcut from 'ui/modifiers/shortcut';
@@ -34,8 +31,6 @@ const MCP_HREF =
   window.location.hostname === 'dis.delphi.tools'
     ? '/mcp'
     : `${window.location.protocol}//${window.location.hostname}:3651/mcp`;
-
-const bool = (v: unknown) => !!v;
 
 interface Signature {
   Args: { model: ApplicationModel; controller: ApplicationController };
@@ -58,10 +53,11 @@ export default class ApplicationTemplate extends Component<Signature> {
     this.router.transitionTo(route);
   };
 
-  // the sheet reports every close; one the URL already made needs nothing
-  close = (key: Overlay) => {
-    if (this.args.controller[key]) this.nav.close(key);
-  };
+  get panes() {
+    return parseStack(this.args.controller.stack);
+  }
+
+  popTo = (index: number) => this.nav.popTo(index);
 
   get stats() {
     return this.args.model.stats.value;
@@ -128,25 +124,6 @@ export default class ApplicationTemplate extends Component<Signature> {
 
     <PaletteDialog @open={{this.palette}} @onClose={{this.closePalette}} />
     <ShortcutsSheet />
-    <MeetingModal
-      @id={{@controller.meeting}}
-      @open={{bool @controller.meeting}}
-      @onClose={{fn this.close "meeting"}}
-    />
-    <DocModal
-      @id={{@controller.doc}}
-      @open={{bool @controller.doc}}
-      @onClose={{fn this.close "doc"}}
-    />
-    <PersonModal
-      @id={{@controller.person}}
-      @open={{bool @controller.person}}
-      @onClose={{fn this.close "person"}}
-    />
-    <VorlageModal
-      @nr={{@controller.vorlage}}
-      @open={{bool @controller.vorlage}}
-      @onClose={{fn this.close "vorlage"}}
-    />
+    <PaneStack @stack={{this.panes}} @onPopTo={{this.popTo}} />
   </template>
 }

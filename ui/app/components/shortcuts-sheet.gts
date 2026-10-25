@@ -3,7 +3,7 @@ import { tracked } from '@glimmer/tracking';
 import { service } from '@ember/service';
 import type RouterService from '@ember/routing/router-service';
 import { modifier } from 'ember-modifier';
-import Modal from 'ui/components/modal';
+import CanonSheet from 'delphicanon/components/canon-sheet';
 import { VIEWS } from 'ui/components/palette-dialog';
 import shortcut, { topDialog, typing } from 'ui/modifiers/shortcut';
 import './shortcuts-sheet.css';
@@ -24,6 +24,7 @@ export const SHORTCUTS: {
         label: v.label,
       })),
       { keys: [['?']], label: 'Tastenkürzel' },
+      { keys: [['Esc']], label: 'Ebene schließen' },
     ],
   },
   {
@@ -138,7 +139,13 @@ export default class ShortcutsSheet extends Component {
       {{this.sequence}}
       {{shortcut "?" this.show}}
     ><kbd>G</kbd> …</span>
-    <Modal @heading="Tastenkürzel" @open={{this.open}} @onClose={{this.hide}}>
+    <CanonSheet
+      class="dis-keys-sheet"
+      @open={{this.open}}
+      @edge="end"
+      @title="Tastenkürzel"
+      @onClose={{this.hide}}
+    >
       <div class="dis-keys">
         {{#each SHORTCUTS as |g|}}
           <section class="dis-keys-group">
@@ -163,6 +170,6 @@ export default class ShortcutsSheet extends Component {
           </section>
         {{/each}}
       </div>
-    </Modal>
+    </CanonSheet>
   </template>
 }

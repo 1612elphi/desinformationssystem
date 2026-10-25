@@ -20,7 +20,7 @@ import DocRow from 'ui/components/doc-row';
 import Icon from 'ui/components/icon';
 import { InlineLoading, LoadState } from 'ui/components/loading';
 import MeetingTop, { type TopItem } from 'ui/components/meeting-top';
-import Modal from 'ui/components/modal';
+import Modal, { type PaneContext } from 'ui/components/modal';
 import Tag from 'ui/components/tag';
 import { outcome } from 'ui/components/vote-block';
 import shortcut from 'ui/modifiers/shortcut';
@@ -56,7 +56,7 @@ const shortDate = (d?: string) =>
 const eq = (a: unknown, b: unknown) => a === b;
 
 interface Signature {
-  Args: { id: string; open: boolean; onClose: () => void };
+  Args: { id: string; onClose: () => void; pane?: PaneContext };
 }
 
 // State that belongs to one meeting id and resets when another one opens.
@@ -256,13 +256,13 @@ export default class MeetingModal extends Component<Signature> {
   goto = (m?: Meeting) => {
     if (!m) return;
     document.getElementById('dis-meeting')?.scrollIntoView();
-    void this.router.replaceWith({ queryParams: { meeting: m.id } });
+    this.nav.replaceTop('meeting', m.id);
   };
 
   gotoPrev = () => this.goto(this.prev);
   gotoNext = () => this.goto(this.next);
 
-  openDoc = (doc: Doc) => this.nav.open({ meeting: '', doc: doc.id });
+  openDoc = (doc: Doc) => this.nav.open({ doc: doc.id });
 
   refresh = async () => {
     const id = this.args.id;
@@ -290,12 +290,7 @@ export default class MeetingModal extends Component<Signature> {
   };
 
   <template>
-    <Modal
-      @heading={{this.heading}}
-      @open={{@open}}
-      @onClose={{@onClose}}
-      @wide={{true}}
-    >
+    <Modal @heading={{this.heading}} @pane={{@pane}} @onClose={{@onClose}}>
       <LoadState @load={{this.load}}>
         <div
           class="dis-meeting"

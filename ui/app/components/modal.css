@@ -1,21 +1,120 @@
-.canon-dialog.canon-sheet.dis-sheet {
-  --canon-sheet-width: 720px;
+.dis-pane {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-inline-size: 0;
+  block-size: 100%;
+  background: var(--canon-background);
+  animation: dis-pane-in 0.22s ease-out;
 }
 
-.canon-dialog.canon-sheet.dis-sheet--wide {
-  --canon-sheet-width: 1120px;
+@keyframes dis-pane-in {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
 }
 
-.dis-sheet .canon-dialog-header {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-end: 0;
+@media (prefers-reduced-motion: reduce) {
+  .dis-pane {
+    animation: none;
+  }
 }
 
-.dis-sheet .canon-dialog-title {
-  padding-inline-end: var(--canon-control-height);
+.dis-pane-head {
+  display: grid;
+  flex: none;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-block-size: var(--canon-control-height);
+  padding-inline-start: var(--canon-panel-padding);
+  border-block-end: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-muted);
 }
 
-.dis-sheet-body {
+.dis-pane-kind {
+  grid-column: 1;
+  padding-block-start: 6px;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-caption);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dis-pane-title {
+  grid-column: 1;
+  margin: 0;
+  padding-block-end: 8px;
+  overflow: hidden;
+  font-size: var(--canon-text-title3);
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dis-pane-title:focus {
+  outline: none;
+}
+
+.dis-pane-close {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: stretch;
+}
+
+.dis-pane-body {
+  flex: 1 1 auto;
   padding: var(--canon-panel-padding);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* a pane below the top: a tab edge with its title running up the spine */
+.dis-pane-spine {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+
+  /* physical sizes: in vertical writing mode inline-size is the height */
+  width: 40px;
+  height: 100%;
+  margin: 0;
+  padding: 12px 0;
+  border: 0;
+  border-inline-end: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font: inherit;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+}
+
+.dis-pane-spine-kind {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-caption);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dis-pane-spine-title {
+  overflow: hidden;
+  font-size: var(--canon-text-subheadline);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .dis-pane-spine:hover {
+    background: var(--canon-muted);
+  }
+}
+
+.dis-pane-spine:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: calc(-1 * var(--canon-frame));
 }

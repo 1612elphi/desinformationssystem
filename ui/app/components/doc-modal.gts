@@ -16,7 +16,7 @@ import type IndexController from 'ui/controllers/index';
 import DocsGlyph from 'ui/components/docs-glyph';
 import Icon from 'ui/components/icon';
 import { LoadState } from 'ui/components/loading';
-import Modal from 'ui/components/modal';
+import Modal, { type PaneContext } from 'ui/components/modal';
 import { SubmitterChips } from 'ui/components/party-chip';
 import Tag from 'ui/components/tag';
 import shortcut from 'ui/modifiers/shortcut';
@@ -58,7 +58,7 @@ const isHttp = (u?: string) => !!u?.startsWith('http');
 const orDash = (s?: string) => s || '—';
 
 interface Signature {
-  Args: { id: string; open: boolean; onClose: () => void };
+  Args: { id: string; onClose: () => void; pane?: PaneContext };
 }
 
 export default class DocModal extends Component<Signature> {
@@ -101,7 +101,7 @@ export default class DocModal extends Component<Signature> {
     const l = this.list;
     if (!d || !l) return;
     l.c.setCursor(l.docs.indexOf(d));
-    this.router.replaceWith({ queryParams: { doc: d.id } });
+    this.nav.replaceTop('doc', d.id);
   };
 
   prev = () => this.step(this.prevDoc);
@@ -180,12 +180,12 @@ export default class DocModal extends Component<Signature> {
   filter = (key: 'topic' | 'district' | 'street' | 'cat', value: string) =>
     this.nav.filter({ [key]: value });
 
-  vorlage = (nr: string) => this.nav.open({ doc: '', vorlage: nr });
+  vorlage = (nr: string) => this.nav.open({ vorlage: nr });
 
   searchFor = (q: string) => this.nav.filter({ q });
 
   <template>
-    <Modal @heading={{this.heading}} @open={{@open}} @onClose={{@onClose}}>
+    <Modal @heading={{this.heading}} @pane={{@pane}} @onClose={{@onClose}}>
       {{#if @id}}
         <div
           class="dis-doc-bar"

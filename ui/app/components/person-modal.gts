@@ -15,7 +15,7 @@ import type GremienController from 'ui/controllers/gremien';
 import DataTable, { type Column } from 'ui/components/data-table';
 import Icon from 'ui/components/icon';
 import { LoadError, LoadState } from 'ui/components/loading';
-import Modal from 'ui/components/modal';
+import Modal, { type PaneContext } from 'ui/components/modal';
 import PartyChip from 'ui/components/party-chip';
 import PersonTimeline from 'ui/components/person-timeline';
 import Tag from 'ui/components/tag';
@@ -54,7 +54,7 @@ const SHORT_LIST = 8;
 const longer = (xs: unknown[], n: number) => xs.length > n;
 
 interface Signature {
-  Args: { id: string; open: boolean; onClose: () => void };
+  Args: { id: string; onClose: () => void; pane?: PaneContext };
 }
 
 export default class PersonModal extends Component<Signature> {
@@ -150,7 +150,7 @@ export default class PersonModal extends Component<Signature> {
     if (!id) return;
     this.showAllAgainst = false;
     this.tableOpen = false;
-    this.router.replaceWith({ queryParams: { person: id } });
+    this.nav.replaceTop('person', id);
   };
 
   stepPrev = () => this.step(this.roster?.prev);
@@ -165,7 +165,7 @@ export default class PersonModal extends Component<Signature> {
   <template>
     <Modal
       @heading={{if this.person.name this.person.name "Person"}}
-      @open={{@open}}
+      @pane={{@pane}}
       @onClose={{@onClose}}
     >
       {{#if this.load.error}}

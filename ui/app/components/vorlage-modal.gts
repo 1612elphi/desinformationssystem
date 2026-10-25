@@ -7,7 +7,7 @@ import CanonRows from 'delphicanon/components/canon-rows';
 import { getVorlage, type Vote } from 'ui/api';
 import DocRow from 'ui/components/doc-row';
 import { LoadState } from 'ui/components/loading';
-import Modal from 'ui/components/modal';
+import Modal, { type PaneContext } from 'ui/components/modal';
 import Tag from 'ui/components/tag';
 import type NavService from 'ui/services/nav';
 import Load from 'ui/utils/load';
@@ -17,7 +17,7 @@ import './vorlage-modal.css';
 const tallied = (votes: Vote[]) => votes.filter(hasTally);
 
 interface Signature {
-  Args: { nr: string; open: boolean; onClose: () => void };
+  Args: { nr: string; onClose: () => void; pane?: PaneContext };
 }
 
 export default class VorlageModal extends Component<Signature> {
@@ -45,10 +45,10 @@ export default class VorlageModal extends Component<Signature> {
     return `Werdegang (${n} Station${n === 1 ? '' : 'en'})`;
   }
 
-  openDoc = (id: string) => this.nav.open({ vorlage: '', doc: id });
+  openDoc = (id: string) => this.nav.open({ doc: id });
 
   <template>
-    <Modal @heading={{this.heading}} @open={{@open}} @onClose={{@onClose}}>
+    <Modal @heading={{this.heading}} @pane={{@pane}} @onClose={{@onClose}}>
       {{#if this.notFound}}
         <p class="dis-vorlage-note">Zu dieser Vorlagennummer ist (noch) nichts
           archiviert.</p>
