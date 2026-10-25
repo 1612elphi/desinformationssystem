@@ -107,3 +107,25 @@ func TestRecordVoteParseAttempt(t *testing.T) {
 		t.Errorf("success did not clear: %d", n)
 	}
 }
+
+func TestListMeetingsVoteCount(t *testing.T) {
+	s, err := Open(filepath.Join(t.TempDir(), "t.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	if err := s.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.DB.Exec(`INSERT INTO meetings(id, date) VALUES('a', '2026-10-01'), ('b', '2026-10-02');
+		INSERT INTO votes(id, meeting_id, agenda_anchor, source) VALUES('a:1', 'a', '1', 'pdf'), ('a:2', 'a', '2', 'pdf')`); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := s.ListMeetings(MeetingFilter{DateFrom: "2026-10-01", DateTo: "2026-10-31"}, true, 10, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 2 || rows[0]["vote_count"] != int64(2) || rows[1]["vote_count"] != int64(0) {
+		t.Fatalf("vote_count: %+v", rows)
+	}
+}

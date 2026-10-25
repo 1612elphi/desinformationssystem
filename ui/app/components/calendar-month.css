@@ -1,0 +1,75 @@
+.dis-cal-month {
+  display: grid;
+  gap: var(--canon-hairline);
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-border);
+}
+
+.dis-cal-month-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--canon-hairline);
+}
+
+.dis-cal-month-wd {
+  padding: 4px 6px;
+  background: var(--canon-card);
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-weight: 600;
+}
+
+.dis-cal-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-block-size: 6.5rem;
+  padding: 4px;
+  background: var(--canon-card);
+  cursor: default;
+}
+
+.dis-cal-cell[data-weekend] {
+  background: var(--canon-background);
+}
+
+.dis-cal-cell[aria-selected="true"] {
+  background: var(--canon-accent-bg);
+  box-shadow: inset 0 0 0 var(--canon-hairline) var(--canon-foreground);
+}
+
+.dis-cal-cell:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: -2px;
+}
+
+.dis-cal-date {
+  align-self: flex-start;
+  min-inline-size: 1.6em;
+  padding: 0 3px;
+  font-size: var(--canon-text-footnote);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.dis-cal-cell[data-outside] .dis-cal-date {
+  color: var(--canon-muted-foreground);
+  font-weight: 400;
+}
+
+.dis-cal-cell[data-outside] .dis-cal-chip {
+  opacity: 0.55;
+}
+
+.dis-cal-cell[data-today] .dis-cal-date {
+  background: var(--canon-primary);
+  color: var(--canon-primary-foreground);
+}
+
+.dis-cal-more {
+  padding-inline-start: 4px;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-caption);
+  font-weight: 600;
+}

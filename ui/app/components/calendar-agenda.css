@@ -1,0 +1,86 @@
+.dis-cal-agenda {
+  display: grid;
+  border: var(--canon-hairline) solid var(--canon-border);
+  background: var(--canon-card);
+}
+
+.dis-cal-agenda-day + .dis-cal-agenda-day {
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+}
+
+.dis-cal-agenda-title {
+  margin: 0;
+  padding: 6px var(--canon-panel-padding);
+  background: var(--canon-background);
+  font-size: var(--canon-text-footnote);
+  font-weight: 600;
+}
+
+.dis-cal-agenda-day[data-today] .dis-cal-agenda-title {
+  background: var(--canon-primary);
+  color: var(--canon-primary-foreground);
+}
+
+.dis-cal-agenda-item {
+  display: grid;
+  gap: 1px;
+  inline-size: 100%;
+  padding: 8px var(--canon-panel-padding) 8px 12px;
+  border: 0;
+  border-block-start: var(--canon-hairline) solid var(--canon-border);
+  border-inline-start: 4px solid var(--dis-kind);
+  background: var(--canon-card);
+  color: var(--canon-foreground);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.dis-cal-agenda-title + .dis-cal-agenda-item {
+  border-block-start: 0;
+}
+
+@media (hover: hover) {
+  .dis-cal-agenda-item:hover {
+    background: color-mix(in srgb, var(--dis-kind) 10%, var(--canon-card));
+  }
+}
+
+.dis-cal-agenda-item:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: -2px;
+}
+
+.dis-cal-agenda-time {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-cal-agenda-body {
+  font-size: var(--canon-text-subheadline);
+  font-weight: 600;
+}
+
+.dis-cal-agenda-loc {
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-footnote);
+}
+
+.dis-cal-agenda-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  color: var(--canon-muted-foreground);
+  font-size: var(--canon-text-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-cal-agenda-counts > span {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}

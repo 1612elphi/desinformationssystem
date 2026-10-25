@@ -1,0 +1,105 @@
+:where([data-kind="rat"]) {
+  --dis-kind: var(--canon-primary);
+}
+
+:where([data-kind="aus"]) {
+  --dis-kind: var(--dis-yes);
+}
+
+:where([data-kind="ort"]) {
+  --dis-kind: var(--canon-foreground);
+}
+
+:where([data-kind="other"]) {
+  --dis-kind: var(--dis-abstain);
+}
+
+.dis-cal-chip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 4px;
+  align-items: center;
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: 1px 4px;
+  border: 0;
+  border-inline-start: 3px solid var(--dis-kind);
+  background: color-mix(in srgb, var(--dis-kind) 13%, var(--canon-card));
+  color: var(--canon-foreground);
+  font: inherit;
+  font-size: var(--canon-text-caption);
+  line-height: 1.35;
+  text-align: start;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .dis-cal-chip:hover {
+    background: color-mix(in srgb, var(--dis-kind) 28%, var(--canon-card));
+  }
+}
+
+.dis-cal-chip:focus-visible {
+  outline: var(--canon-frame) solid var(--canon-primary);
+  outline-offset: -2px;
+}
+
+.dis-cal-chip-time {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dis-cal-chip-time ~ .dis-cal-chip-name {
+  flex-basis: 100%;
+  order: 1;
+}
+
+.dis-cal-chip-name {
+  display: -webkit-box;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dis-cal-mark {
+  display: inline-flex;
+  flex: none;
+  color: var(--canon-muted-foreground);
+}
+
+.dis-cal-chip-name + .dis-cal-mark {
+  margin-inline-start: auto;
+}
+
+.dis-cal-chip[data-live] {
+  outline: var(--canon-hairline) solid var(--canon-primary);
+  outline-offset: -1px;
+}
+
+.dis-cal-pulse {
+  display: inline-block;
+  flex: none;
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  background: var(--canon-primary);
+  animation: dis-cal-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes dis-cal-pulse {
+  50% {
+    opacity: 0.25;
+    transform: scale(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dis-cal-pulse {
+    animation: none;
+  }
+}
