@@ -283,6 +283,7 @@ export default class StatistikTemplate extends Component<Signature> {
                       <span class="dis-bar-label"><PartyChip
                           @code={{p.code}}
                           @party={{p.code}}
+                          @afdChance={{1}}
                         /></span>
                       <CanonBar
                         class="dis-bar"

@@ -21,10 +21,16 @@ export const SubmitterChips: TOC<{ Args: { codes?: string[] } }> = <template>
   {{/if}}
 </template>;
 
-const PartyChip: TOC<{ Args: { code?: string; party?: string } }> = <template>
+const PartyChip: TOC<{
+  Args: { code?: string; party?: string; afdChance?: number };
+}> = <template>
   {{#let (meta @code) as |m|}}
     {{#if m}}
-      <Tag @mark={{m.mark}} title={{m.name}} {{afdNote @code}}>{{@code}}</Tag>
+      <Tag
+        @mark={{m.mark}}
+        title={{m.name}}
+        {{afdNote @code chance=@afdChance}}
+      >{{@code}}</Tag>
     {{else if @party}}
       <Tag>{{@party}}</Tag>
     {{/if}}
