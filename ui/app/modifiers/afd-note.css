@@ -1,0 +1,33 @@
+.dis-afd-note {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  color: var(--canon-primary);
+  font-size: var(--canon-text-caption);
+  font-style: italic;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: dis-afd-note-in 300ms 600ms both;
+}
+
+.dis-afd-note svg {
+  inline-size: 30px;
+  block-size: 26px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+@keyframes dis-afd-note-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dis-afd-note {
+    animation: none;
+  }
+}
